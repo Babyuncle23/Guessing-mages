@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guessing mages</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="loader" class="drum-animation"><span>No...</span> <span>NiiN...</span></div>
+        <img id="img" src="" alt="teeman kuva">
+        <div id="themeDisplay"></div>
+        <button id="btn">Ehto</button> <!-- Кнопка теперь последняя -->
+        <ol id="wordList"></ol>
+        <button id="btnDisplayWords">Sanasi</button>
+    </div>
+    <script>
+
+        const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi"];
+
+        const themes = [
+            "pantomiimi", "pantomiimi", "pantomiimi",
+            "piirtäminen", "piirtäminen", "piirtäminen",
+            "espanja",
+            "ilman verbejä",
+            "ilman substantiiveja",
+            "vastakohdan kautta",
+            "kaksi ehtoa",
+            "elokuva",
+            "perusvaihtoehto", 
+            "vapaavalintainen"];
+
+        const themeImages = {
+            "pantomiimi": "https://images.meme-arsenal.com/f015968d1cd2af0f67b3504e0bc95358.jpg",
+            "piirtäminen": "https://static.boredpanda.com/blog/wp-content/uploads/2019/09/guy-draws-his-dog-badly-doodles-jay-cartner-7-5d70b3c5d5a64__700.jpg",
+            "espanja": "https://i.imgflip.com/698jki.jpg",
+            "ilman verbejä": "pictures/no_verbs.jpg",
+            "ilman substantiiveja": "pictures/no_nouns.jpg",
+            "vastakohdan kautta": "pictures/opposite.png",
+            "kaksi ehtoa": "pictures/2_options.jpg",
+            "elokuva": "pictures/movies_rock.jpg",
+            "perusvaihtoehto": "pictures/basic.jpg",
+            "vapaavalintainen": "pictures/freeoption.png"
+        };
+
+        const themeSounds = {
+            "pantomiimi": "",
+            "piirtäminen": "https://static.wikia.nocookie.net/soundeffects/images/3/3b/Unknown_Crayon_Drawing_Sound.ogg/revision/latest?cb=20231030180148",
+            "espanja": "",
+            "ilman verbejä": "",
+            "ilman substantiiveja": "",
+            "vastakohdan kautta": "",
+            "kaksi ehtoa": "https://static.wikia.nocookie.net/soundeffects/images/0/07/Bruh_Sound_Effect.ogg/revision/latest?cb=20240412094905",
+            "elokuva": "https://static.wikia.nocookie.net/soundeffects/images/a/a9/Wilhelm_Scream_1.ogg/revision/latest?cb=20191210223727",
+            "perusvaihtoehto": "",
+            "vapaavalintainen": ""
+        };
+
+        const btn = document.getElementById("btn");
+        const themeDisplay = document.getElementById("themeDisplay");
+        const themeImage = document.getElementById("img");
+        const loader = document.getElementById("loader");
+        const btnDisplayWords = document.getElementById("btnDisplayWords");
+        const container = document.querySelector(".container");
+        const wordList = document.getElementById("wordList")
+        
+        // Общий звук клика
+        const flipSound = new Audio("sounds/freesound_community-flipcard-91468.mp3");
+        const drumRoll = new Audio("https://static.wikia.nocookie.net/soundeffects/images/f/f1/Hollywoodedge%2C_Snare_Drum_Roll_End_CRT042801.ogg/revision/latest?cb=20200517111758");
+
+        const randomizeTheme = () => {
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            btnDisplayWords.style.display = "none"
+            
+            themeDisplay.textContent = "";
+            themeImage.style.display = "none";
+            loader.style.display = "block"; 
+
+            drumRoll.currentTime = 3;
+            drumRoll.play();
+
+            wordList.style.display = "none";
+
+            setTimeout(() => {
+                loader.style.display = "none";
+
+                const nyt = document.createElement('div');
+                nyt.className = 'flash-now';
+                nyt.textContent = 'NYT!';
+                document.querySelector('.container').appendChild(nyt);
+
+                if (navigator.vibrate) navigator.vibrate(100);
+
+                setTimeout(() => {
+                    nyt.remove(); 
+                    
+                    const randomIndex = Math.floor(Math.random() * themes.length);
+                    const randomTheme = themes[randomIndex];
+
+                    // TÄMÄ RIVI PUUTTUI: asetetaan teksti näkyviin
+                    themeDisplay.textContent = randomTheme;
+
+                const imageUrl = themeImages[randomTheme];
+                const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+
+                if (imageUrl && imageUrl !== "") {
+                    themeImage.src = imageUrl;
+                    themeImage.style.display = "block";
+                    // Убираем все marginTop, которые мы добавляли вручную
+                    themeDisplay.style.marginTop = isLandscape ? "0" : "20px";
+                } else {
+                    themeImage.style.display = "none";
+                    themeDisplay.style.marginTop = "0";
+                }
+
+                    const soundUrl = themeSounds[randomTheme];
+                    if (soundUrl) {
+                        const themeAudio = new Audio(soundUrl);
+                        themeAudio.play();
+                    }
+
+                    btn.style.display = "none";
+                    btnDisplayWords.style.display = "block";
+                    themeImage.style.display = "block";
+                    themeDisplay.style.display = "block";
+                }, 400); 
+
+            }, 
+
+            2500); 
+        };
+
+        
+        let allWords = [];
+
+        fetch('words/kaikkisanat.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status}. Файл не найден по этому пути.`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                allWords = data.split(/[,\n]/).map(word => word.trim()).filter(word => word.length >= 3 && 
+            !forbiddenWords.includes(word.toLowerCase()) // НЕ в списке исключений
+        );
+                console.log("Успех! Слов загружено:", allWords.length);
+            })
+            .catch(err => {
+                console.error("Детали ошибки:", err.message);
+            });
+
+        
+        let commonWords = []; //ссылка на оригинал в контент 
+
+        fetch('words/yleisetsanat.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Ошибка: ${response.status}. Файл не найден по этому пути.`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                // ИСПРАВЛЕНО: записываем в commonWords
+                commonWords = data.split(/[,\n]/).map(word => word.trim()).filter(word => word.length >= 3 && 
+            !forbiddenWords.includes(word.toLowerCase()) // НЕ в списке исключений
+        );
+                console.log("Успех! Общих слов загружено:", commonWords.length);
+            })
+            .catch(err => {
+                console.error("Детали ошибки:", err.message);
+            });
+
+
+        // Функция для того, чтобы сделать первую букву заглавной
+        const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+
+        const switchToWords = () => {
+            flipSound.currentTime = 0.3;
+            flipSound.play();
+
+            const selectedWords = [];
+            const usedFirstLetters = new Set();
+
+        // 1. Берем ОДНО слово из allWords, форматируем и УДАЛЯЕМ
+        if (allWords.length > 0) {
+            const randomIndex = Math.floor(Math.random() * allWords.length);
+            let word = allWords[randomIndex];
+            
+            // Делаем заглавную букву, так как в файле её нет
+            word = capitalize(word);
+            
+            selectedWords.push(word);
+            usedFirstLetters.add(word[0].toLowerCase());
+            
+            // Удаляем из массива навсегда
+            allWords.splice(randomIndex, 1);
+        }
+
+        // 2. Добираем ЧЕТЫРЕ слова из commonWords и УДАЛЯЕМ их
+        // Цикл работает, пока не наберем еще 4 слова (итого станет 5)
+        while (selectedWords.length < 5 && commonWords.length > 0) {
+            const randomIndex = Math.floor(Math.random() * commonWords.length);
+            const word = commonWords[randomIndex]; // Тут уже с большой, берем как есть
+            const firstLetter = word[0].toLowerCase();
+
+            // Проверяем на уникальность первой буквы
+            if (!usedFirstLetters.has(firstLetter)) {
+                selectedWords.push(word);
+                usedFirstLetters.add(firstLetter);
+                
+                // Удаляем из массива навсегда
+                commonWords.splice(randomIndex, 1);
+            } else {
+                // Если буква совпала, просто удаляем это слово, чтобы оно не мешало поиску
+                // или можно оставить (но тогда есть риск зациклиться, если букв мало)
+                commonWords.splice(randomIndex, 1);
+            }
+
+            // Если слов в базе осталось меньше, чем нам нужно выбрать, выходим из цикла
+            if (commonWords.length === 0) break;
+        }
+
+        // Перемешиваем (всего будет 5 слов)
+        selectedWords.sort(() => Math.random() - 0.5);
+
+        // Вывод в HTML
+        wordList.style.display = "block";
+        wordList.innerHTML = selectedWords.map(w => `<li>${w}</li>`).join('');
+
+        // Управление интерфейсом
+        btnDisplayWords.style.display = "none";
+        themeImage.style.display = "none";
+        themeDisplay.style.display = "none";
+        btn.style.display = "block";
+        btn.style.opacity = "1";
+        btn.disabled = false;
+    };
+
+
+
+        btn.addEventListener("click", randomizeTheme);
+        btnDisplayWords.addEventListener("click", switchToWords);
+
+        
+    </script>
+</body>
+</html>
+

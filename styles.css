@@ -1,0 +1,203 @@
+* {
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+body { 
+    font-family: 'Comfortaa', sans-serif;
+    background-color: greenyellow;
+    background-image: radial-gradient(#adff2f 1px, transparent 1px);
+    background-size: 20px 20px; /* Легкая сетка из точек */
+    min-height: 100svh; 
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin: 0;
+    padding: 10px; 
+    /*overflow: hidden;*/
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Центрируем контент по вертикали */
+    background: rgba(245, 245, 220, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Используем 90vh, чтобы дно ВСЕГДА было видно на компе */
+    height: 90vh; 
+    width: 100%;
+    max-width: 1000px; 
+    /* Умеренный паддинг, чтобы не выталкивать контент за пределы */
+    padding: 20px;
+    padding-bottom: 100px; /* Место под кнопку */
+    border-radius: 20px; 
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+button { 
+    width: calc(100% - 4rem); /* Ширина с учетом отступов контейнера */
+    max-width: 400px;
+    min-height: 60px;
+    padding: 15px 30px; 
+    cursor: pointer; 
+    border-radius: 15px; 
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+    box-shadow: 0 6px #1B5E20;
+    transition: all 0.2s ease;
+    
+    /* ФИКСАЦИЯ КНОПКИ */
+    position: absolute;
+    bottom: 40px;  
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0; /* Убираем авто-отступы */
+    z-index: 10;
+}
+
+#btn {
+    z-index: 100;
+}
+
+button:hover {
+    filter: brightness(1.1); /* Слегка подсвечивается при наведении */
+    box-shadow: 0 6px #1B5E20; /* Темная полоса снизу создает эффект толщины */
+}
+
+/* Эффект при нажатии (кнопка вдавливается) */
+button:active {
+    box-shadow: 0 2px #1B5E20;
+    transform: translateX(-50%) translateY(4px);
+}
+
+#themeDisplay { 
+    font-size: clamp(24px, 6vw, 40px);
+    font-weight: bold; 
+    color: #222;
+    transition: all 0.3s ease;
+    margin: 10px 0; /* Минимальный отступ */
+}
+
+#img { 
+    max-width: 80%; 
+    max-height: 45vh; 
+    display: none; 
+    border-radius: 15px; 
+    object-fit: contain;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border: 5px solid white;
+    margin: 0; /* Убираем лишние margin, за центровку отвечает container */
+}
+
+@media (max-width: 600px) {
+    .container {
+        /* Меняем 100svh на 95svh, чтобы снизу и сверху было видно дно */
+        height: 95svh; 
+        width: 100%;
+        /* Возвращаем скругление углов! */
+        border-radius: 20px; 
+        padding-bottom: 110px;
+    }
+    #img {
+        max-height: 40vh; /* Немного прижмем картинку, чтобы точно влезло дно */
+    }
+}
+
+.loading {
+    color: #888;
+    font-style: italic;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+.drum-animation {
+    display: none;
+    font-size: 40px;
+    font-weight: bold;
+    color: #2E7D32;
+    margin: auto;
+}
+
+.drum-animation span {
+    display: inline-block;
+    margin: 0 10px;
+    animation: bounce 0.3s ease-in-out infinite alternate;
+}
+
+.drum-animation span:last-child {
+    animation-delay: 0.15s; /* Второе слово прыгает чуть позже */
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-30px); }
+}
+
+.flash-now {
+    font-size: 80px;
+    color: #FF5722;
+    font-weight: 900;
+    position: absolute;
+    /* Измените top с 50% на 25% или 30% */
+    top: 45%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    /* Добавим небольшое свечение для эффекта */
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+#themeDisplay:not(:empty) {
+    animation: fadeInScale 0.4s ease-out forwards;
+}
+
+#wordList {
+    list-style-position: outside; /* Чтобы маркеры (цифры) были внутри контейнера */
+    font-size: clamp(1.5rem, 2.5vw, 2.8rem);
+    line-height: 2; /* Увеличит расстояние между строками */
+    text-align: left;    
+}
+
+
+@media (orientation: landscape) and (max-height: 500px) {
+    body { 
+        padding: 5px; /* Минимальный отступ боком */
+    }
+    .container {
+        flex-direction: row; 
+        justify-content: center; 
+        height: 95svh; /* Тоже чуть меньше 100 */
+        width: 98vw;
+        border-radius: 15px; /* Закругляем углы боком */
+        gap: 5vw; 
+        padding: 10px 20px 70px 20px; 
+    }
+    #img {
+        max-height: 60vh;
+        margin: 0;
+    }
+    #themeDisplay {
+        margin: 0;
+        text-align: left;
+    }
+    button {
+        bottom: 15px; 
+    }
+}
