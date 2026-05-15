@@ -1,209 +1,297 @@
-<!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guessing mages</title>
+    <title>Guessing Mages</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div id="loader" class="drum-animation"><span>No...</span> <span>NiiN...</span></div>
-        <img id="img" src="" alt="teeman kuva">
-        <div id="themeDisplay"></div>
-        <button id="btn">Ehto</button> <!-- Кнопка теперь последняя -->
-        <ol id="wordList"></ol>
-        <button id="btnDisplayWords">Sanasi</button>
-    </div>
-    <script>
 
-const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi"];
+<!-- ALKU- JA ASETUSMODAALI -->
+<div id="characterModal" class="modal-overlay">
+    <div class="modal-content" style="max-height: 85vh; width: 90%; max-width: 650px; overflow-y: auto;">
 
-const themes = [
-    "pantomiimi", "pantomiimi", "pantomiimi",
-    "piirtäminen", "piirtäminen", "piirtäminen",
-    "espanja", "ilman verbejä", "ilman substantiiveja",
-    "vastakohdan kautta", "kaksi ehtoa", "elokuva",
-    "perusvaihtoehto", "vapaavalintainen"
-];
+        <h2>🧙‍♂️ Guessing Mages</h2>
 
-const themeImages = {
-    "pantomiimi": "pictures/pantomiimi.jpg",
-    "piirtäminen": "pictures/doggo.jpg",
-    "espanja": "pictures/duo.jpg",
-    "ilman verbejä": "pictures/no_verbs.jpg",
-    "ilman substantiiveja": "pictures/no_nouns.jpg",
-    "vastakohdan kautta": "pictures/opposite.png",
-    "kaksi ehtoa": "pictures/2_options.jpg",
-    "elokuva": "pictures/movies_rock.jpg",
-    "perusvaihtoehto": "pictures/basic.jpg",
-    "vapaavalintainen": "pictures/freeoption.png"
-};
+        <!-- RULES -->
+        <div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
+            <h3>📜 Säännöt</h3>
+            <p style="margin-bottom: 15px;">
+                Te kaksi maagia otatte mittaa toisistanne! Pelaatte vuorotellen, ja joka kierroksella teille arvotaan <strong>teema</strong>, joka määrää miten sanoja saa selittää.
+            </p>
+            <ul style="list-style: none; margin-left: 0;">
+                <li style="margin-bottom: 8px;"><strong>ᛏ Aloittakaa kierros:</strong> Järjestelmä arpoo teille uuden teeman.</li>
+                <li style="margin-bottom: 8px;"><strong>⚡ Käyttäkää loitsuja:</strong> Hahmoilla on ainutlaatuisia kykyjä.</li>
+                <li style="margin-bottom: 8px;"><strong>👁️‍🗨️ Vain selittäjä näkee sanat:</strong> Valitkaa listalta yksi sana ja selittäkää.</li>
+                <li style="margin-bottom: 8px;"><strong>⚜️ Kerätkää pisteitä:</strong> Oikea arvaus = 1 piste!</li>
+            </ul>
+        </div>
 
-// Рекомендуется скачать эти файлы локально в папку sounds/
-const themeSounds = {
-    "pantomiimi": "",
-    "piirtäminen": "sounds/Unknown_Crayon_Drawing_Sound.ogg",
-    "espanja": "",
-    "ilman verbejä": "",
-    "ilman substantiiveja": "",
-    "vastakohdan kautta": "",
-    "kaksi ehtoa": "sounds/Bruh_Sound_Effect.ogg",
-    "elokuva": "sounds/Wilhelm_Scream_1.ogg",
-    "perusvaihtoehto": "",
-    "vapaavalintainen": ""
-};
+        <!-- SETTINGS -->
+        <h3>⚙️ Asetukset</h3>
+        <div style="margin-bottom: 20px;">
+            <label for="roundSelect" style="font-weight:bold; display:block; margin-bottom:8px;">Pelin pituus</label>
+            <select id="roundSelect" style="padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; font-family: 'Comfortaa'; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
+                <option value="5">5 kierrosta (Nopea matsi)</option>
+                <option value="7" selected>7 kierrosta (Suositus)</option>
+                <option value="10">10 kierrosta (Taktinen peli)</option>
+                <option value="15">15 kierrosta</option>
+                <option value="20">20 kierrosta (Maraton)</option>
+            </select>
+        </div>
 
-const btn = document.getElementById("btn");
-const themeDisplay = document.getElementById("themeDisplay");
-const themeImage = document.getElementById("img");
-const loader = document.getElementById("loader");
-const btnDisplayWords = document.getElementById("btnDisplayWords");
-const container = document.querySelector(".container");
-const wordList = document.getElementById("wordList");
-
-const flipSound = new Audio("sounds/freesound_community-flipcard-91468.mp3");
-const drumRoll = new Audio("sounds/Hollywoodedge,_Snare_Drum_Roll_End_CRT042801.ogg");
-
-const randomizeTheme = () => {
-    btn.disabled = true;
-    btn.style.opacity = "0.7";
-    btnDisplayWords.style.display = "none";
-    
-    themeDisplay.textContent = "";
-    themeDisplay.style.display = "block"; // Возвращаем видимость текстового блока
-    themeImage.style.display = "none";
-    loader.style.display = "block"; 
-
-    drumRoll.currentTime = 3;
-    drumRoll.play().catch(e => console.log("Sound autoplay blocked"));
-
-    wordList.style.display = "none";
-
-    setTimeout(() => {
-        loader.style.display = "none";
-
-        const nyt = document.createElement('div');
-        nyt.className = 'flash-now';
-        nyt.textContent = 'NYT!';
-        container.appendChild(nyt);
-
-        if (navigator.vibrate) navigator.vibrate(100);
-
-        setTimeout(() => {
-            nyt.remove(); 
+        <!-- MUKAUTUSVALINNAT -->
+        <div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
+            <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Pelitilan mukautus:</p>
             
-            const randomIndex = Math.floor(Math.random() * themes.length);
-            const randomTheme = themes[randomIndex];
+            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; font-size: 14px;">
+                <div>
+                    <strong>Famili friendly+</strong><br>
+                </div>
+                <input type="checkbox" id="sfwModeCheckbox" checked style="cursor: pointer; width: 18px; height: 18px;">
+            </label>
 
-            themeDisplay.textContent = randomTheme;
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 14px;">
+                <div>
+                    <strong>Poista espanja</strong><br>
+                    <small style="color: var(--text-muted);">Estää espanja-teeman</small>
+                </div>
+                <input type="checkbox" id="disableSpanishCheckbox" style="cursor: pointer; width: 18px; height: 18px;">
+            </label>
+        </div>
 
-            const imageUrl = themeImages[randomTheme];
-            const isLandscape = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+        <!-- HAHMOVALINTAKORTIT -->
+        <h3 style="margin-bottom: 5px;">🧙‍♀️ Valitkaa hahmot</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+            Valitkaa kaksi eri hahmoa. Ensimmäiseksi valittu aloittaa pelin!
+        </p>
+        <div class="character-options">
+            <div class="char-card" data-char="Muodonmuuttaja">
+                <img src="pictures/Dog_vs._Werewolf.jpg" alt="Muodonmuuttaja">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Muodonmuuttaja</p>
+                <small style="font-size: 11px; color: var(--text-muted);">Muokkaa sanalistoja ja matkii vastustajan kykyjä</small>
+            </div>
+            <div class="char-card" data-char="Kirouksenlankettaja">
+                <img src="pictures/oar2.jpg" alt="Kirouksenlankettaja">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Kirouksenlankettaja</p>
+                <small style="font-size: 11px; color: var(--text-muted);">Vaikeuttaa vastustajan peliä kirouksilla</small>
+            </div>
+            <div class="char-card" data-char="Yrttitarhuri">
+                <img src="pictures/worgen_druid_by_direbrow_deznfqq-fullview.jpg" alt="Yrttitarhuri">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Yrttitarhuri</p>
+                <small style="font-size: 11px; color: var(--text-muted);">Suojautuu ja ansaitsee lisävuoroja</small>
+            </div>
+        </div>
 
-            // ИСПРАВЛЕНО: Управление отображением картинки перенесено строго сюда
-            if (imageUrl && imageUrl !== "") {
-                themeImage.src = imageUrl;
-                themeImage.style.display = "block";
-                themeDisplay.style.marginTop = isLandscape ? "0" : "20px";
-            } else {
-                themeImage.style.display = "none";
-                themeDisplay.style.marginTop = "0";
-            }
+        <!-- ALOITUSPAINIKE -->
+        <div style="margin-bottom: 20px;">
+            <button id="startGameBtn" class="start-game-btn" disabled style="background: #5b21b6; color: #fff;">VALITKAA 2 HAHMOA</button>
+        </div>
 
-            const soundUrl = themeSounds[randomTheme];
-            if (soundUrl) {
-                const themeAudio = new Audio(soundUrl);
-                themeAudio.play().catch(e => console.log("Sound blocked"));
-            }
+        <!-- NOPPIEN HEITTOALUE -->
+<div id="diceBlock" style="display: none; margin: 15px 0; text-align: center;">
+    <h3 style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 5px; font-size: 1.3rem; letter-spacing: 1px;">
+        🎲 MAGIAN MÄÄRITYS
+    </h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 25px;">
+        Heittäkää kumpikin oma noppanne määrittääksenne oman mana-tasonne tähän peliin.
+    </p>
+    
+            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+                <!-- Pelaaja 1 Laatikko -->
+                <div id="p1DiceCard" class="dice-holder-card">
+                    <p id="p1DiceName" class="dice-player-title">Pelaaja 1</p>
+                    <div class="dice-box-wrapper">
+                        <!-- Tähän elementtiin ajetaan joko IMG tai unicode-merkki -->
+                        <div id="p1DiceVisual" class="dice-graphic">?</div>
+                    </div>
+                    <p id="p1DiceResultText" class="dice-result-subtext"></p>
+                    <button id="p1DiceBtn" class="dice-action-btn">Heitä noppaa</button>
+                </div>
 
-            btn.style.display = "none";
-            btnDisplayWords.style.display = "block";
-        }, 400); 
+                <!-- Pelaaja 2 Laatikko -->
+                <div id="p2DiceCard" class="dice-holder-card" style="opacity: 0.4;">
+                    <p id="p2DiceName" class="dice-player-title">Pelaaja 2</p>
+                    <div class="dice-box-wrapper">
+                        <div id="p2DiceVisual" class="dice-graphic">?</div>
+                    </div>
+                    <p id="p2DiceResultText" class="dice-result-subtext"></p>
+                    <button id="p2DiceBtn" class="dice-action-btn" disabled>Heitä noppaa</button>
+                </div>
+            </div>
+            
+            <p id="diceStatusText" style="font-size: 14px; color: var(--gold); font-weight: bold; margin-bottom: 15px; min-height: 20px;"></p>
+            
+            <button id="confirmDiceMatchBtn" class="start-game-btn" style="display: none; width: auto; padding: 12px 35px; margin: 15px auto 0 auto; background: linear-gradient(135deg, #4c1d95, #6d28d9); border: 1px solid var(--gold); color: #fff;">
+                Aloittakaa peli maagisilla voimilla ⚔️
+            </button>
+        </div>
 
-    }, 2500); 
-};
+        <!-- === HAHMOKUVAUKSET === -->
+        <div class="spell-rules" style="margin-top: 25px; background: rgba(0,0,0,0.25);">
+            <h3>✨ Hahmokuvaukset</h3>
+            <p style="margin-bottom: 8px;">
+                🐺 <strong>Muodonmuuttaja</strong> — Korttitulva laajentaa sanalistaa. Sanametamorfoosi vaihtaa kaikki sanat vaikeiksi (½ pistettä). Passiivi: 35% heijastus/kopiointi.
+            </p>
+            <p style="margin-bottom: 8px;">
+                💀 <strong>Kirouksenlankettaja</strong> — Korttinälkä kutistaa vastustajan listan. Sanakaaos korvaa sanat vaikeilla. Passiivi: 66.6% loitsun palautus lopussa.
+            </p>
+            <p style="margin-bottom: 0;">
+                🌿 <strong>Yrttitarhuri</strong> — Kasvupurkaus antaa lisävuoron onnistuessa. Passiivi: 60% automaattinen kirouksen torjunta.
+            </p>
+        </div>
 
-let allWords = [];
-let commonWords = [];
+    </div>
+</div>
 
-const parseWords = (text) => {
-    return text.split(/[,\n]/)
-        .map(word => word.trim())
-        .filter(word => word.length >= 3 && !forbiddenWords.includes(word.toLowerCase()));
-};
+<!-- VARSINAINEN PELIALUE -->
+<div class="container" id="gameContainer">
+    <div id="playerTurn" class="player-turn-container" style="display: none;">
+        <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
+        <div class="player-block">
+            <div class="avatar-wrapper">
+                <img id="currentAvatar" src="" alt="Avatar">
+                <div id="debuffIcons" class="debuff-icons"></div>
+            </div>
+            <div>
+                <span id="currentName"></span>
+                <div id="scoreDisplay" class="score-display">Pisteet: 0 - 0</div>
+            </div>
+        </div>
+    </div>
 
-fetch('words/kaikkisanat.txt')
-    .then(res => res.ok ? res.text() : Promise.reject(res.status))
-    .then(data => {
-        allWords = parseWords(data);
-        console.log("Sanoja ladattu (all):", allWords.length);
-    })
-    .catch(err => console.error("Virhe ladattaessa kaikkisanat:", err));
+    <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
+    <div id="themeBlock">
+        <div id="themeDisplay" class="theme-text"></div>
+        <img id="img" src="" alt="Theme Image" style="display: none;">
+    </div>
 
-fetch('words/yleisetsanat.txt')
-    .then(res => res.ok ? res.text() : Promise.reject(res.status))
-    .then(data => {
-        commonWords = parseWords(data);
-        console.log("Sanoja ladattu (common):", commonWords.length);
-    })
-    .catch(err => console.error("Virhe ladattaessa yleisetsanat:", err));
+    <div id="loader" class="drum-animation" style="display: none;"><span>Noniin...</span></div>
 
-const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    <div id="customWordBlock" style="display: none; margin: 15px 0;">
+        <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
+    </div>
 
-const switchToWords = () => {
-    flipSound.currentTime = 0.3;
-    flipSound.play().catch(e => console.log("Sound blocked"));
+    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button id="spellBtn1" class="spell-btn"></button>
+        <button id="spellBtn2" class="spell-btn"></button>
+    </div>
 
-    const selectedWords = [];
-    const usedFirstLetters = new Set();
+    <!-- SANALISTA JA OHJEET -->
+    <ol id="wordList" style="display: none;"></ol>
+    <div id="ruleInstruction" class="rule-instruction"></div>
 
-    // 1. Первое слово из allWords
-    if (allWords.length > 0) {
-        const randomIndex = Math.floor(Math.random() * allWords.length);
-        let word = capitalize(allWords[randomIndex]);
+    <!-- KEHITTÄJÄN TESTIVALIKKO 
+    <div id="devTestMenu" style="margin: 15px 0; padding: 12px; border: 1px dashed var(--soft-border); border-radius: 8px; background: rgba(0,0,0,0.4);">
+        <p style="font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 8px;">🧙‍♂️ KEHITTÄJÄN TESTIVALIKKO:</p>
+        <select id="devThemeSelect" style="padding: 6px 10px; border-radius: 6px; font-family: 'Comfortaa'; width: 100%; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
+            <option value="RANDOM">-- Normaali satunnainen arvonta --</option>
+            <option value="pantomiimi">Pantomiimi</option>
+            <option value="piirtäminen">Piirtäminen</option>
+            <option value="espanja">Espanja</option>
+            <option value="ilman verbejä">Ilman verbejä</option>
+            <option value="ilman substantiiveja">Ilman substantiiveja</option>
+            <option value="vastakohdan kautta">Vastakohdan kautta</option>
+            <option value="kaksi ehtoa">Kaksi ehtoa</option>
+            <option value="elokuva">Elokuva</option>
+            <option value="perusvaihtoehto">Perusvaihtoehto</option>
+            <option value="vapaavalintainen">Vapaavalintainen</option>
+        </select>
+    </div> -->
+
+    <button id="btn">Aloita kierros</button>
+    <button id="btnDisplayWords" style="display: none;">Paljasta sanat selittäjälle</button>
+
+    <div id="roundControls" class="round-controls-block" style="display: none;">
+        <button id="btnGuessed" class="btn-success">Arvattu oikein (+1 piste)</button>
+        <button id="btnGiveUp" class="btn-danger">Luovutan vuoron</button>
+    </div>
+</div>
+
+<!-- KELLUVA PAINIKE (LOITSUKIRJA) -->
+<button id="spellHelpBtn" class="spell-help-floating-btn" title="Loitsukirja">📜</button>
+
+<div id="spellHelpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 480px; padding: 25px;">
+        <h2 style="font-family: 'Cinzel', serif; font-size: 1.4rem; margin-bottom: 15px;">📜 LOITSUKIRJA</h2>
         
-        selectedWords.push(word);
-        usedFirstLetters.add(word[0].toLowerCase());
-        allWords.splice(randomIndex, 1);
-    }
+        <div class="spell-rules" style="max-height: 65vh; overflow-y: auto; padding: 0; background: transparent; border: none;">
+            
+            <!-- MANANOPPA LAATIKKO -->
+            <div style="margin-bottom: 20px; padding: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(229, 193, 88, 0.15); border-radius: 10px;">
+                <p style="font-size: 13px; margin: 0; line-height: 1.4; color: #fdfbf7; text-align: left;">
+                    🎲 <strong>Mananoppa:</strong> Pelin alussa heittämänne noppa määrittää loitsujen määrän. Korkea tulos = +1 loitsu, matala = -1 loitsu.
+                </p>
+            </div>
 
-    // 2. ИСПРАВЛЕНО: Безопасный добор 4 слов без риска бесконечного цикла или пропуска элементов
-    let attempts = 0;
-    const maxAttempts = commonWords.length; // Чтобы не зациклиться, если база пуста
+            <!-- MUODONMUUTTAJA -->
+            <div style="text-align: left; margin-bottom: 20px;">
+                <h4 style="color: #9b59b6; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🐺 Muodonmuuttaja</h4>
+                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
+                    <li style="margin-bottom: 6px;">⏹️ <strong>Korttitulva:</strong> Kasvattaa listan 8 korttiin. Aktivoi ennen sanoja.</li>
+                    <li style="margin-bottom: 6px;">🔹 <strong>Sanametamorfoosi:</strong> Vaihtaa kaikki sanat uusiin. Arvaus = vain +0.5p.</li>
+                    <li style="margin-bottom: 6px;">🔀 <strong>Passiivi (35%):</strong> Kopiointi lisävuorosta tai kirouksen heijastus.</li>
+                </ul>
+            </div>
 
-    while (selectedWords.length < 5 && commonWords.length > 0 && attempts < maxAttempts) {
-        const randomIndex = Math.floor(Math.random() * commonWords.length);
-        const word = capitalize(commonWords[randomIndex]); 
-        const firstLetter = word[0].toLowerCase();
+            <!-- KIROUKSENLANKETTAJA -->
+            <div style="text-align: left; margin-bottom: 20px;">
+                <h4 style="color: #e74c3c; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">💀 Kirouksenlankettaja</h4>
+                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
+                    <li style="margin-bottom: 6px;">📉 <strong>Korttinälkä:</strong> Vastustajan lista kutistuu 2 korttiin.</li>
+                    <li style="margin-bottom: 6px;">☿ <strong>Sanakaaos:</strong> Korvaa kaikki sanat todella vaikeilla.</li>
+                    <li style="margin-bottom: 6px;">🔮 <strong>Passiivi (66.6%):</strong> Toiseksi viimeisellä kierroksella +1 loitsu.</li>
+                </ul>
+            </div>
 
-        if (!usedFirstLetters.has(firstLetter)) {
-            selectedWords.push(word);
-            usedFirstLetters.add(firstLetter);
-            commonWords.splice(randomIndex, 1);
-        } else {
-            // Если буква уже занята, удаляем слово, чтобы искать дальше, но увеличиваем счетчик попыток
-            commonWords.splice(randomIndex, 1);
-        }
-        attempts++;
-    }
+            <!-- YRTTITARHURI -->
+            <div style="text-align: left; margin-bottom: 20px;">
+                <h4 style="color: #27ae60; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🌿 Yrttitarhuri</h4>
+                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
+                    <li style="margin-bottom: 6px;">🛡️ <strong>Luonnon suojelu (60%):</strong> Torjuu kiroukset automaattisesti vuoron alussa.</li>
+                    <li style="margin-bottom: 6px;">🌱 <strong>Kasvupurkaus:</strong> Onnistunut arvaus = lisävuoro. Aktivoi ennen sanoja.</li>
+                </ul>
+            </div>
 
-    selectedWords.sort(() => Math.random() - 0.5);
+        </div>
+        
+        <!-- SULKUPAINIKE PUNAISELLA TYYLILLÄ -->
+        <button id="closeSpellHelpBtn" class="btn-danger" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 12px; margin-top: 10px;">
+            Sulkekaa kirja
+        </button>
+    </div>
+</div>
+<script src="js\utils.js"></script>
+<script src="js\audio.js"></script>
+<script src="js\themes.js"></script>
+<script src="js\words.js"></script>
+<script src="js\state.js"></script>
+<script src="js\ui.js"></script>
+<script src="js\players.js"></script>
+<script src="js\spells.js"></script>
+<script src="js\rounds.js"></script>
+<script src="js\main.js"></script>
 
-    wordList.style.display = "block";
-    wordList.innerHTML = selectedWords.map(w => `<li>${w}</li>`).join('');
+<script>
 
-    btnDisplayWords.style.display = "none";
-    themeImage.style.display = "none";
-    themeDisplay.style.display = "none";
-    btn.style.display = "block";
-    btn.style.opacity = "1";
-    btn.disabled = false;
-};
 
-btn.addEventListener("click", randomizeTheme);
-btnDisplayWords.addEventListener("click", switchToWords);
-    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
 </body>
 </html>
 

@@ -1,203 +1,745 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Cinzel:wght@400;700&display=swap');
+
+:root {
+    --dark-bg: #0f0b12; /* Pehmennetty, vähemmän sähköinen tausta */
+    --card-bg: #1a1424; /* Lämmin, loitsukirjamainen tumma violetti/ruskea */
+    --gold: #e5c158;    /* Pehmeämpi lampunkeltainen / vanha kulta */
+    --gold-glow: rgba(229, 193, 88, 0.2);
+    --gold-hover: #cbfa94;
+    --text-light: #fdfbf7; /* Hieman taitettu luonnonvalkoinen, ei rasita silmiä */
+    --text-muted: #c2b4d6; /* Pehmeä lilahtava harmaa teksteille */
+    --success: #27ae60;   /* Rauhallisempi vihreä */
+    --danger: #c0392b;    /* Maltillisempi punainen */
+    --soft-border: rgba(229, 193, 88, 0.15);
+}
+
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Comfortaa', sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
-
-body { 
-    font-family: 'Comfortaa', sans-serif;
-    background-color: greenyellow;
-    background-image: radial-gradient(#adff2f 1px, transparent 1px);
-    background-size: 20px 20px; /* Легкая сетка из точек */
-    min-height: 100svh; 
+body {
+    background-color: var(--dark-bg);
+    background-image: radial-gradient(circle at 50% 30%, #1e152a 0%, var(--dark-bg) 70%);
+    color: var(--text-light);
+    min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center; 
-    margin: 0;
-    padding: 10px; 
-    /*overflow: hidden;*/
+    align-items: center;
+    padding: 15px;
+    line-height: 1.5;
 }
 
+/* --- TÄRKEIDEN KOHTIEN KOROSTUKSET --- */
+strong, b {
+    color: var(--gold);
+    font-weight: 700;
+    border-bottom: 1px dashed var(--gold); /* Avainsanojen hienovaraisella alleviivauksella haettu lampitunnelmaa */
+    padding-bottom: 1px;
+}
+
+/* --- PELIKONTENNERI --- */
 .container {
+    background: var(--card-bg);
+    border: 1px solid var(--gold); /* Ohuempi, elegantimpi reuna */
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- PELAAJATIEDOT JA KIERROSNÄYTTÖ --- */
+.player-turn-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Центрируем контент по вертикали */
-    background: rgba(245, 245, 220, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    /* Используем 90vh, чтобы дно ВСЕГДА было видно на компе */
-    height: 90vh; 
-    width: 100%;
-    max-width: 1000px; 
-    /* Умеренный паддинг, чтобы не выталкивать контент за пределы */
-    padding: 20px;
-    padding-bottom: 100px; /* Место под кнопку */
-    border-radius: 20px; 
+    gap: 12px;
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--soft-border);
+}
+
+.round-counter {
+    font-size: 0.95rem;
+    color: var(--gold);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-decoration: underline; /* Selkeä alleviivaus kierrosluvulle */
+}
+
+.player-block {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar-wrapper {
     position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    text-align: center;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
 }
 
-button { 
-    width: calc(100% - 4rem); /* Ширина с учетом отступов контейнера */
-    max-width: 400px;
-    min-height: 60px;
-    padding: 15px 30px; 
-    cursor: pointer; 
-    border-radius: 15px; 
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(to bottom, #4CAF50, #2E7D32);
-    box-shadow: 0 6px #1B5E20;
-    transition: all 0.2s ease;
-    
-    /* ФИКСАЦИЯ КНОПКИ */
+.avatar-wrapper img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 10px var(--gold-glow);
+    object-fit: cover;
+    object-position: center;
+}
+
+.debuff-icons {
     position: absolute;
-    bottom: 40px;  
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0; /* Убираем авто-отступы */
-    z-index: 10;
+    bottom: -5px;
+    right: -5px;
+    display: flex;
+    gap: 2px;
 }
 
-#btn {
-    z-index: 100;
+.debuff-badge {
+    background: #0b0711;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    border: 1px solid var(--gold);
 }
+.debuff-badge.buff { background: #2c3e50; }
+.debuff-badge.buff-druid { background: #143319; }
 
-button:hover {
-    filter: brightness(1.1); /* Слегка подсвечивается при наведении */
-    box-shadow: 0 6px #1B5E20; /* Темная полоса снизу создает эффект толщины */
-}
-
-/* Эффект при нажатии (кнопка вдавливается) */
-button:active {
-    box-shadow: 0 2px #1B5E20;
-    transform: translateX(-50%) translateY(4px);
-}
-
-#themeDisplay { 
-    font-size: clamp(24px, 6vw, 40px);
-    font-weight: bold; 
-    color: #222;
-    transition: all 0.3s ease;
-    margin: 10px 0; /* Минимальный отступ */
-}
-
-#img { 
-    max-width: 80%; 
-    max-height: 45vh; 
-    display: none; 
-    border-radius: 15px; 
-    object-fit: contain;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    border: 5px solid white;
-    margin: 0; /* Убираем лишние margin, за центровку отвечает container */
-}
-
-@media (max-width: 600px) {
-    .container {
-        /* Меняем 100svh на 95svh, чтобы снизу и сверху было видно дно */
-        height: 95svh; 
-        width: 100%;
-        /* Возвращаем скругление углов! */
-        border-radius: 20px; 
-        padding-bottom: 110px;
-    }
-    #img {
-        max-height: 40vh; /* Немного прижмем картинку, чтобы точно влезло дно */
-    }
-}
-
-.loading {
-    color: #888;
-    font-style: italic;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-}
-
-.drum-animation {
-    display: none;
-    font-size: 40px;
+#currentName {
+    font-size: 1.25rem;
     font-weight: bold;
-    color: #2E7D32;
-    margin: auto;
+    letter-spacing: 0.5px;
 }
 
-.drum-animation span {
+.score-display {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 8px;
+    padding-top: 6px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Estää tekstin menemisen rullalle pienillä näytöillä */
+}
+
+.score-display strong {
+    border-bottom: none !important; /* Poistetaan alleviivaus pelkistä pistenumeroista */
+    color: var(--gold);
+}
+
+/* --- TEEMAT JA KUVAT --- */
+.theme-text {
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: var(--gold);
+    margin: 15px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Tuki sille, että teema näkyy pienenä yläreunassa, kun sanat ovat auki */
+.container.words-active .theme-text {
+    font-size: 1.1rem;
+    margin: 5px 0 15px 0;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 12px;
+    border-radius: 8px;
     display: inline-block;
-    margin: 0 10px;
-    animation: bounce 0.3s ease-in-out infinite alternate;
+    border: 1px dashed var(--soft-border);
 }
 
-.drum-animation span:last-child {
-    animation-delay: 0.15s; /* Второе слово прыгает чуть позже */
+#img {
+    width: 100%;
+    max-height: 220px; 
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    border: 1px solid var(--soft-border);
+    margin-bottom: 20px;
 }
 
-@keyframes bounce {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-30px); }
+/* Kun sanat ovat auki, teemakuva pienenee siististi ylälaitaan viemästä tilaa */
+.container.words-active #img {
+    max-height: 100px;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+/* --- PAINIKKEET (MOBIILIKORJATTU) --- */
+button, .spell-btn, .start-game-btn {
+    background: linear-gradient(135deg, #d4af37 0%, #b89324 100%);
+    color: #0f0b12;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s;
+    width: 100%;
+    margin-top: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+button:disabled, .spell-btn:disabled {
+    background: #251e30 !important;
+    color: #554866 !important;
+    border: 1px solid #332942 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.btn-success { background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%) !important; color: #fff; }
+.btn-danger { background: linear-gradient(135deg, #c0392b 0%, #962d22 100%) !important; color: #fff; }
+
+.round-controls-block {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* --- SANALISTA JA OHJEET --- */
+#wordList {
+    list-style: none;
+    text-align: left;
+    margin: 20px 0;
+}
+
+#wordList li {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 1.1rem; /* Isompi ja luettavampi */
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    color: #e2daf0;
+}
+
+#wordList li.selected-word {
+    background: rgba(229, 193, 88, 0.12) !important;
+    border: 1px solid var(--gold) !important;
+    box-shadow: 0 0 12px var(--gold-glow);
+    color: #fff;
+    font-weight: bold;
+}
+
+.rule-instruction {
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 18px 0;
+    padding: 10px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 8px;
+}
+
+/* --- MODAALIT JA ALKUNÄYTTÖ (HAHMOVALINTA) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 3, 8, 0.9);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 15px;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--gold);
+    border-radius: 16px;
+    padding: 30px;
+    width: 100%;
+    max-width: 650px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+}
+
+.modal-content h2 {
+    color: var(--gold);
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    text-align: center;
+    font-family: 'Cinzel', serif; /* Teatraalinen henki otsikoissa */
+    border-bottom: 2px solid var(--soft-border);
+    padding-bottom: 10px;
+}
+
+.character-options {
+    display: flex !important;
+    gap: 15px !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important; 
+    margin: 25px 0 !important;
+    width: 100% !important;
+}
+
+.character-options .char-card {
+    display: flex !important;
+    flex-direction: column !important; 
+    align-items: center !important;    
+    flex: 1 !important;
+    /* MUUTETTU: Poistettu liian tiukat min-width ja max-width rajoitukset */
+    min-width: 0 !important; 
+    width: 100% !important;
+    padding: 16px !important; /* Hieman enemmän ilmaa reunoille */
+    border-radius: 12px !important;
+    background: rgba(255,255,255,0.02) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    transition: all 0.25s ease !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+.character-options .char-card img {
+    width: 100% !important;
+    /* MUUTETTU: Tehty korkeudesta joustavampi suhteessa leveyteen */
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important; /* Pakottaa kuvan pysymään täydellisenä neliönä */
+    max-height: 140px !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+    margin-bottom: 12px !important;
+}
+
+.character-options .char-card p {
+    font-size: 0.95rem !important; /* Hieman luettavampi koko */
+    font-weight: bold !important;
+    color: #e2daf0 !important;
+    text-align: center !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px 0 !important;
+    width: 100% !important;
+    /* MUUTETTU: Sallitaan tekstin jakautua siististi kahdelle riville, jos se ei mahdu */
+    white-space: normal !important; 
+    word-break: break-word !important;
+}
+
+.character-options .char-card small {
+    display: block !important;
+    font-size: 0.8rem !important;
+    color: var(--text-muted) !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
+}
+
+/* Ensimmäisen pelaajan korostus */
+.char-card.selected-first {
+    border: 2px solid var(--gold) !important;
+    background: rgba(229, 193, 88, 0.1) !important;
+    box-shadow: 0 0 15px var(--gold-glow) !important;
+}
+
+/* Toisen pelaajan korostus */
+.char-card.selected-second {
+    border: 2px solid #9b59b6 !important;
+    background: rgba(155, 89, 182, 0.1) !important;
+    box-shadow: 0 0 15px rgba(155, 89, 182, 0.3) !important;
+}
+
+.spell-rules {
+    background: rgba(0,0,0,0.4);
+    padding: 18px;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border: 1px solid rgba(255,255,255,0.03);
+}
+
+.spell-rules h3 { 
+    color: var(--gold); 
+    margin-bottom: 10px; 
+    font-family: 'Cinzel', serif;
+}
+
+.spell-rules ul { 
+    margin-left: 20px; 
+    margin-bottom: 12px; 
+}
+
+.spell-rules li {
+    margin-bottom: 6px;
+}
+
+/* --- KELLUVA PAINIKE (OHJEKIRJA) --- */
+.spell-help-floating-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 50%;
+    font-size: 26px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 900;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    background: linear-gradient(135deg, #d4af37 0%, #b89324 100%);
+    margin: 0 !important;
+}
+
+/* --- RUMPUNÄYTTÖ JA ANIMAATIOT --- */
+.drum-animation {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--gold);
+    margin: 35px 0;
+    animation: pulse 1s infinite alternate;
 }
 
 .flash-now {
-    font-size: 80px;
-    color: #FF5722;
-    font-weight: 900;
     position: absolute;
-    /* Измените top с 50% на 25% или 30% */
-    top: 45%; 
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 10;
-    /* Добавим небольшое свечение для эффекта */
+    font-size: 4.5rem;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow: 0 0 25px rgba(0,0,0,0.8);
+    z-index: 100;
+    animation: zoomOut 0.4s ease-out forwards;
 }
 
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+/* --- MEDIAT JA TIETOKONE -HOVERIT --- */
+@media (hover: hover) {
+    button:hover:not(:disabled), .spell-btn:hover:not(:disabled), .start-game-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #f1d375 0%, #d4af37 100%);
+        box-shadow: 0 0 15px var(--gold-glow);
+        cursor: pointer;
+    }
+    .char-card:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+        cursor: pointer;
+    }
+    #wordList li:hover {
+        background: rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+    }
 }
 
-#themeDisplay:not(:empty) {
-    animation: fadeInScale 0.4s ease-out forwards;
+button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:active, .char-card:active {
+    transform: scale(0.97);
 }
 
-#wordList {
-    list-style-position: outside; /* Чтобы маркеры (цифры) были внутри контейнера */
-    font-size: clamp(1.5rem, 2.5vw, 2.8rem);
-    line-height: 2; /* Увеличит расстояние между строками */
-    text-align: left;    
+/* --- MOBIILIOPTIMOINNIT --- */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .container {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .theme-text {
+        font-size: 1.3rem;
+    }
+
+    .character-options {
+        flex-direction: column !important; /* Kortit allekkain vain mobiilissa */
+        gap: 12px !important;
+    }
+
+    .character-options .char-card {
+        flex-direction: row !important; /* Kuva ja teksti vierekkäin vain mobiilissa */
+        align-items: center !important;
+        text-align: left !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 12px !important;
+    }
+
+ .character-options .char-card img {
+        width: 65px !important; /* Pieni neliökuva rivin alkuun */
+        height: 65px !important;
+        margin-bottom: 0 !important;
+        margin-right: 15px !important;
+        flex-shrink: 0 !important; /* Estää kuvan liiallisen puristumisen */
+    }
+
+    .character-options .char-card p {
+        text-align: left !important;
+        font-size: 1rem !important;
+        margin-bottom: 2px !important;
+    }
+
+        .character-options .char-card small {
+        text-align: left !important;
+        font-size: 0.8rem !important;
+    }
+
+    
+
+    #wordList li {
+        padding: 14px;
+        font-size: 1rem;
+    }
+
+    .modal-content {
+        padding: 20px 15px;
+        max-width: 95vw;
+        max-height: 88vh;
+    }
+
+    .round-controls-block {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    button, .spell-btn, .start-game-btn {
+        padding: 15px;
+        font-size: 1rem;
+    }
+
+    .spell-help-floating-btn {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: 15px;
+        right: 15px;
+        font-size: 22px;
+    }
 }
 
-
-@media (orientation: landscape) and (max-height: 500px) {
-    body { 
-        padding: 5px; /* Минимальный отступ боком */
+@media (max-width: 380px) {
+    .theme-text {
+        font-size: 1.1rem;
     }
     .container {
-        flex-direction: row; 
-        justify-content: center; 
-        height: 95svh; /* Тоже чуть меньше 100 */
-        width: 98vw;
-        border-radius: 15px; /* Закругляем углы боком */
-        gap: 5vw; 
-        padding: 10px 20px 70px 20px; 
+        padding: 12px;
     }
-    #img {
-        max-height: 60vh;
-        margin: 0;
+
+        .character-options .char-card p {
+        font-size: 0.85rem !important;
     }
-    #themeDisplay {
-        margin: 0;
-        text-align: left;
+
+        .character-options .char-card small {
+        font-size: 0.75rem !important;
     }
-    button {
-        bottom: 15px; 
+
+        .character-options .char-card img {
+        width: 45px !important;
+        height: 45px !important;
+        margin-right: 8px !important;
     }
+}
+
+
+
+/* Animaatioiden avaimet */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(1.03); opacity: 1; }
+}
+@keyframes zoomOut {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+}
+
+/* ==========================================
+   🎲 SYMMETRISET DIGITAALISET NOPAT
+   ========================================== */
+
+.dice-holder-card {
+    flex: 1;
+    min-width: 160px; /* Hieman kapeampi minimi, jotta mahtuu vierekkäin mobiilissakin */
+    max-width: 240px;
+    padding: 20px 15px;
+    background: rgba(20, 12, 32, 0.6);
+    border: 1px solid rgba(229, 193, 88, 0.15);
+    border-radius: 14px;
+    
+    /* PAKOTETAAN KORTIT TÄYSIN IDENTTISIKSI JA TASATAAN SISÄLTÖ SUORAKSI */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important; /* Pitää painikkeet ja nopat täysin samoilla linjoilla */
+    align-items: center !important;
+    box-sizing: border-box;
+    min-height: 280px; /* Pakottaa molemmat kortit täysin saman korkuisiksi */
+}
+
+.dice-player-title {
+    font-weight: bold;
+    color: #fff;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    width: 100%;
+    
+    /* KORJAUS ASYMMETRIAAN: Varataan nimen tekstille kiinteä kahden rivin tila, */
+    /* jolloin lyhyempikin nimi ottaa saman verran tilaa, eivätkä nopat liiku mihinkään! */
+    min-height: 44px !important; 
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 10px !important;
+}
+
+.dice-box-wrapper {
+    width: 70px;
+    height: 70px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 auto 15px auto !important;
+    box-sizing: border-box;
+}
+
+/* Noppakehys - lukittu täydelliseksi neliöksi */
+.dice-graphic {
+    width: 60px !important;
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    background: #0f0b12 !important; 
+    border: 3px solid var(--gold) !important; 
+    border-radius: 12px !important; 
+    position: relative !important; /* Mahdollistaa pisteiden tarkan sijoituksen */
+    box-sizing: border-box !important;
+    display: block !important; 
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Yksittäiset nopan pisteet */
+.dice-dot {
+    background-color: var(--gold) !important;
+    border-radius: 50% !important;
+    width: 10px !important;
+    height: 10px !important;
+    position: absolute !important;
+    transform: translate(-50%, -50%) !important;
+    display: none !important; /* Piilotettu oletuksena */
+}
+
+/* Pisteiden kiinteät ja symmetriset koordinaatit nopan sisällä */
+.dice-graphic .dice-dot:nth-child(1) { top: 25%; left: 25%; }
+.dice-graphic .dice-dot:nth-child(2) { top: 25%; left: 75%; }
+.dice-graphic .dice-dot:nth-child(3) { top: 50%; left: 50%; }
+.dice-graphic .dice-dot:nth-child(4) { top: 75%; left: 25%; }
+.dice-graphic .dice-dot:nth-child(5) { top: 75%; left: 75%; }
+.dice-graphic .dice-dot:nth-child(6) { top: 50%; left: 25%; }
+.dice-graphic .dice-dot:nth-child(7) { top: 50%; left: 75%; }
+
+/* Logiikka pisteiden näyttämiselle silmäluvun (data-roll) mukaan */
+.dice-graphic[data-roll="1"] .dice-dot:nth-child(3) { display: block !important; }
+
+.dice-graphic[data-roll="2"] .dice-dot:nth-child(1),
+.dice-graphic[data-roll="2"] .dice-dot:nth-child(5) { display: block !important; }
+
+.dice-graphic[data-roll="3"] .dice-dot:nth-child(1),
+.dice-graphic[data-roll="3"] .dice-dot:nth-child(3),
+.dice-graphic[data-roll="3"] .dice-dot:nth-child(5) { display: block !important; }
+
+.dice-graphic[data-roll="4"] .dice-dot:nth-child(1),
+.dice-graphic[data-roll="4"] .dice-dot:nth-child(2),
+.dice-graphic[data-roll="4"] .dice-dot:nth-child(4),
+.dice-graphic[data-roll="4"] .dice-dot:nth-child(5) { display: block !important; }
+
+.dice-graphic[data-roll="5"] .dice-dot:nth-child(1),
+.dice-graphic[data-roll="5"] .dice-dot:nth-child(2),
+.dice-graphic[data-roll="5"] .dice-dot:nth-child(3),
+.dice-graphic[data-roll="5"] .dice-dot:nth-child(4),
+.dice-graphic[data-roll="5"] .dice-dot:nth-child(5) { display: block !important; }
+
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(1),
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(2),
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(4),
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(5),
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(6),
+.dice-graphic[data-roll="6"] .dice-dot:nth-child(7) { display: block !important; }
+
+/* Alkutilanne ennen heittoa (Kysymysmerkki) */
+.dice-graphic.empty {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-size: 28px !important;
+    font-family: 'Comfortaa', sans-serif !important;
+    font-weight: bold !important;
+    color: var(--gold) !important;
+}
+
+.dice-graphic img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.dice-result-subtext {
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 20px;
+    margin-bottom: 15px;
+}
+
+.dice-action-btn {
+    background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 10px 16px !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    margin-top: 0 !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+.dice-action-btn:disabled {
+    background: #1e1b29 !important;
+    color: #4a4557 !important;
+    border: 1px solid #2b2638 !important;
+    box-shadow: none !important;
+}
+
+/* --- TÄRISEMISANIMAATIO (SHAKE) --- */
+.shake-animation {
+    animation: shakeEffect 0.15s infinite alternate;
+}
+
+@keyframes shakeEffect {
+    0% { transform: translate(2px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(2px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(2px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
