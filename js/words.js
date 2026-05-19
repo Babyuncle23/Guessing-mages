@@ -35,14 +35,103 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 , "armeliaasti", "armollisesti", "armomurha", "armottomasti", "arrogantisti"
 , "arvaamattomasti", "arvatenkaan", "arvatenkin", "arvattavasti", "arvelevasti", "arveluttavasti", "arviolta", "arvoituksellisesti", "arvokkaasti"
 , "arvostelevasti", "arvostelukyvyttömästi", "arvottomasti", "arvovaltaisesti", "arvoväritteisesti", "asbesti", "asbestikangas", "asbestikuitu", "asbestilevy", "asbestoosi", "aseistakieltäytyjä", "asemasta", "asemesta"
-, "asenteellisesti", "aseptisesti"
-
-//2999
+, "asenteellisesti", "aseptisesti",
+"asianmukaisesti", "asiantuntevasti", "asiattomasti", "askeettisesti", "asosiaalisesti", "askelittain", "askelmittain", "askele",
+"aspi", "astahtaa", "asuin-",
+"asuma", "asutustilallinen",
+"atk-kirjoittaja", "atk-pohjainen", "atropia", "atto-", "aukea", "auki",
+"auktoritatiivisesti", "auliisti", "aurinkoisesti", "aussi", "autella"
+,"automaattisesti", "autoritaarisesti", "autoritäärisesti"
+,"auttamattomasti", "auttavasti", "autuaallisesti", "autuaasti"
+,"avoimesti", "avojaloin", "avokatseisesti", "avokäsin", "avokätisesti"
+, "avionrikkoja", "aviorikos",
+, "bakkanaali", "banaani", "banaanivaltio", "bandiitti", "barbaari", "barbaarimainen", "barbaarimaisesti", "barbaarimaisuus", "barbaarinen", "barbaarisesti", "barbaarisuus", "bastardi", "besserwisser"
+, "bigaaminen", "bigamia", "bikinialushousut", "bikinihousut", "bikinit", "bi-mies", "bi-nainen", "bioase",
+, "biataisteluaine", "biseksuaalinen", "biseksuaalisesti", "biseksuaalisuus", "body stocking", "bolsevikki", "bolševikki", "bolsevikkivallankumous", "bolševikkivallankumous", "bolsevismi", "bolševismi", "bolsevistinen", "bolševistinen", "blondi", "blondiini", "bluffata", "bluffaus", "bluffi"
+, "bordelli", "botuliini", "botulismi", "brenkku", "brežneviläinen", "brežneviläisesti", "brežneviläisyys", "broileripoliitikko", "brutaali", "brutaalius"
+, "bryssä", "bulevardilehdistö", "bulevardilehti", "buliimikko", "bulimia", "bulvaani", "burnout", "busmanni", "bušmanni", "buuata", "buuaus", "byrokraatti", "byrokraattinen", "byrokraattisesti", "byrokraattistaa", "byrokraattistua", "byrokraattisuus", "byrokratia", "byrokratisoida", "byrokratisointi", "byrokratisoitua", "bänet", "bänks", "casanova"
+, "contrasissi", "crack"
+, "debiili", "deekikselle", "deekiksellä", "deeku", "degeneraatio", "degeneroitua", "dekadenssi", "dekadentti", "delata", "demagogi", "demagogia", "demagoginen", "demari", "dementikko", "dementti"
+, "demoni", "demoninen", "demonisesti", "demonisuus", "demoralisoida", "demoralisointi", "demoralisoitua", "depis", "depressiivinen", "depressiivisesti", "depressiivisyys", "depressio", "depressiokausi", "depressiolääke", "depressiotila", "desantti", "despootti", "despoottinen", "despoottisesti", "despoottisuus", "despotia", "despotismi"
+, "diabeetikko", "diabetes", "diatsepaami"
+, "diileri", "diiva", "diivailla", "diivailu", "diivata", "diktaattori", "diktatorinen", "diktatorisesti", "diktatorisuus", "diktatuuri", "diktatuurivaltio", "diletantismi", "diletantti", "dioksiini", "disinformaatio", "diskata", "diskaus", "diskriminaatio", "diskriminoida", "diskriminointi", "diskvalifioida", "diskvalifiointi", "dissidentti"
+, "dokata", "dokaus", "doku", "dorka", "dorkasti", "doupata"
+, "dumdumluoti", "dumpata", "dumppaus", "dödö", "dösä", "edelle", "edelleen", "edellisen kaltainen", "edellä", "edellä esitetty", "edellä mainittu", "edeltä", "edeltäkäsin", "edeltäpäin", "edemmä", "edemmäksi", "edemmäs", "edempänä", "edempää", "edes", "edespäin", "edessä", "edessäpäin", "edestakaisin", "edestä", "edestäpäin"
+, "editse", "edus", "edusta", "edusteilla", "eespäin"
+, "ehdyksiin", "ehdyksissä", "ehei", "ehken", "ei-kenenkään-maa"
+, "ejakulaatio", "eioo", "ekshibitionismi", "ekshibitionisti", "ekshibitionistinen", "ekstaasi"
+, "eksykki", "eksyksiin", "eksyksissä", "eksyksistä"
+, "elinkautistuomio", "elinkautisvanki", "elintasopakolainen", "ellottaa", "ellotus"
+, "elohopeamyrkytys", "eloon", "elossa", "elostelija", "elostella", "elostelu", "elukka", "elähtänyt", "eläimellinen", "eläimellisyys", "eläinkoe"
+, "eläinrääkkäys", "eläköön", "elämänkielteinen", "elämänkielteisesti", "elämänkielteisyys", "elämänpelko"
+, "elämöidä", "elämöinti", "elätti", "elättivaris", "elävältä", "emakko"
+, "empiä", "emä", "emäksisesti", "emäs", "emätin", "emätinhuuhtelu", "emätinpuikko", "emätintulehdus", "emävalhe", "endeemisesti", "endokrinologisesti", "enemmälti", "enemmän", "enempi", "enempää", "enenevästi"
+, "enetä", "engelsmanni", "englannintaa", "enimmin", "enimmiten", "enimmäistää", "enimmäkseen", "enimmälti", "enimmältään", "enimmän", "enin", "enintään", "eniten", "ennakkoon", "ennakoida"
+, "ennakolta", "ennallaan", "ennalleen", "ennalta", "ennemmin", "ennen", "ennestään", "ennustajaeukko", "ennättää", "ensi", "ensiksi", "ensimmältä", "ensin", "ensinkään", "ensinnä", "ensisijaisesti"
+,"ensi sijassa", "enteillä", "entiselleen", "entisellään", "entisensä", "entisestään", "entistää", "entisöidä", "entrata", "entuudestaan", "entä", "entäpä", "entäpäs", "entäs", "entää", "enää", "epeli", "epileptikko", "e-pilleri", "epuuttaa"
+,"epähuomiossa", "epäilemättä", "epäilevästi", "epäillä", "epäilyttävästi", "epäilyttää", "epäkunnossa", "epäkuntoon", "epäkäs"
+, "epämiellyttävästi", "epämukavasti", "epämuodostua", "epämääräisesti", "epämääräistyä", "epänormaalisti", "epäoikeudenmukaisesti", "epäolennaisesti", "epäonnistua", "epäpätevästi", "epärealistisesti", "epärehellisesti", "epäreilusti", "epäröidä", "epäselvästi", "epäsiististi", "epäsikiö",
+"epäsopuisesti", "epäsosiaalisesti", "epäsovinnaisesti", "epäsuhtaisesti", "epäsuomalaisesti", "epäsuopeasti", "epäsuorasti", "epäsuosiollisesti", "epäsuotuisasti", "epäsymmetrisesti", "epäsäännöllisesti", "epätaiteellisesti", "epätaloudellisesti", "epätarkasti", "epätarkoituksenmukaisesti", "epätasaisesti", "epätavallisesti", "epäterveellisesti", "epäterveesti", "epätieteellisesti", "epätodennäköisesti", "epätoivoisesti", "epätoivoissaan", "epätyydyttävästi", "epätäsmällisesti", "epätäydellisesti", "epäurheilijamaisesti",
+"epäuskoisesti", "epäuskottavasti", "epävakaasti", "epävakaisesti", "epävarmasti", "epäviihtyisästi", "epäviisaasti", "epävirallisesti", "epävireeseen", "epävireessä", "epävireisesti", "epäyhtenäisesti", "epäys", "epäystävällisesti", "epäämättömästi", "erakoitua", "erehdyttää", "erehtyä", "erektio", "ergonomisesti", "erheellisesti", "eri", "eriaikaisesti", "eriarvoistaa", "eriarvoistua", "eriasteisesti", "erikoisesti", "erikoishoikka", "erikoislaatuisesti"
+, "erikoistaa", "erikoistua", "erikseen", "erilaistaa", "erilaistua", "erilleen", "erimuotoisesti", "erinomaisesti", "eripuraisesti", "eriskummallisesti", "erillään"
+, "eristyä", "eristäytyä", "eristää", "erisuuntaisesti", "eritasoisesti", "eritellä", "eritoten", "erittyä", "erittäin", "erittäinkin", "erittää", "erityisesti", "erityyppisesti", "eritä", "eriyttää", "eriytyä", "erkaantua", "erkanee", "erkautua", "eroon", "eroottisesti", "eroottistaa", "eroottistua", "erossa", "erota", "erotella", "erotisoida", "erotisointi", "erotisoitua"
+, "erotomaani", "erotomania", "esiaviollinen"
+, "esileikki", "esinahka", "esipuberteetti"
+, "eskimo", "eskimokajakki", "eskimokoira", "eskimopyörähdys"
+, "etelävaltalainen", "etelävaltio"
+, "eturauhanen"
+, "etäpesäke", "eunukki", "eutanasia", "evakko"
+, "fakki-idiootti", "fallinen", "fallos", "fallossymboli"
+, "fasismi", "fasisti", "fasistinen", "fasistipuolue", "femakko", "fennomaani"
+, "fetisismi", "fetisisti", "fetisistinen", "fetissi", "fiasko"
+, "fissiopommi",
+"foneettisesti", "foniatrisesti", "fonologisesti", "formaalisesti", "formalistisesti", "fotoni"
+, "frigidi", "frigiditeetti", "frigidiys", "friikki", "fritsu", "fudut", "fundamentalistinen", "fundamentalistisesti",
+"fuusiopommi", "gangsteri", "gangsterielokuva", "gangsteriliiga", "gangsterismi",
+"gay", "genitaalinen", "genitaalit", "gerillasota", "getto", "gettoistua", "gettoutua", "ghetto", "ghettoutua",
+"gigolo", "giljotiini", "gladiattori", "go-go-tyttö", "gonokokki", "gonorrea", "gorilla"
+, "granaatti", "gravidi", "graviditeetti", "groteski", "guerillasota", "gynekologi", "gynekologia", "gynekologinen", "gängi", "haaksirikko", "haaksirikkoinen", "haaksirikkoutua"
+, "haamuasiakas", "haamupotilas", "haaremi", "haaska", "haaskaeläin", "haaskalintu", "haaskata", "haaskaus", "haaskautua", "haastaa", "haastaja", "haaste", "haastehakemus", "haastemies",
+"haava", "haavainen", "haavakko", "haavakuume", "haavamuodostuma", "haavatartunta", "haavatulehdus", "haavauma", "haavautua", "haavautuma", "haaveri", "haavoittaa", "haavoittua", "haavoittuva", "haavoittuvuus", "hahattaa", "haihattelija", "haihattelu", "haimaneste", "haimasyöpä", "haimatulehdus", "hairahdus", "hairahtaa", "hairahtua", "hairahtuvainen", "haiskahtaa", "haista",
+"haistatella", "haistattaa", "haistattelu", "haisuliini", "haitallinen", "haitallisesti", "haitallisuus", "haitanteko", "haitta", "haitta-aste", "haittapuoli", "haittatekijä", "haittavaikutus", "hajaannus", "hajaannustila", "hajaannuttaa",
+"hajupommi", "hajuvirhe", "hakaristi", "hakaristilippu", "hakata", "hakkelus", "hakkeri", "hakkeroida", "hakkerointi", "hakkuukielto", "hakoteille", "hakoteillä", "haksahdus", "haksahtaa", "hakuammunta", "hakusaarto",
+, "halikkain", "hallintoalamainen"
+, "hallitustenvälinen", "hallitusti", "hallussa", "hallusta", "halpa-arvoinen", "halpa-arvoisuus", "halpahintainen", "halpakorkoinen", "halpamainen", "halpamaisesti", "halpamaisuus", "haltioihinsa", "haltioissaan", "haltuun", "halukas", "halukkaasti", "halukkuus", "halullinen", "haluton"
+, "haluttomasti", "haluttomuus", "halvattu", "halveerata", "halveksia", "halveksinta", "halveksua", "halveksunta", "halvennus", "halventaa", "halventavasti", "hamevalta", "hameväki"
+, "hampaaton", "hampaattomasti", "hampaattomuus", "hamppari", "hampparoida", "hampuusi", "hamstraaja", "hamstrata", "hanakasti", "hanakka", "hanakkuus", "handicap", "handu", "hangoitella", "hankala", "hankalakulkuinen", "hankalakäyttöinen", "hankalatöinen", "hankaloittaa", "hankaloitua", "hankaluus"
+, "hanslankari", "hantlankari", "hanttapuli", "hantti", "hanttihomma", "hanttiin", "hanttikortti", "hanttimies", "hanttityö", "hanuri", "hapannaama", "happamasti", "happamesti", "happoveikko", "happy hour"
+, "harakanvarvas", "harakiri", "haralla", "harallaan", "haralle", "haralleen", "harha-aistimus", "harhaan", "harhaanjohtava", "harhaannuttaa", "harhaantua", "harhaanvievä", "harha-askel", "harhahavainto", "harhaheitto", "harhailla", "harhailu", "harhainen", "harhaisku", "harhakuva", "harhakuvitelma", "harhakäsitys", "harhalaukaus", "harhaluoti", "harhaluulo", "harhamielisyys", "harhanäky", "harhaoppi", "harhaoppinen", "harhapolku", "harhapäätelmä", "harharetki", "harhasoitto", "harhassa", "harhasyöttö", "harhateille", "harhateillä", "harhateiltä", "harhauma", "harhauttaa", "harhautua", "harhautuma", "harhautus", "harilla", "harillaan", "harille", "harilleen", "harjaantumaton", "harjaantumiskoulu"
+, "harkinnanvarainen", "harkitsematon", "harkitsemattomasti", "harkitsemattomuus", "harkitseva", "harkitsevainen", "harkitsevaisuus", "harkitsevuus", "harkittu", "harkitusti", "harmaahapsinen", "harmaahiuksinen", "harmaapartainen", "harmaapäinen", "harmaasilmäinen", "harmaatukkainen", "harmillinen"
+, "harmissaan", "harmistuksissaan", "harmiton", "harrastelijamainen", "hartaasti"
+, "harvaan", "harvahampainen", "harvainvalta", "harvainvaltainen", "harvakseen", "harvakseltaan", "harvalukuinen", "harvapuheinen", "harvasanainen", "harvassa", "harvemmin", "harvempaan", "harventamaton", "harvoin", "hasardi", "hasis", "hassahtanut", "hassahtava", "hassata", "hassu", "hassunkurinen", "hassusti", "hassutella", "hassuttaa", "hassuttelu", "hassutus", "hatara", "hatarasti", "hataruus", "hatkat", "hattupäinen", "hattureuhka", "hatunreuhka", "hatuttaa", "haudanhiljainen", "haudanhiljaisuus", "haudanhäpäisy", "haudankaivaja", "haudanryöstö", "haudantakainen", "haudanvakava", "haudanvakavasti", "haudanvakavuus"
+, "haukkua", "haukkumakirje", "haukkumanimi", "haukkumasana", "haureellinen", "haureellisuus", "haureus", "hauskannäköinen", "hauskasti", "hauva"
+, "he", "hedelmöidä", "hedelmöittyä", "hedelmöittää", "hedelmöityä"
+, "heijari", "heikkolahjainen", "heikkolahjaisuus", "heikkomielinen", "heikkomielisyys", "heikkopäinen", "heilaus"
+, "heinähattu", "heitteille", "heitteillä", "heitteiltä", "heittiö", "heittopussi"
+, "helibor", "heliborkorko", "helkatti", "helkkarinmoinen", "helkkaristi", "helkkari", "helkutti", "hellapoliisi"
+, "hellitä", "helppoheikki"
+, "helskutti", "helvetillinen", "helvetinkone", "helvetinmoinen", "helvetisti", "helvetti", "hemmetinmoinen", "hemmetisti", "hemmetti", "hempukka", "hengissä"
+, "henkihieveriin", "henkihieverissä", "henkiin", "henkilöidä"
+, "henkipatto", "henkiriepu", "henkitoreihin", "henkitoreihinsa", "henkitoreisiin", "henkitoreisiinsa", "henkitoreissa", "henkitoreissaan", "hepsankeikka", "hepuli", "hereille", "hereillä"
+, "herja", "herjaaja", "herjakirjoitus", "herjasana", "herjata", "herjaus", "herkkyys", "herkkä", "herkkähipiäinen", "herkkänahkaisuus", "hermoheikko", "hermoraunio", "hermostuksissaan"
+, "heroiini", "heroinisti", "herrajesta", "herrajestas", "herrakansa", "herranen", "herranjesta", "herranjestas", "herranterttu", "herraviha", "herraus"
+, "herättää", "herätä", "hetkahtaa", "hetkauttaa", "hetkua", "hetkutella", "hetkuttaa", "hetkutus", "hevostella"
+, "hidastaa", "hidastella", "hidastua", "hidastuttaa", "hiekka-aavikko", "hiekkapestä", "hiekkapuhaltaa", "hiekoittaa", "hienohelma"
+, "hienontaa", "hienontua", "hienosahata", "hienostella", "hienostua", "hienosäätää", "hienota", "hieraista", "hieroa", "hieromasauva", "hieroskella", "hierottaa", "hieroutua", "hiertyä", "hiertää", "hiestyä", "hiestää", "hievahtaa", "hievauttaa", "hiffata", "hihhuli", "hihhuloida", "hihitellä", "hihittää"
+, "hihkaista", "hihkua", "hihnoittaa", "hiihdellä", "hiihtää", "hiilettyä", "hiilettää"
+, "hiillostaa", "hiillostua", "hiillyttää", "hiiltyä", "hiiltää", "hiipata", "hiipiä", "hiippailla", "hiippari", "hiipua", "hiiskahtaa", "hiiskua", "hiitata", "hiivata", "hiivatinmoinen", "hiivatisti", "hiivatti", "hiiviskellä", "hikeentyä", "hikeytyä", "hikipinko", "hikipäissä", "hikipäissään", "hikoilla", "hikoiluttaa", "hilata", "hilautua", "hilavitkutin", "hiljakkoin", "hiljakseen", "hiljalleen", "hiljan"
+, "hiljentyä", "hiljentää", "hiljetä", "hilkulla", "hilleri", "hillitä", "hillota", "hilloutua", "hillua", "hilpaista", "hilsehtiä", "hilseillä", "hilsettyä", "himmennyttää", "himmentyä", "himmentää", "himmetä", "himoita", "himomurha", "himomurhaaja", "himota", "himottaa", "himpun", "hinata", "hinauttaa", "hinautua", "hinkata", "hinkki", "hinkua", "hinnoitella"
+, "hinnoittaa", "hinttari", "hintti", "hinttiys", "hioa", "hiostaa", "hiostua", "hiostuttaa", "hiota", "hiottaa", "hioutua", "hipaista", "hipat", "hipelöidä", "hipoa", "hippasilla", "hippasille", "hippulat", "hiprakka", "hipsiä", "hipsutella", "hipsuttaa"
+, "hirmustua", "hirmuteko", "hirmutyö", "hirmuvalta", "hirnahdella", "hirnahtaa", "hirnua", "hirsipuu", "hirttyä", "hirttäytyä", "hirttää", "hirtättää", "hirvestää", "hirvetä", "hirvitellä", "hirvittää", "hirvitä", "hisahtaa", "hissata"
+, "hissukka", "hissukseen", "hissuksiin", "hissun kissun", "hissutella", "hissuttaa", "historioida", "hitonmoinen", "hitosti", "hitsaantua", "hitsata", "hitsautua", "hitto", "hittolainen", "hiuduttaa", "hiukaista", "hiukoa", "hiuksenhalkominen"
+, "hiustenhalkaisu", "hiustenhalkoja", "hiustenhalkominen", "hiutua", "hivauttaa", "hivellä", "hiveltää", "hivuttaa", "hivuttautua", "hohdella", "hohhoijaa", "hohkata", "hohkua", "hohoi", "hohottaa", "hohtaa", "hoidattaa", "hoidella", "hoikentaa", "hoikentua"
 
 
 
 
 ];
+
+//seuraava alaken 12000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
