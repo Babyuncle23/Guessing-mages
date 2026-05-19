@@ -161,7 +161,7 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 
 ];
 
-//seuraava alaken 12000
+//seuraava alaken 15000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
