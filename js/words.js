@@ -125,6 +125,36 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 , "hirmustua", "hirmuteko", "hirmutyö", "hirmuvalta", "hirnahdella", "hirnahtaa", "hirnua", "hirsipuu", "hirttyä", "hirttäytyä", "hirttää", "hirtättää", "hirvestää", "hirvetä", "hirvitellä", "hirvittää", "hirvitä", "hisahtaa", "hissata"
 , "hissukka", "hissukseen", "hissuksiin", "hissun kissun", "hissutella", "hissuttaa", "historioida", "hitonmoinen", "hitosti", "hitsaantua", "hitsata", "hitsautua", "hitto", "hittolainen", "hiuduttaa", "hiukaista", "hiukoa", "hiuksenhalkominen"
 , "hiustenhalkaisu", "hiustenhalkoja", "hiustenhalkominen", "hiutua", "hivauttaa", "hivellä", "hiveltää", "hivuttaa", "hivuttautua", "hohdella", "hohhoijaa", "hohkata", "hohkua", "hohoi", "hohottaa", "hohtaa", "hoidattaa", "hoidella", "hoikentaa", "hoikentua"
+, "hoitajatar", "holhokki", "holhotti"
+, "holokausti", "holtittomasti", "homekorva", "homo", "homoeroottinen", "homofiili", "homofiilinen", "homofiilisuus", "homofiilius", "homofobia", "homoliitto", "homopari", "homoseksuaali", "homoseksuaalinen", "homoseksuaalisuus", "homoseksualismi", "homoseksualisti", "homous"
+, "horisko", "horkka", "horna", "hornankattila", "horre"
+, "horteessa", "hoteisiin", "hoteissa", "hoteista", "hotellipoika", "hottentotti", "houkka", "houkkamainen", "houkkio", "hourula", "hourupäinen", "housusillaan", "housusilleen"
+, "huikeasti", "huikentelevaisesti", "huikentelevasti", "huimapäisesti", "huimasti"
+, "huithapeli", "huitukka", "hujakoilla", "hujan hajan", "hujoppi", "hukassa", "hukkaan", "hukkateille", "hukkateillä", "hukuksiin", "hukuksissa", "huligaani", "hulivilipoika", "hulivilityttö", "hullujenhuone"
+, "hullunkurisesti", "hullusti", "hulttio", "hulttiomainen", "humalapäissä", "humalapäissään", "humoristisesti", "humpuuki", "hunajaisesti", "hunajapupu", "hunni"
+, "hunningolla", "hunningolle", "hunsvotti", "huolehtivaisesti", "huolellisesti", "huoleti", "huoletta", "huolettomasti", "huolimatta", "huolimattomasti", "huolissaan"
+, "huomaamattomasti", "huomaan", "huomaavaisesti", "huomassa", "huomattavasti", "huomenissa", "huomenna", "huomionkipeä", "huomioon ottaen", "huonomaineinen", "huono-oppinen"
+, "huonosti", "huonotapainen", "huora", "huorahtava", "huorata", "huorin", "huorintekijä", "huorinteko", "huoripukki", "huoruus", "huostaan", "huostassa", "huostasta", "huovikas", "hupaisasti", "hupakko", "hupiveikko", "huppeli", "hupsia", "hupsis", "hupsista", "hupsusti", "hurjasti"
+, "hurme", "hurmeinen", "hurmosliike", "hurri", "huru-ukko", "hutsu", "hutu"
+,"huumausaine", "huume", "huumejengi", "huumekasvi", "huumekauppa", "huumekauppias", "huumeklinikka", "huumekoira", "huumekuriiri", "huumenuori", "huumepoliisi", "huumepotilas", "huumeriippuvuus", "huumerikollisuus", "huumerikos", "huumetesti", "huuri", "huusi", "huussi", "huut", "huuti", "huutolainen", "huutolaispoika",
+, "huvitutti", "hyeena", "hyh", "hyi", "hylkiö", "hylkyauto", "hymen"
+, "hynä", "hyperventilaatio", "hypnoosi", "hypnotisoida", "hypotermia", "hys", "hysteerikko", "hysteerinen"
+,"hysteria", "hyväksikäyttö", "hyväkäs"
+, "hyypiö", "hyysätä", "hyödyksikäyttö", "hyödykäs", "hyökkäys", "hyökkäysase", "hyökkäyssota", "hyökkäysuhka", "hyökkäysvaunu", "hyökkääjä", "hyökkäävä", "hyökkäävästi", "hyökätä", "hyönteismyrkky"
+, "hyötöreaktori", "hä", "hädissään", "hädänalainen", "häh", "hähättää", "häijy", "häijynilkinen", "häijysti", "häijyys", "häikkä", "häikäilemättä", "häikäilemättömyys", "häikäilemättömästi", "häikäilemätön", "häippäistä", "häiriintynyt", "häiriintyä", "häirikkö", "häiriköidä", "häirintä", "häirintätuli", "häiritsijä", "häiritä", "häiriö", "häiriötila", "häiskä", "häjy", "häkäkaasu", "häkämyrkytys"
+, "hämärämies", "hämäräperäinen", "hännystelijä", "hännystellä", "hännystely", "häntyri", "häpeissään", "häpeä", "häpeällinen", "häpeällisesti", "häpeämerkki", "häpeämättömyys", "häpeämättömästi", "häpeämätön", "häpeäpaalu", "häpeäpenkki", "häpeäpilkku", "häpeärangaistus", "häpeätahra"
+, "häppä", "häpy", "häpyhuuli", "häpykannus", "häpykarvat", "häpykarvoitus", "häpykieli", "häpykukkula", "häpyluu", "häpäistä", "häpäisy", "härkäpäinen", "härski", "hässiä", "hässäkkä", "hätähousu", "hätäinen"
+, "hätäpäissään", "hätäteurastaa", "hätäteurastus", "hätätila", "hätävalhe", "hätäännyksissä", "hätäännyksissään", "hätäännys", "hävittäjä", "hävittäjäalus", "hävittäjäkone", "hävittäjälaivue", "hävittäjälentokone", "hävittäjälentäjä", "hävittäjäpommittaja", "hävittää", "hävitys", "hävyttömyys", "hävyttömästi", "hävytön", "häväistys", "häväistysjuttu", "häväistyskirjoitus", "häväistä", "häätää", "häätö", "häätömääräys"
+, "häävuode", "höhlä", "hökkeli", "hökkelikaupunki", "hökkelikylä", "hökötys", "hölinä", "hölmö", "hölmöläinen", "hölynpöly", "hölö", "hölösuinen", "hölösuu", "hömppä", "hömppäsivu", "hömpsy", "hömpsötys", "hömpötys", "höntti", "hönö", "höperö", "höpinä", "höppänä", "höpsähtänyt", "höpsähtävä", "höpsö", "höpö", "höpöpuhe", "höpötys", "hörhelö", "hörhö", "hörppy", "hörtsö", "hörähdys", "hörökorva", "hörönauru",
+, "höröttää", "hörötys", "höskä", "hösseli", "hössäkkä", "hössötys", "hötkyily", "höttö", "höttösissään", "hötäkkä", "hötö", "höyde", "höyhensaaret", "höykky", "höykänen", "höynä", "höyrypäinen", "höyrypää"
+, "höyrähtää", "höösätä", "höösäys", "icing", "identiteettikriisi", "idiootti", "idioottimainen", "idioottimaisuus", "idioottivarma", "idis", "idoli", "ientulehdus",
+, "ihmiskilpi", "ihmismetsästys",
+"ihmispeto", "ihmisraunio", "ihmisryöstö", "ihmissyöjä", "ihmissyönti", "ihmistäi", "ihmisuhri", "ihmisviha", "ihmisvihaaja", "ihmokasvain", "ihomato", "ihosyöpä", "ihra", "ihramaha", "ihramahainen", "iilimato", "iiri", "iiriläinen", "iirin kieli", "iiris", "iirishimmennin", "iirispainanta", "iirispainatus", "iivana",
+"ikenet", "iki-ihastunut", "ihanne-", "ihme-", "ikäkausikilpailut", "ikäkulu"
+,"ikäloppu", "ikäneito", "ikäsyrjintä", "ikävissään", "ikävystynyt", "iljettävyys", "iljettävä", "iljettää", "iljetys", "ilkeillä", "ilkeily", "ilkeys", "ilkeä", "ilkeäluonteinen", "ilkeämielinen", "ilkeämielisyys", "ilkeännäköinen", "ilkialasti", "ilkialaston", "ilkikurinen", "ilkimys", "ilkityö", "ilkivalta", "ilkivaltainen", "ilkivaltaisuus", "ilkiö", "ilkkua", "ilkosillaan", "ilkosilleen"
+, "ilma-ase", "ilmaherruus", "ilmahyökkäys", "ilmahälytys", "ilmais-", "ilmaisku", "ilmajuoppo", "ilmakivääri", "ilmakuoppa",
+, "ilmansaaste", "ilmapistooli", "ilmapistooliammunta", "ilmarinta", "ilmarosvo", "ilmarosvous", "ilmasodankäynti", "ilmasota", "ilmataistelu", "ilmatorjunta", "ilmatorjunta-ase", "ilmatorjuntajoukot", "ilmatorjuntaohjus", "ilmatorjuntapatteri", "ilmatorjuntapatteristo", "ilmatorjuntatuli", "ilmatorjuntatykistö", "ilmatorjuntatykki", "ilmavaara", "ilmavaivat"
+, "ilmavoimat", "ilmavoitto", "ilmeettömästi", "ilmeillä", "ilmeily", "ilmiantaa", "ilmiantaja", "ilmianto", "ilmiantovelvollisuus", "ilmielävästi", "ilmiriita", "ilmiselvästi", "ilmisota", "ilmiömäisesti", "ilmoitse", "iloisesti", "iloissaan", "ilokaasu", "iloliemi", "ilolintu", "ilonpilaaja"
 
 
 
