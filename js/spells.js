@@ -13,11 +13,20 @@ const calculateSpells = (rounds, basePercent, diceRoll) => {
 const renderSpellButtonsBeforeWords = () => {
     const p = gamePlayers[currentPlayerIndex];
     spellContainer.style.display = "flex";
+    spellRow1.style.display = "inline-flex";
+    spellRow2.style.display = "none";
     spellBtn1.style.display = "none";
     spellBtn2.style.display = "none";
+    if (spellHelpBtn1) spellHelpBtn1.style.display = "none";
+    if (spellHelpBtn2) spellHelpBtn2.style.display = "none";
+    if (spellInfoBox) spellInfoBox.style.display = "none";
 
     if (p.name === "Muodonmuuttaja") {
         spellBtn1.style.display = "inline-block";
+        if (spellHelpBtn1) {
+            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.dataset.spell = "Korttitulva";
+        }
         spellBtn1.innerHTML = `ᛗ Korttitulva (${p.spells.flood})`;
         spellBtn1.disabled = p.spells.flood <= 0 || currentActiveTheme === "vapaavalintainen" || activeModifiers.extendToEight;
         spellBtn1.onclick = () => {
@@ -27,9 +36,18 @@ const renderSpellButtonsBeforeWords = () => {
             playAudio(sounds.morph);
             renderSpellButtonsBeforeWords();
         };
-    } else if (p.name === "Kirouksenlankettaja") {
+    } else if (p.name === "Kirouksenlangettaja") {
+        spellRow2.style.display = "inline-flex";
         spellBtn1.style.display = "inline-block";
         spellBtn2.style.display = "inline-block";
+        if (spellHelpBtn1) {
+            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.dataset.spell = "Korttinälkä";
+        }
+        if (spellHelpBtn2) {
+            spellHelpBtn2.style.display = "inline-flex";
+            spellHelpBtn2.dataset.spell = "Sanakaaos";
+        }
 
         spellBtn1.innerHTML = `ᚎ Korttinälkä (${p.spells.hunger})`;
         spellBtn1.disabled = p.spells.hunger <= 0 || pendingCurses.hunger;
@@ -50,6 +68,10 @@ const renderSpellButtonsBeforeWords = () => {
         };
     } else if (p.name === "Yrttitarhuri") {
         spellBtn1.style.display = "inline-block";
+        if (spellHelpBtn1) {
+            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.dataset.spell = "Kasvupurkaus";
+        }
         spellBtn1.innerHTML = `ᛘ Kasvupurkaus (${p.spells.regrowth})`;
         spellBtn1.disabled = (p.spells.regrowth <= 0 || p.extraTurnGranted === true || isExtraTurnRound);
         spellBtn1.onclick = () => {
@@ -59,16 +81,24 @@ const renderSpellButtonsBeforeWords = () => {
             playClickSound();
             renderSpellButtonsBeforeWords();
             updateTurnDisplay();
-            ruleInstruction.textContent = "Kasvupurkaus aktivoitu! Jos selität sanan onnistuneesti, saat heti uuden vuoron perään.";
+            ruleInstruction.textContent = "Kasvupurkaus aktivoitu! Jos selität sanan onnistuneesti, saat heti uuden vuoron perään. Bonusvuorosta saa vain 0,5 pistettä.";
         };
     }
 };
 
 const renderSpellButtonsAfterWords = () => {
     const p = gamePlayers[currentPlayerIndex];
+    if (spellInfoBox) spellInfoBox.style.display = "none";
     if (p && p.name === "Muodonmuuttaja" && p.spells.metamorphosis > 0) {
         spellContainer.style.display = "flex";
+        spellRow1.style.display = "inline-flex";
+        spellRow2.style.display = "none";
+        spellInfoBox.style.display = "none";
         spellBtn1.style.display = "inline-block";
+        if (spellHelpBtn1) {
+            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.dataset.spell = "Sanametamorfoosi";
+        }
         spellBtn2.style.display = "none";
         spellBtn1.innerHTML = `🌀 Sanametamorfoosi (${p.spells.metamorphosis})`;
         spellBtn1.disabled = false;

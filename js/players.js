@@ -1,10 +1,8 @@
 const charImages = {
-    "Muodonmuuttaja": "pictures/Dog_vs._Werewolf.jpg",
-    "Kirouksenlankettaja": "pictures/oar2.jpg",
-    "Yrttitarhuri": "pictures/d84f78_e78d7b66397d4bab934bee701b9aa427~mv2.jpg"
+    "Muodonmuuttaja": "🐺",
+    "Kirouksenlangettaja": "💀",
+    "Yrttitarhuri": "🌿"
 };
-
-const SFW_DRUID_IMAGE = "pictures/worgen_druid_by_direbrow_deznfqq-fullview.jpg";
 
 let setupOrder = [];
 let gamePlayers = [];

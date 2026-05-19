@@ -13,6 +13,85 @@ const btnGiveUp = document.getElementById("btnGiveUp");
 const spellContainer = document.getElementById("spellContainer");
 const spellBtn1 = document.getElementById("spellBtn1");
 const spellBtn2 = document.getElementById("spellBtn2");
+const spellHelpBtn1 = document.getElementById("spellHelpBtn1");
+const spellHelpBtn2 = document.getElementById("spellHelpBtn2");
+const spellRow1 = document.getElementById("spellRow1");
+const spellRow2 = document.getElementById("spellRow2");
+const spellInfoBox = document.getElementById("spellInfoBox");
+const spellHelpModal = document.getElementById("spellHelpModal");
+const spellHelpModalBody = document.getElementById("spellHelpModalBody");
+const closeSpellHelpModal = document.getElementById("closeSpellHelpModal");
+
+const spellDescriptions = {
+    Korttitulva: "🐺 Korttitulva: Lisää sanalistan pituutta kahdella, jolloin voit valita selitettävän sanan laajemmasta vaihtoehtojoukosta.",
+    Sanametamorfoosi: "🌀 Sanametamorfoosi: Muuttaa kaikki valittavat sanat helpommiksi. Onnistumisesta saa vain puoli pistettä.",
+    Korttinälkä: "📉 Korttinälkä: Supistaa sanalistan vain kolmeen vaihtoehtoon. Aktivoituu oman vuoron jälkeen vastustajan vuorolla",
+    Sanakaaos: "☿ Sanakaaos: Todennäköisesti korvaa vastustajan kolme lista­sanaa vaikeammilla tai oudoimmilla sanoilla, jotta selitettävä sana on hankalampi arvata. Aktivoituu oman vuoron jälkeen vastustajan vuorolla.",
+    Kasvupurkaus: "🌱 Kasvupurkaus: Onnistuneen arvauksen jälkeen saat heti bonusvuoron, mutta bonusvuorosta saa vain 0,5 pistettä. Aktivoi ennen sanoja."
+};
+
+const showSpellInfo = (spellKey) => {
+    const description = spellDescriptions[spellKey];
+    if (!description || !spellHelpModal || !spellHelpModalBody) return;
+
+    spellHelpModalBody.innerHTML = `
+        <div class="spell-info-title">
+            <strong>${spellKey}</strong>
+        </div>
+        <p>${description}</p>
+    `;
+    spellHelpModal.dataset.visibleSpell = spellKey;
+    spellHelpModal.style.display = "flex";
+    document.body.classList.add("spell-help-modal-open");
+};
+
+const hideSpellHelpModal = () => {
+    if (!spellHelpModal) return;
+    spellHelpModal.style.display = "none";
+    document.body.classList.remove("spell-help-modal-open");
+};
+
+const toggleSpellInfo = (spellKey) => {
+    if (!spellHelpModal) return;
+    const isOpen = spellHelpModal.style.display === "flex";
+    const sameSpell = spellHelpModal.dataset.visibleSpell === spellKey;
+    if (isOpen && sameSpell) {
+        hideSpellHelpModal();
+        return;
+    }
+    showSpellInfo(spellKey);
+};
+
+if (spellHelpBtn1) {
+    spellHelpBtn1.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = spellHelpBtn1.dataset.spell || "Korttitulva";
+        toggleSpellInfo(key);
+    });
+}
+if (spellHelpBtn2) {
+    spellHelpBtn2.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = spellHelpBtn2.dataset.spell || "Korttinälkä";
+        toggleSpellInfo(key);
+    });
+}
+
+if (closeSpellHelpModal) {
+    closeSpellHelpModal.addEventListener("click", (e) => {
+        e.stopPropagation();
+        hideSpellHelpModal();
+    });
+}
+
+document.addEventListener("click", (e) => {
+    if (!spellHelpModal || spellHelpModal.style.display !== "flex") return;
+    const content = spellHelpModal.querySelector(".spell-help-modal-content");
+    if (content && content.contains(e.target)) return;
+    hideSpellHelpModal();
+});
 
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
@@ -20,7 +99,8 @@ const updateTurnDisplay = () => {
     const p2 = gamePlayers[1]; // Toinen pelaaja
 
     document.getElementById('roundDisplay').textContent = `Kierros: ${currentRound} / ${totalTurns}`;
-    document.getElementById('currentAvatar').src = gamePlayers[currentPlayerIndex].img;
+    const avatarEl = document.getElementById('currentAvatar');
+    if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
     document.getElementById('currentName').textContent = `Vuoro: ${gamePlayers[currentPlayerIndex].name}`;
     document.getElementById('scoreDisplay').innerHTML = `<span>${p1.name}: <strong>${p1.score}p</strong></span> &nbsp;&nbsp;⚡&nbsp;&nbsp; <span>${p2.name}: <strong>${p2.score}p</strong></span>`;
 
@@ -32,9 +112,6 @@ const updateTurnDisplay = () => {
     }
     if (activeModifiers.extendToEight) {
         debuffContainer.innerHTML += `<div class="debuff-badge buff" title="Korttitulva aktiivisena">🌟</div>`;
-    }
-    if (gamePlayers[currentPlayerIndex].name === "Yrttitarhuri" && druidShieldActivated) {
-        debuffContainer.innerHTML += `<div class="debuff-badge buff-druid" title="Luonnon suojelu: Kirous torjuttu! 🎉">🌿</div>`;
     }
 };
 
@@ -122,58 +199,7 @@ const handleDiceRoll = (playerKey, btnId, visualId, nextBtnId, nextCardId, isLas
     }, 80);
 };
 
-const spellHelpBtn = document.getElementById("spellHelpBtn");
-const spellHelpModal = document.getElementById("spellHelpModal");
-const closeSpellHelpBtn = document.getElementById("closeSpellHelpBtn");
-
-if (spellHelpBtn && spellHelpModal) {
-    spellHelpBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        playAudio(sounds.book);
-        spellHelpModal.style.display = "flex";
-    });
-}
-
-if (closeSpellHelpBtn && spellHelpModal) {
-    closeSpellHelpBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        playClickSound();
-        spellHelpModal.style.display = "none";
-    });
-}
-
-if (spellHelpModal) {
-    spellHelpModal.addEventListener("click", (e) => {
-        if (e.target === spellHelpModal) {
-            playClickSound();
-            spellHelpModal.style.display = "none";
-        }
-    });
-}
-
-if (sfwModeCheckbox) {
-    sfwModeCheckbox.addEventListener('change', () => {
-        const druidCard = document.querySelector('.char-card[data-char="Yrttitarhuri"]');
-        const druidCardImg = druidCard ? druidCard.querySelector('img') : null;
-        const sfwDesc = document.getElementById("sfwDescription");
-        
-        if (druidCardImg) {
-            if (sfwModeCheckbox.checked) {
-                // Когда SFW включен: показываем SFW-картинку Друида и полностью скрываем описание
-                druidCardImg.src = "pictures/worgen_druid_by_direbrow_deznfqq-fullview.jpg";
-                if (sfwDesc) sfwDesc.innerHTML = "";
-            } else {
-                // КОРРЕКТНОЕ ОПИСАНИЕ НА ФИНСКОМ ПРИ СНЯТИИ ГАЛОЧКИ:
-                druidCardImg.src = "pictures/d84f78_e78d7b66397d4bab934bee701b9aa427~mv2.jpg";
-                if (sfwDesc) {
-                    sfwDesc.innerHTML = "Sensuroi pieruäänen, piilottaa teemojen kuvat ja vaihtaa Druidin kuvan.";
-                }
-            }
-            // Обновляем глобальный объект картинок, чтобы в самой игре у Друида был правильный аватар
-            charImages["Yrttitarhuri"] = druidCardImg.src;
-        }
-    });
-}
+// Family-friendly toggle removed; images replaced by emojis.
 
 document.getElementById('p1DiceBtn').addEventListener('click', () => {
     handleDiceRoll('p1', 'p1DiceBtn', 'p1DiceVisual', 'p2DiceBtn', 'p2DiceCard', false);

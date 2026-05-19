@@ -1,44 +1,57 @@
+const buildWeightedThemePool = (weights, themeKeys = themes) => {
+    const pool = [];
+    themeKeys.forEach(theme => {
+        const count = Math.max(0, Math.round(weights[theme] || 0));
+        for (let i = 0; i < count; i++) {
+            pool.push(theme);
+        }
+    });
+    return pool;
+};
+
+const getThemeWeightsFromUI = () => {
+    const weights = {};
+    themes.forEach(theme => {
+        const inputId = `theme-weight-${theme.replace(/\s+/g, '-')}`;
+        const input = document.getElementById(inputId);
+        weights[theme] = input ? parseInt(input.value, 10) || 0 : (themeWeights[theme] || 1);
+    });
+    return weights;
+};
+
+const pickWeightedRandom = (pool) => {
+    if (!pool || pool.length === 0) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+};
+
+const getWeightedVerbalPool = (weights) => buildWeightedThemePool(weights, VERBAL_THEMES);
+
+const getRandomWeightedVerbalTheme = (weights, forbidden = []) => {
+    const verbalPool = getWeightedVerbalPool(weights).filter(theme => !forbidden.includes(theme));
+    if (verbalPool.length > 0) return pickWeightedRandom(verbalPool);
+    const fallback = VERBAL_THEMES.filter(theme => !forbidden.includes(theme));
+    return fallback[Math.floor(Math.random() * fallback.length)];
+};
+
+const initializeThemeWeightSliders = () => {
+    const sliders = document.querySelectorAll('.theme-weight-slider');
+    sliders.forEach(slider => {
+        const valueId = slider.dataset.valueId;
+        const valueDisplay = document.getElementById(valueId);
+        if (!valueDisplay) return;
+        valueDisplay.textContent = slider.value;
+        slider.addEventListener('input', () => {
+            valueDisplay.textContent = slider.value;
+        });
+    });
+};
+
+window.addEventListener('DOMContentLoaded', initializeThemeWeightSliders);
+
 const randomizeTheme = () => {
     const p = gamePlayers[currentPlayerIndex];
-    druidShieldActivated = false; 
     isMetamorphosisUsedThisTurn = false;
 
-    // --- MATKIMINEN PROSENTEILLA: KIROUSTEN HEIJASTAMINEN (50% Mahdollisuus) ---
-    if (p && p.name === "Muodonmuuttaja" && !isExtraTurnRound) {
-        if (pendingCurses.hunger || pendingCurses.chaos || activeModifiers.reduceToThree || activeModifiers.chaosFourWords) {
-            
-            // MUUTETTU: 0.50 -> 0.35 (35% mahdollisuus)
-            if (Math.random() < 0.35) { 
-                playAudio(sounds.morph);
-                
-                morferReflectedCurseNotice = "reflected";
-                
-                if (activeModifiers.reduceToThree) pendingCurses.hunger = true;
-                if (activeModifiers.chaosFourWords) pendingCurses.chaos = true;
-            } else {
-                morferReflectedCurseNotice = "failed";
-            }
-        }
-    }
-
-    // Druidin suojamekaniikka (60% mahdollisuus)
-    if (p && p.name === "Yrttitarhuri" && !isExtraTurnRound) {
-        if (pendingCurses.hunger || pendingCurses.chaos || activeModifiers.reduceToThree || activeModifiers.chaosFourWords) {
-            if (Math.random() < 0.60) {
-                druidShieldActivated = true; 
-                pendingCurses.hunger = false;
-                pendingCurses.chaos = false;
-                activeModifiers.reduceToThree = false;
-                activeModifiers.chaosFourWords = false;
-                playAudio(sounds.druid);
-                ruleInstruction.style.display = "block";
-                ruleInstruction.innerHTML = `<span style="color: #2ecc71; font-weight: bold; display: block; margin-bottom: 10px;">🛡️ Luonnon suojelu onnistui! Druidi torjui vastustajan kiroukset (60% mahdollisuus)!</span>`;
-            } else {
-                ruleInstruction.style.display = "block";
-                ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">💥 Luonnon suojelu petti! Vastustajan kirous murskasi Druidin puolustuksen!</span>`;
-            }
-        }
-    }
 
     btn.disabled = true;
     btn.style.opacity = "0.7";
@@ -47,9 +60,7 @@ const randomizeTheme = () => {
     wordList.style.display = "none";
     
     // TYHJENNETÄÄN OHJETEKSTI VAIN JOS SIITÄ EI OLE SUOJAVIESTIÄ (Tämä estää ylikirjoituksen alussa)
-    if (!druidShieldActivated && !ruleInstruction.innerHTML.includes("murskasi")) {
-        ruleInstruction.textContent = "";
-    }
+    ruleInstruction.textContent = "";
     
     themeDisplay.textContent = "";
     themeImage.style.display = "none";
@@ -61,16 +72,11 @@ const randomizeTheme = () => {
     drumAnim.style.display = "block";
     playAudio(sounds.drum, 3);
 
-    // СОЗДАЕМ И ФИЛЬТРУЕМ СПИСОК ТЕМ ДЛЯ ТЕКУЩЕГО РАУНДА
-    let currentThemesList = [...themes];
+    // Luodaan teemapooli käyttäjän tekemien painotusten perusteella
+    const weights = getThemeWeightsFromUI();
+    let currentThemesList = buildWeightedThemePool(weights);
 
-    // Если стоит галочка "Убрать испанский", удаляем его из пула доступных тем
-    const disableSpanishCheckbox = document.getElementById("disableSpanishCheckbox");
-    if (disableSpanishCheckbox && disableSpanishCheckbox.checked) {
-        currentThemesList = currentThemesList.filter(t => t !== "espanja");
-    }
-
-    // Страховка: если список почему-то пуст, добавляем базовый вариант
+    // Varotoimi: jos kaikkea on säädetty nollaan, varmista perusvaihtoehto
     if (currentThemesList.length === 0) {
         currentThemesList = ["perusvaihtoehto"];
     }
@@ -92,11 +98,11 @@ const randomizeTheme = () => {
             if (randomTheme === "kaksi ehtoa") {
                 let cond1 = "", cond2 = "", safetyAttempts = 0;
                 do {
-                    cond1 = VERBAL_THEMES[Math.floor(Math.random() * VERBAL_THEMES.length)];
+                    cond1 = getRandomWeightedVerbalTheme(weights);
                 } while (cond1 === "kaksi ehtoa" || cond1 === "vapaavalintainen" || cond1 === "perusvaihtoehto");
 
                 do {
-                    cond2 = VERBAL_THEMES[Math.floor(Math.random() * VERBAL_THEMES.length)];
+                    cond2 = getRandomWeightedVerbalTheme(weights, [cond1]);
                     safetyAttempts++;
                 } while (
                     (cond2 === "kaksi ehtoa" || cond2 === cond1 || cond2 === "vapaavalintainen" || cond2 === "perusvaihtoehto" || checkThemesIncompatible(cond1, cond2)) && safetyAttempts < 100
@@ -110,13 +116,9 @@ const randomizeTheme = () => {
                 themeDisplay.textContent = `2 Ehtoa: ${cond1.toUpperCase()} + ${cond2.toUpperCase()}`;
 
                 const imageUrl = themeImages[cond1];
-                if (imageUrl) { 
-                    if (cond1 === "ilman verbejä" && document.getElementById("sfwModeCheckbox") && document.getElementById("sfwModeCheckbox").checked) {
-                        themeImage.style.display = "none";
-                    } else {
-                        themeImage.src = imageUrl; 
-                        themeImage.style.display = "block"; 
-                    }
+                if (imageUrl && themeImage) {
+                    themeImage.textContent = imageUrl;
+                    themeImage.style.display = "block";
                 }
                 
                 const soundUrl = themeSounds[cond1];
@@ -130,13 +132,9 @@ const randomizeTheme = () => {
                 themeDisplay.textContent = randomTheme.toUpperCase();
 
                 const imageUrl = themeImages[randomTheme];
-                if (imageUrl) { 
-                    if (randomTheme === "ilman verbejä" && document.getElementById("sfwModeCheckbox") && document.getElementById("sfwModeCheckbox").checked) {
-                        themeImage.style.display = "none";
-                    } else {
-                        themeImage.src = imageUrl; 
-                        themeImage.style.display = "block"; 
-                    }
+                if (imageUrl && themeImage) { 
+                    themeImage.textContent = imageUrl;
+                    themeImage.style.display = "block"; 
                 }
 
                 const soundUrl = themeSounds[randomTheme];
@@ -145,40 +143,39 @@ const randomizeTheme = () => {
 
             btn.style.display = "none";
             btnDisplayWords.style.display = "block";
-            btnDisplayWords.textContent = "Näytä sanat (vain selittäjälle)";
+            btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle, loitsut vain ennen painamista)";
+            wordList.classList.remove("hidden-words");
+            isWordListHidden = true;
             roundControls.style.display = 'none';
             renderSpellButtonsBeforeWords();
             updateTurnDisplay();
 
+            const activeSpellsLog = [];
+            if (activeModifiers.extendToEight) activeSpellsLog.push("Korttitulva: lista kasvaa kahdella sanalla");
+            if (activeModifiers.reduceToThree) activeSpellsLog.push("Korttinälkä: lista supistuu 3 sanaan");
+            if (activeModifiers.chaosFourWords) activeSpellsLog.push("Sanakaaos: korvaa 3 sanaa vaikeammilla");
+
+            if (activeSpellsLog.length > 0 && !isMetamorphosisUsedThisTurn) {
+                ruleInstruction.style.display = "block";
+                ruleInstruction.innerHTML = `<span style="color: #e5c158; font-weight: bold; display: block; margin-bottom: 10px;">Aktiiviset taiat: ${activeSpellsLog.join(', ')}</span>`;
+            } else {
+                ruleInstruction.textContent = "";
+            }
+
             const activePlayer = gamePlayers[currentPlayerIndex];
             
             // 1. ILMOITUKSET MUODONMUUTTAJALLE HÄNEN OMAN VUORONSA ALUSSA
-            if (activePlayer && activePlayer.name === "Muodonmuuttaja") {
-                if (morferReflectedCurseNotice === "reflected") {
-                    ruleInstruction.style.display = "block";
-                    ruleInstruction.innerHTML = `<span style="color: #9b59b6; font-weight: bold; display: block; margin-bottom: 10px;">🧬 ULKOKUOREN MATKIMINEN: Heijastit vastustajan kirouksen takaisin lähettäjälle! Se iskee häneen ensi vuorolla!</span>`;
-                } else if (morferReflectedCurseNotice === "failed") {
-                    ruleInstruction.style.display = "block";
-                    ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">💥 ULKOKUOREN MATKIMINEN: Ulkokuoresi petti! Vastustajan kirous iski puolustuksesi läpi!</span>`;
-                }
-                morferReflectedCurseNotice = ""; // Nollataan luetuksi
-                
-                // Näytetään myös lisävuorouutiset jos niitä on
-                if (morferCopiedTurnNotice === "success") {
-                    ruleInstruction.style.display = "block";
-                    ruleInstruction.innerHTML += `<span style="color: #9b59b6; font-weight: bold; display: block; margin-bottom: 10px;">🧬 SOLUMATKIMINEN: Onnistuit matkimaan lisävuoroa! Saat tämän kierroksen jälkeen oman lisävuorosi!</span>`;
-                } else if (morferCopiedTurnNotice === "fail") {
-                    ruleInstruction.style.display = "block";
-                    ruleInstruction.innerHTML += `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">💥 SOLUMATKIMINEN: Yritit matkia lisävuoroa, mutta kopiointi epäonnistui.</span>`;
-                }
-                morferCopiedTurnNotice = ""; // Nollataan luetuksi
-            }
             
-            // 2. ILMOITUS UHRILLA (Kiroksenlankettajalle), KUN HÄNEN VUORONSA ALKAA JA HEIJASTETTU KIROUS ISKEE
-            if (activePlayer && activePlayer.name === "Kirouksenlankettaja") {
+            // 2. ILMOITUS UHRILLA (Kirouksenlangettajalle), KUN HÄNEN VUORONSA ALKAA JA HEIJASTETTU KIROUS ISKEE
+            if (activePlayer && activePlayer.name === "Kirouksenlangettaja") {
                 if (activeModifiers.reduceToThree || activeModifiers.chaosFourWords) {
-                    ruleInstruction.style.display = "block";
-                    ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">☠️ KÄÄNTEINEN MAGIA: Muodonmuuttaja heijasti aiemman kirouksesi takaisin! Kärsit nyt omasta taiastasi tällä vuorolla!</span>`;
+                    const reversedMessage = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">☠️ KÄÄNTEINEN MAGIA: Muodonmuuttaja heijasti aiemman kirouksesi takaisin! Kärsit nyt omasta taiastasi tällä vuorolla!</span>`;
+                    if (ruleInstruction.innerHTML) {
+                        ruleInstruction.innerHTML += reversedMessage;
+                    } else {
+                        ruleInstruction.style.display = "block";
+                        ruleInstruction.innerHTML = reversedMessage;
+                    }
                 }
             }
 
@@ -190,16 +187,18 @@ const switchToWords = () => {
     playClickSound();
     playAudio(sounds.flip);
     
-    btnDisplayWords.style.display = "none";
     // Teeman kuvat ja tekstit jätetään päälle, uusi CSS (words-active) hoitaa asettelun
     document.getElementById("gameContainer").classList.add("words-active");
     roundControls.style.display = 'flex';
     spellContainer.style.display = "none";
     
     generatedWordsList = [];
+    wordList.classList.remove("hidden-words");
 
     if (activeCondition1 === "vapaavalintainen" || activeCondition2 === "vapaavalintainen") {
         ruleInstruction.textContent = "Keksi oma sana ja selitä se toiselle pelaajalle ilman listaa. Paina sen jälkeen 'Arvattu!' tai 'Luovuta'.";
+        btnDisplayWords.style.display = "none";
+        isWordListHidden = true;
         return; 
     }
 
@@ -210,9 +209,9 @@ const switchToWords = () => {
     let targetCount = 5;
     let activeSpellsLog = [];
 
-    if (activeModifiers.extendToEight) { targetCount += 3; activeSpellsLog.push("Korttitulva (+3)"); }
-    if (activeModifiers.reduceToThree) { targetCount -= 3; activeSpellsLog.push("Korttinälkä (-2)"); }
-    if (activeModifiers.chaosFourWords) { activeSpellsLog.push("Sanakaaos (Kaaossanat)"); }
+    if (activeModifiers.extendToEight) { targetCount += 2; activeSpellsLog.push("Korttitulva: lista kasvaa kahdella sanalla"); }
+    if (activeModifiers.reduceToThree) { targetCount -= 2; activeSpellsLog.push("Korttinälkä: lista supistuu 3 sanaan"); }
+    if (activeModifiers.chaosFourWords) { activeSpellsLog.push("Sanakaaos: korvaa 3 sanaa vaikeammilla"); }
 
     targetCount = Math.max(1, targetCount);
 
@@ -222,7 +221,7 @@ const switchToWords = () => {
 
     if (activeSpellsLog.length > 0) {
         if (!isMetamorphosisUsedThisTurn) {
-            ruleInstruction.innerHTML = `<span style="color: #e5c158; font-weight: bold; display: block; margin-bottom: 5px;">Aktiiviset taiat: ${activeSpellsLog.join(', ')} (${targetCount} korttia)</span>` + baseInstruction;
+            ruleInstruction.innerHTML = `<span style="color: #e5c158; font-weight: bold; display: block; margin-bottom: 5px;">Aktiiviset taiat: ${activeSpellsLog.join(', ')} (${targetCount} sanaa)</span>` + baseInstruction;
         }
     } else if (!isMetamorphosisUsedThisTurn) {
         ruleInstruction.textContent = baseInstruction;
@@ -271,37 +270,61 @@ const switchToWords = () => {
     // 3. Sanakaaos-loitsun mekaaninen korvaus (vaikeat sanat tilalle)
 // 3. KORJATTU Sanakaaos: Toimii aina kun sanoja on vähintään 1 jäljellä
     if (activeModifiers.chaosFourWords && filteredAllWords.length > 0) {
-        // Korvataan aivan kaikki listalla olevat sanat vaikeilla sanoilla
-        const maxToReplace = generatedWordsList.length; 
-        
-        for (let idx = 0; idx < maxToReplace; idx++) {
-            // Jos vaikeat sanat sattuisivat loppumaan kesken pelin, käytetään yleisiä sanoja turvaverkona
+        // Korvataan kolme satunnaista sanaa vaikeilla sanoilla
+        const maxToReplace = Math.min(3, generatedWordsList.length);
+        const replaceIndices = [];
+
+        while (replaceIndices.length < maxToReplace) {
+            const idx = Math.floor(Math.random() * generatedWordsList.length);
+            if (!replaceIndices.includes(idx)) {
+                replaceIndices.push(idx);
+            }
+        }
+
+        replaceIndices.forEach(idx => {
             if (filteredAllWords.length > 0) {
                 const randIdx = Math.floor(Math.random() * filteredAllWords.length);
                 const w = capitalize(filteredAllWords[randIdx]);
                 generatedWordsList[idx] = w;
                 usedWordsInThisGame.push(w);
-                // Poistetaan sana heti tästä paikallisesta arvonnasta, ettei sama sana tule kahdesti samalle kortille
-                filteredAllWords.splice(randIdx, 1); 
+                filteredAllWords.splice(randIdx, 1);
             }
-        }
+        });
     }
 
     generatedWordsList.sort(() => Math.random() - 0.5);
     renderOlList();
+    btnDisplayWords.style.display = "block";
+    btnDisplayWords.textContent = "🙈 Piilota sanat";
+    isWordListHidden = false;
     renderSpellButtonsAfterWords();
+};
+
+const toggleWordVisibility = () => {
+    if (wordList.style.display === "none" || wordList.children.length === 0) {
+        switchToWords();
+        return;
+    }
+
+    if (isWordListHidden) {
+        wordList.classList.remove("hidden-words");
+        btnDisplayWords.textContent = "🙈 Piilota sanat";
+        isWordListHidden = false;
+    } else {
+        wordList.classList.add("hidden-words");
+        btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle)";
+        isWordListHidden = true;
+    }
 };
 
 const endRound = (isGuessed) => {
     const p = gamePlayers[currentPlayerIndex];
     let triggersExtraTurnNext = false;
-    druidShieldActivated = false;
-    isExtraTurnRound = false; // KORJATTU: 'let' poistettu, jotta päivittää globaalin muuttujan!
 
     if (isGuessed) {
         playAudio(sounds.success);
         
-        if (isMetamorphosisUsedThisTurn) {
+        if (isMetamorphosisUsedThisTurn || isExtraTurnRound) {
             p.score += 0.5; 
         } else {
             p.score += 1;   
@@ -309,26 +332,14 @@ const endRound = (isGuessed) => {
 
         // 🧬 MATKIMINEN PROSENTEILLA: LISÄVUORON KOPIOINTI (50% Mahdollisuus)
         if (p.name === "Yrttitarhuri" && p.extraTurnGranted) {
-            triggersExtraTurnNext = true;
-            playAudio(sounds.druid);
-            p.extraTurnGranted = false;
-
-            const morferi = gamePlayers.find(pl => pl.name === "Muodonmuuttaja");
-            
-            if (morferi && Math.random() < 0.50) {
-                morferi.extraTurnGranted = true; 
-                morferCopiedTurnNotice = "success"; 
-            } else if (morferi) {
-                morferCopiedTurnNotice = "fail";
-            }
-        }
+        triggersExtraTurnNext = true;
+        playAudio(sounds.druid);
+        p.extraTurnGranted = false;
+    }
 
     } else {
-        if (document.getElementById("sfwModeCheckbox") && document.getElementById("sfwModeCheckbox").checked) {
-            playAudio(sounds.flip);
-        } else {
-            playAudio(sounds.fail); 
-        }
+        // Family-friendly toggle removed — always play failure (fart) sound on fail
+        playAudio(sounds.fail);
         
         if (p.name === "Yrttitarhuri") {
             p.extraTurnGranted = false;
@@ -336,6 +347,10 @@ const endRound = (isGuessed) => {
     }
 
     wordList.style.display = "none";
+    wordList.classList.remove("hidden-words");
+    isWordListHidden = true;
+    btnDisplayWords.style.display = "none";
+    btnDisplayWords.textContent = "Näytä sanat (vain selittäjälle)";
     ruleInstruction.textContent = "";
     spellContainer.style.display = "none";
 
@@ -358,20 +373,6 @@ const endRound = (isGuessed) => {
             turnsInCurrentRound = 0;
             currentRound++;
             
-            if (currentRound === (totalTurns - 1)) {
-                const cursemage = gamePlayers.find(pl => pl.name === "Kirouksenlankettaja");
-                if (cursemage && Math.random() < 0.666) {
-                    const spellKeys = ["hunger", "chaos"];
-                    const randomSpell = spellKeys[Math.floor(Math.random() * spellKeys.length)];
-                    
-                    cursemage.spells[randomSpell]++;
-                    
-                    setTimeout(() => {
-                        ruleInstruction.style.display = "block";
-                        ruleInstruction.innerHTML = `<span style="color: #9b59b6; font-weight: bold; display: block; margin-bottom: 10px;">🔮 Kaaoksen paluu! Kirouksenlankettajan synkkä passiivi aktivoitui toiseksi viimeisellä kierroksella: +1 ${randomSpell === 'hunger' ? 'Korttinälkä' : 'Sanakaaos'}!</span>`;
-                    }, 500);
-                }
-            }
         }
     } else {
         activeModifiers.extendToEight = false; 

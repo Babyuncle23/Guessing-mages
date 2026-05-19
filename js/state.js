@@ -11,10 +11,8 @@ let generatedWordsList = [];
 let currentActiveTheme = "";
 let activeCondition1 = "";
 let activeCondition2 = "";
+let isWordListHidden = true;
 // Seurataan nopanheittojen tuloksia pelitilassa
 let playerRolls = { p1: 3, p2: 3 }; 
 let isMetamorphosisUsedThisTurn = false; 
-let druidShieldActivated = false;
 let isExtraTurnRound = false;
-let morferReflectedCurseNotice = "";
-let morferCopiedTurnNotice = "";

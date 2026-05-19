@@ -1,21 +1,32 @@
 //Pelin teemat, niiden kuvat ja niihin liittyvät uniikit äänitiedostot.
 const themes = [
-    "pantomiimi", "pantomiimi", "pantomiimi", "piirtäminen", "piirtäminen", "piirtäminen",
-    "espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "kaksi ehtoa",
-    "elokuva", "perusvaihtoehto", "vapaavalintainen"
+    "pantomiimi", "piirtäminen", "espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "kaksi ehtoa", "elokuva", "perusvaihtoehto", "vapaavalintainen"
 ];
 
+const themeWeights = {
+    "pantomiimi": 3,
+    "piirtäminen": 3,
+    "espanja": 1,
+    "ilman verbejä": 1,
+    "ilman substantiiveja": 1,
+    "vastakohdan kautta": 1,
+    "kaksi ehtoa": 1,
+    "elokuva": 1,
+    "perusvaihtoehto": 1,
+    "vapaavalintainen": 1
+};
+
 const themeImages = {
-    "pantomiimi": "pictures/pantomiimi.jpg",
-    "piirtäminen": "pictures/doggo.jpg",
-    "espanja": "pictures/duo.jpg",
-    "ilman verbejä": "pictures/no_verbs.jpg",
-    "ilman substantiiveja": "pictures/no_nouns.jpg",
-    "vastakohdan kautta": "pictures/opposite.png",
-    "kaksi ehtoa": "pictures/2_options.jpg",
-    "elokuva": "pictures/movies_rock.jpg",
-    "perusvaihtoehto": "pictures/basic.jpg",
-    "vapaavalintainen": "pictures/freeoption.png"
+    "pantomiimi": "🎭",
+    "piirtäminen": "🖌️",
+    "espanja": "🇪🇸",
+    "ilman verbejä": "🚫🔁",
+    "ilman substantiiveja": "🚫📦",
+    "vastakohdan kautta": "↔️",
+    "kaksi ehtoa": "2️⃣",
+    "elokuva": "🎬",
+    "perusvaihtoehto": "❓",
+    "vapaavalintainen": "✳️"
 };
 
 const themeSounds = {

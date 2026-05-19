@@ -51,7 +51,7 @@ document.getElementById('confirmDiceMatchBtn').addEventListener('click', () => {
     totalTurns = parseInt(document.getElementById('roundSelect').value);
     gamePlayers = [];
 
-    const BASE_VALUES = { flood: 0.2, metamorphosis: 0.25, curse: 0.2, regrowth: 0.2 };
+    const BASE_VALUES = { flood: 0.2, metamorphosis: 0.25, curse: 0.18, regrowth: 0.18 };
 
     // Luodaan hahmo-objektit ja lasketaan loitsujen määrät nopanheittojen perusteella
     setupOrder.forEach((name, idx) => {
@@ -67,10 +67,10 @@ document.getElementById('confirmDiceMatchBtn').addEventListener('click', () => {
                     flood: calculateSpells(totalTurns, BASE_VALUES.flood, rollResult)
                 }
             });
-        } else if (name === "Kirouksenlankettaja") {
+        } else if (name === "Kirouksenlangettaja") {
             gamePlayers.push({
-                name: "Kirouksenlankettaja",
-                img: charImages["Kirouksenlankettaja"],
+                name: "Kirouksenlangettaja",
+                img: charImages["Kirouksenlangettaja"],
                 score: 0,
                 spells: { 
                     hunger: calculateSpells(totalTurns, BASE_VALUES.curse, rollResult),
@@ -78,8 +78,8 @@ document.getElementById('confirmDiceMatchBtn').addEventListener('click', () => {
                 }
             });
         } else if (name === "Yrttitarhuri") {
-            const selectedImg = (sfwModeCheckbox && sfwModeCheckbox.checked) ? SFW_DRUID_IMAGE : charImages["Yrttitarhuri"];
-            
+            const selectedImg = charImages["Yrttitarhuri"];
+
             gamePlayers.push({
                 name: "Yrttitarhuri",
                 img: selectedImg,
@@ -112,7 +112,11 @@ btn.addEventListener("click", () => {
 
 btnDisplayWords.addEventListener("click", () => { 
     playClickSound(); 
-    switchToWords(); 
+    if (wordList.style.display === "none") {
+        switchToWords();
+    } else {
+        toggleWordVisibility();
+    }
 });
 
 btnGuessed.addEventListener("click", () => { 
