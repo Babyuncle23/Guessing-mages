@@ -17,14 +17,9 @@
         <div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
             <h3>📜 Säännöt</h3>
             <p style="margin-bottom: 15px;">
-                Te kaksi maagia otatte mittaa toisistanne! Pelaatte vuorotellen, ja joka kierroksella teille arvotaan <strong>teema</strong>, joka määrää miten sanoja saa selittää.
+                Selitä sanoja vastustajille ja ansaitse pisteitä, jos he arvaavat sanasi. Käytä taikuutta vaikuttaaksesi pelin kulkuun.
             </p>
             <ul style="list-style: none; margin-left: 0;">
-                <li style="margin-bottom: 8px;"><strong>ᛏ Aloittakaa kierros:</strong> Järjestelmä arpoo teille uuden teeman.</li>
-                <li style="margin-bottom: 8px;"><strong>⚡ Käyttäkää loitsuja:</strong> Hahmoilla on ainutlaatuisia kykyjä.</li>
-                <li style="margin-bottom: 8px;"><strong>👁️‍🗨️ Vain selittäjä näkee sanat:</strong> Valitkaa listalta yksi sana ja selittäkää.</li>
-                <li style="margin-bottom: 8px;"><strong>⚜️ Kerätkää pisteitä:</strong> Oikea arvaus = 1 piste!</li>
-            </ul>
         </div>
 
         <!-- SETTINGS -->
@@ -42,22 +37,80 @@
 
         <!-- MUKAUTUSVALINNAT -->
         <div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
-            <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Pelitilan mukautus:</p>
-            
-            <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer; font-size: 14px;">
-                <div>
-                    <strong>Famili friendly+</strong><br>
-                </div>
-                <input type="checkbox" id="sfwModeCheckbox" checked style="cursor: pointer; width: 18px; height: 18px;">
-            </label>
-
-            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 14px;">
-                <div>
-                    <strong>Poista espanja</strong><br>
-                    <small style="color: var(--text-muted);">Estää espanja-teeman</small>
-                </div>
-                <input type="checkbox" id="disableSpanishCheckbox" style="cursor: pointer; width: 18px; height: 18px;">
-            </label>
+            <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Ehto-valitsin ja teemojen painotus</p>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Säädä kunkin ehdon todennäköisyyttä. Nollaa teema poistaa sen satunnaisesta valinnasta.</p>
+            <div style="display: grid; gap: 10px;">
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Pantomiimi</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-pantomiimi" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-pantomiimi" style="width: 120px;">
+                        <span id="themeWeightValue-pantomiimi">3</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Piirtäminen</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-piirtäminen" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-piirtäminen" style="width: 120px;">
+                        <span id="themeWeightValue-piirtäminen">3</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Espanja</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-espanja" style="width: 120px;">
+                        <span id="themeWeightValue-espanja">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Ilman verbejä</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja" style="width: 120px;">
+                        <span id="themeWeightValue-ilman-verbeja">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Ilman substantiiveja</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-substantiiveja" style="width: 120px;">
+                        <span id="themeWeightValue-ilman-substantiiveja">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Vastakohdan kautta</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vastakohdan-kautta" style="width: 120px;">
+                        <span id="themeWeightValue-vastakohdan-kautta">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Elokuva</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva" style="width: 120px;">
+                        <span id="themeWeightValue-elokuva">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Kaksi ehtoa</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-kaksi-ehtoa" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-kaksi-ehtoa" style="width: 120px;">
+                        <span id="themeWeightValue-kaksi-ehtoa">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Perusvaihtoehto (vastustaja valitsee arvattavan sanan)</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-perusvaihtoehto" style="width: 120px;">
+                        <span id="themeWeightValue-perusvaihtoehto">1</span>
+                    </span>
+                </label>
+                <label style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px;">
+                    <span style="font-weight: 700;">Vapaavalintainen (keksi sana itse)</span>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen" style="width: 120px;">
+                        <span id="themeWeightValue-vapaavalintainen">1</span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         <!-- HAHMOVALINTAKORTIT -->
@@ -67,19 +120,19 @@
         </p>
         <div class="character-options">
             <div class="char-card" data-char="Muodonmuuttaja">
-                <img src="pictures/Dog_vs._Werewolf.jpg" alt="Muodonmuuttaja">
+                <div class="char-emoji" style="font-size:48px; text-align:center;">🐺</div>
                 <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Muodonmuuttaja</p>
-                <small style="font-size: 11px; color: var(--text-muted);">Muokkaa sanalistoja ja matkii vastustajan kykyjä</small>
+                <small style="font-size: 11px; color: var(--text-muted);">Muokkaa sanaluetteloaan itselleen sopivammaksi</small>
             </div>
-            <div class="char-card" data-char="Kirouksenlankettaja">
-                <img src="pictures/oar2.jpg" alt="Kirouksenlankettaja">
-                <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Kirouksenlankettaja</p>
-                <small style="font-size: 11px; color: var(--text-muted);">Vaikeuttaa vastustajan peliä kirouksilla</small>
+            <div class="char-card" data-char="Kirouksenlangettaja">
+                <div class="char-emoji" style="font-size:48px; text-align:center;">💀</div>
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Kirouksenlangettaja</p>
+                <small style="font-size: 11px; color: var(--text-muted);">Vaikeuttaa vastustajan peliä </small>
             </div>
             <div class="char-card" data-char="Yrttitarhuri">
-                <img src="pictures/worgen_druid_by_direbrow_deznfqq-fullview.jpg" alt="Yrttitarhuri">
+                <div class="char-emoji" style="font-size:48px; text-align:center;">🌿</div>
                 <p style="text-transform: uppercase; letter-spacing: 0.5px; margin-top: 5px; margin-bottom: 5px;">Yrttitarhuri</p>
-                <small style="font-size: 11px; color: var(--text-muted);">Suojautuu ja ansaitsee lisävuoroja</small>
+                <small style="font-size: 11px; color: var(--text-muted);">Voi ansaita lisävuoroja</small>
             </div>
         </div>
 
@@ -123,22 +176,8 @@
             <p id="diceStatusText" style="font-size: 14px; color: var(--gold); font-weight: bold; margin-bottom: 15px; min-height: 20px;"></p>
             
             <button id="confirmDiceMatchBtn" class="start-game-btn" style="display: none; width: auto; padding: 12px 35px; margin: 15px auto 0 auto; background: linear-gradient(135deg, #4c1d95, #6d28d9); border: 1px solid var(--gold); color: #fff;">
-                Aloittakaa peli maagisilla voimilla ⚔️
+                Aloittakaa peli
             </button>
-        </div>
-
-        <!-- === HAHMOKUVAUKSET === -->
-        <div class="spell-rules" style="margin-top: 25px; background: rgba(0,0,0,0.25);">
-            <h3>✨ Hahmokuvaukset</h3>
-            <p style="margin-bottom: 8px;">
-                🐺 <strong>Muodonmuuttaja</strong> — Korttitulva laajentaa sanalistaa. Sanametamorfoosi vaihtaa kaikki sanat vaikeiksi (½ pistettä). Passiivi: 35% heijastus/kopiointi.
-            </p>
-            <p style="margin-bottom: 8px;">
-                💀 <strong>Kirouksenlankettaja</strong> — Korttinälkä kutistaa vastustajan listan. Sanakaaos korvaa sanat vaikeilla. Passiivi: 66.6% loitsun palautus lopussa.
-            </p>
-            <p style="margin-bottom: 0;">
-                🌿 <strong>Yrttitarhuri</strong> — Kasvupurkaus antaa lisävuoron onnistuessa. Passiivi: 60% automaattinen kirouksen torjunta.
-            </p>
         </div>
 
     </div>
@@ -150,7 +189,7 @@
         <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
         <div class="player-block">
             <div class="avatar-wrapper">
-                <img id="currentAvatar" src="" alt="Avatar">
+                <div id="currentAvatar" class="current-avatar-emoji" style="font-size:40px; width:48px; text-align:center;"></div>
                 <div id="debuffIcons" class="debuff-icons"></div>
             </div>
             <div>
@@ -163,7 +202,7 @@
     <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
     <div id="themeBlock">
         <div id="themeDisplay" class="theme-text"></div>
-        <img id="img" src="" alt="Theme Image" style="display: none;">
+        <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
     </div>
 
     <div id="loader" class="drum-animation" style="display: none;"><span>Noniin...</span></div>
@@ -172,14 +211,22 @@
         <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
     </div>
 
-    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button id="spellBtn1" class="spell-btn"></button>
-        <button id="spellBtn2" class="spell-btn"></button>
+    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
+        <div class="spell-action-row" id="spellRow1">
+            <button id="spellBtn1" class="spell-btn"></button>
+            <button id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</button>
+        </div>
+        <div class="spell-action-row" id="spellRow2">
+            <button id="spellBtn2" class="spell-btn"></button>
+            <button id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</button>
+        </div>
+        <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
     </div>
 
     <!-- SANALISTA JA OHJEET -->
     <ol id="wordList" style="display: none;"></ol>
     <div id="ruleInstruction" class="rule-instruction"></div>
+    <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
     <!-- KEHITTÄJÄN TESTIVALIKKO 
     <div id="devTestMenu" style="margin: 15px 0; padding: 12px; border: 1px dashed var(--soft-border); border-radius: 8px; background: rgba(0,0,0,0.4);">
@@ -200,67 +247,21 @@
     </div> -->
 
     <button id="btn">Aloita kierros</button>
-    <button id="btnDisplayWords" style="display: none;">Paljasta sanat selittäjälle</button>
 
     <div id="roundControls" class="round-controls-block" style="display: none;">
         <button id="btnGuessed" class="btn-success">Arvattu oikein (+1 piste)</button>
-        <button id="btnGiveUp" class="btn-danger">Luovutan vuoron</button>
+        <button id="btnGiveUp" class="btn-danger">Luovutan vuoron / laiminlöin ehdon</button>
     </div>
 </div>
 
-<!-- KELLUVA PAINIKE (LOITSUKIRJA) -->
-<button id="spellHelpBtn" class="spell-help-floating-btn" title="Loitsukirja">📜</button>
-
-<div id="spellHelpModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 480px; padding: 25px;">
-        <h2 style="font-family: 'Cinzel', serif; font-size: 1.4rem; margin-bottom: 15px;">📜 LOITSUKIRJA</h2>
-        
-        <div class="spell-rules" style="max-height: 65vh; overflow-y: auto; padding: 0; background: transparent; border: none;">
-            
-            <!-- MANANOPPA LAATIKKO -->
-            <div style="margin-bottom: 20px; padding: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(229, 193, 88, 0.15); border-radius: 10px;">
-                <p style="font-size: 13px; margin: 0; line-height: 1.4; color: #fdfbf7; text-align: left;">
-                    🎲 <strong>Mananoppa:</strong> Pelin alussa heittämänne noppa määrittää loitsujen määrän. Korkea tulos = +1 loitsu, matala = -1 loitsu.
-                </p>
-            </div>
-
-            <!-- MUODONMUUTTAJA -->
-            <div style="text-align: left; margin-bottom: 20px;">
-                <h4 style="color: #9b59b6; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🐺 Muodonmuuttaja</h4>
-                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
-                    <li style="margin-bottom: 6px;">⏹️ <strong>Korttitulva:</strong> Kasvattaa listan 8 korttiin. Aktivoi ennen sanoja.</li>
-                    <li style="margin-bottom: 6px;">🔹 <strong>Sanametamorfoosi:</strong> Vaihtaa kaikki sanat uusiin. Arvaus = vain +0.5p.</li>
-                    <li style="margin-bottom: 6px;">🔀 <strong>Passiivi (35%):</strong> Kopiointi lisävuorosta tai kirouksen heijastus.</li>
-                </ul>
-            </div>
-
-            <!-- KIROUKSENLANKETTAJA -->
-            <div style="text-align: left; margin-bottom: 20px;">
-                <h4 style="color: #e74c3c; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">💀 Kirouksenlankettaja</h4>
-                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
-                    <li style="margin-bottom: 6px;">📉 <strong>Korttinälkä:</strong> Vastustajan lista kutistuu 2 korttiin.</li>
-                    <li style="margin-bottom: 6px;">☿ <strong>Sanakaaos:</strong> Korvaa kaikki sanat todella vaikeilla.</li>
-                    <li style="margin-bottom: 6px;">🔮 <strong>Passiivi (66.6%):</strong> Toiseksi viimeisellä kierroksella +1 loitsu.</li>
-                </ul>
-            </div>
-
-            <!-- YRTTITARHURI -->
-            <div style="text-align: left; margin-bottom: 20px;">
-                <h4 style="color: #27ae60; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">🌿 Yrttitarhuri</h4>
-                <ul style="list-style: none; padding-left: 0; font-size: 13px; line-height: 1.5; color: var(--text-muted);">
-                    <li style="margin-bottom: 6px;">🛡️ <strong>Luonnon suojelu (60%):</strong> Torjuu kiroukset automaattisesti vuoron alussa.</li>
-                    <li style="margin-bottom: 6px;">🌱 <strong>Kasvupurkaus:</strong> Onnistunut arvaus = lisävuoro. Aktivoi ennen sanoja.</li>
-                </ul>
-            </div>
-
-        </div>
-        
-        <!-- SULKUPAINIKE PUNAISELLA TYYLILLÄ -->
-        <button id="closeSpellHelpBtn" class="btn-danger" style="width: 100%; padding: 12px; font-size: 1rem; border-radius: 12px; margin-top: 10px;">
-            Sulkekaa kirja
-        </button>
+<!-- LOITSUJEN APUMODAALI -->
+<div id="spellHelpModal" class="spell-help-modal-overlay" style="display: none;">
+    <div class="spell-help-modal-content">
+        <button id="closeSpellHelpModal" class="spell-help-modal-close" aria-label="Sulje loitsuapu">✕</button>
+        <div id="spellHelpModalBody"></div>
     </div>
 </div>
+
 <script src="js\utils.js"></script>
 <script src="js\audio.js"></script>
 <script src="js\themes.js"></script>

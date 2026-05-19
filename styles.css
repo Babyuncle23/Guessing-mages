@@ -177,6 +177,13 @@ strong, b {
     margin-bottom: 20px;
 }
 
+#img.theme-emoji {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
 /* Kun sanat ovat auki, teemakuva pienenee siististi ylälaitaan viemästä tilaa */
 .container.words-active #img {
     max-height: 100px;
@@ -233,6 +240,26 @@ button:disabled, .spell-btn:disabled {
     letter-spacing: 0.5px;
     transition: all 0.2s ease;
     color: #e2daf0;
+    position: relative;
+}
+
+#wordList.hidden-words li,
+#wordList.hidden-words li.selected-word {
+    color: transparent;
+}
+
+#wordList.hidden-words li::after {
+    content: '🚫 Piilotettu';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.15);
+    font-style: italic;
+    letter-spacing: 0.8px;
+    border-radius: 8px;
 }
 
 #wordList li.selected-word {
@@ -388,24 +415,147 @@ button:disabled, .spell-btn:disabled {
     margin-bottom: 6px;
 }
 
-/* --- KELLUVA PAINIKE (OHJEKIRJA) --- */
-.spell-help-floating-btn {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 54px !important;
-    height: 54px !important;
+.spell-action-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.spell-action-row .spell-btn {
+    width: auto;
+    margin-top: 0;
+    min-width: 160px;
+}
+
+.spell-help-icon {
+    min-width: 28px;
+    min-height: 28px;
     border-radius: 50%;
-    font-size: 26px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.spell-help-icon:hover {
+    background: rgba(255,255,255,0.16);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+
+.spell-info-box {
+    display: none;
+}
+
+.spell-help-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+    background: rgba(5, 3, 8, 0.72);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    padding: 20px;
+}
+
+.spell-help-modal-content {
+    width: min(420px, 95vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    background: rgba(15,12,26,0.98);
+    border: 1px solid rgba(229,193,88,0.25);
+    border-radius: 18px;
+    padding: 24px 22px 20px;
+    box-shadow: 0 28px 70px rgba(0,0,0,0.45);
+    position: relative;
+}
+
+.spell-help-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--gold);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 900;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    background: linear-gradient(135deg, #d4af37 0%, #b89324 100%);
-    margin: 0 !important;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
+.spell-help-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.spell-help-modal-close:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.spell-help-modal-content .spell-info-title {
+    margin-bottom: 14px;
+}
+
+.spell-help-modal-content .spell-info-title strong {
+    color: var(--gold);
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+}
+
+.spell-help-modal-content p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.spell-help-icon {
+    min-width: 28px;
+    min-height: 28px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.spell-help-icon:hover {
+    background: rgba(255,255,255,0.16);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+
+body.spell-help-modal-open {
+    overflow: hidden;
+}
 /* --- RUMPUNÄYTTÖ JA ANIMAATIOT --- */
 .drum-animation {
     font-size: 1.3rem;
@@ -519,14 +669,6 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     button, .spell-btn, .start-game-btn {
         padding: 15px;
         font-size: 1rem;
-    }
-
-    .spell-help-floating-btn {
-        width: 48px !important;
-        height: 48px !important;
-        bottom: 15px;
-        right: 15px;
-        font-size: 22px;
     }
 }
 
