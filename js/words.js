@@ -155,13 +155,40 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 , "ilma-ase", "ilmaherruus", "ilmahyökkäys", "ilmahälytys", "ilmais-", "ilmaisku", "ilmajuoppo", "ilmakivääri", "ilmakuoppa",
 , "ilmansaaste", "ilmapistooli", "ilmapistooliammunta", "ilmarinta", "ilmarosvo", "ilmarosvous", "ilmasodankäynti", "ilmasota", "ilmataistelu", "ilmatorjunta", "ilmatorjunta-ase", "ilmatorjuntajoukot", "ilmatorjuntaohjus", "ilmatorjuntapatteri", "ilmatorjuntapatteristo", "ilmatorjuntatuli", "ilmatorjuntatykistö", "ilmatorjuntatykki", "ilmavaara", "ilmavaivat"
 , "ilmavoimat", "ilmavoitto", "ilmeettömästi", "ilmeillä", "ilmeily", "ilmiantaa", "ilmiantaja", "ilmianto", "ilmiantovelvollisuus", "ilmielävästi", "ilmiriita", "ilmiselvästi", "ilmisota", "ilmiömäisesti", "ilmoitse", "iloisesti", "iloissaan", "ilokaasu", "iloliemi", "ilolintu", "ilonpilaaja"
-
-
+, "ilotalo", "ilottomasti", "ilotyttö", "iltaisin", "iltasella"
+, "imbesilli", "imelästi", "immenkalvo", "immuunistaa", "immuunistua", "impata", "implisiittisesti", "impotenssi", "impotentti", "imppaus"
+, "impulsiivisesti", "individualistisesti", "indusoida", "indusoitua"
+, "informaatiosota", "inhimillisesti", "inhottavasti", "inkkari", "inkontinenssi", "innoissaan", "innokkaasti", "innostuksissaan", "innostuneesti"
+, "innottomasti", "insesti", "intensiivisesti", "interaktiivisesti", "intertekstuaalisesti"
+, "intiimisti", "intohimoisesti", "intohimottomasti", "intomielisesti", "intrigoida", "intrigointi", "inttää", "intuitiivisesti", "invalidi", "invalidisoida", "invalidisoitua", "invalidoida", "invalidoitua", "irkata"
+, "ironisesti", "irrallaan", "irralleen", "irrallisesti", "irrationaalisesti", "irstaasti", "irstailija", "irstailla", "irstailu", "irstainen", "irstas", "irstaus", "irti", "irtolainen", "irtonaisesti", "irveen", "irvessä", "irviin"
+, "irvissä", "irvokkaasti", "iskevästi", "isi", "iskä"
+, "isomahainen", "isosti", "isosuinen", "istualla", "istuallaan", "istualle", "istualleen", "istualta", "istualtaan", "istumalla", "istumalta"
+, "istuvilla", "istuvillaan", "istuville", "istuvilleen", "istuvilta", "istuviltaan", "isukki", "isällisesti", "isänmaallisesti", "isäpappa", "isäukko", "italiaano", "itarasti", "itkeskellä", "itkusilmin", "itsari"
+, "itsehalveksinta", "itsehalveksunta", "itseihailu", "itseinho", "itseiva", "itsekehu", "itsekeskeinen", "itsekeskeisyys", "itsekidutus", "itsekkyys", "itsekäs", "itsemurha", "itsemurhaaja", "itsemurhaisku", "itsemurhakandidaatti", "itsemurhalentäjä", "itsemurhaterrorismi", "itsemurhaterroristi", "itsemurhayritys", "itsensäpaljastaja", "itsensäpaljastaminen", "itserakas", "itserakkaus"
+, "itseruoskinta", "itsesoimaus", "itsessään", "itsestään", "itsesyytös", "itsesääli", "itsetuho", "itsetuhoinen", "itsetuhokäyttäytyminen", "itsetypistys", "itsetyydytys"
+, "iva", "ivahymy", "ivailla", "ivailu", "ivallinen", "ivamukaelma", "ivanauru", "ivata", "iätä"
+, "jakomielinen", "jakomielisyys", "jakomielitauti", "jalan", "jalkahiki", "jalkainvalidi", "jalkapuoli", "jalkapuu", "jalkarätti", "jalkasieni", "jalkasilsa"
+, "jalkavaimo", "jalkavaivainen", "jalkoväli", "jallittaa", "jallitus", "jamaan", "jamassa"
+, "jannu", "japsi", "jarrutuslakko", "jarrutuspolitiikka"
+, "jees-mies", "jeesustella", "jeesustelu", "jeeveli", "jengi", "jengiläinen", "jenginuori", "jenkki", "jenkkilä", "jepari", "jeppe", "jessus", "jesuiittamainen"
+, "jobbari", "jobinposti", "johdonmukaistaa", "johtajantauti", "johtotroikka"
+, "jokapaikanhöylä", "jolppi", "jonne", "jonninjoutava"
+, "jonne", "jorina", "jorista", "joro", "jorottaa", "jorotus", "jorpakko", "jortsut", "joukkio", "joukkohauta", "joukkohautaus", "joukkohysteria", "joukkomurha", "joukkomurhaaja", "joukkopsykoosi"
+, "joukkotuho", "joukkotuhoase", "joukkotuhonta", "joukoittain", "jouluinen", "joulukuinen", "joulunpunainen"
+, "journalistinen", "jousittaa", "joustaa", "joustamaton", "joustava", "joustavasti", "joustavoida", "joustavoittaa", "joustokankainen", "joutaa", "joutava", "joutavanpäiväinen", "jouten", "joutenolo", "joutessa", "joutessaan", "joutilaisuus", "joutilas", "joutua", "joutuin", "joutuisa", "joutuisasti", "joviaali", "joystick", "judata", "jugendtyylinen"
+, "jugoslavialainen", "juhla-asuinen", "juhlaliputettu", "juhlallinen", "juhlallisesti", "juhlamielinen", "juhlapukuinen", "juhlava", "juhlavalaistu", "juhlavasti", "juhlia", "juhlistaa", "juippi", "jujuttaa", "jukeboksi", "jukebox", "jukolaut", "jukolauta", "jukoliste", "jukra", "juksata", "juku", "jukuripäinen", "juliaaninen", "julistaa", "julistaja", "julistautua"
+, "juljeta", "julkaisematon", "julkaista", "julkea", "julkeasti", "julkilausua", "julkimo", "julkinen", "julkipanna", "julkipuhunta", "julkishallinnollinen", "julkisoikeudellinen", "julkistaa", "julkituoda", "julkkis", "julkku", "julli", "jullikka", "julma", "julmasti", "julmettu", "julmetusti", "julmistella", "julmistua", "julmuri", "jumalaapelkäävä", "jumalainen", "jumalaisesti", "jumalakeskeinen", "jumalallinen", "jumalankieltäjä", "jumalankieltäminen", "jumalanpilkka", "jumalaton", "jumalattomasti", "jumalaut", "jumalauta", "jumalinen", "jumalisesti", "jumaliste", "jumaloida"
+, "jumaluusopillinen", "jumiintua", "jumittaa", "jumittua", "jumiuttaa", "jumiutua", "jumpata", "jumputtaa", "junailla", "junk food", "junkkari", "junnata", "junnu", "juntata", "juntta", "junttapulla", "junttaus", "juntti", "juoda", "juohea", "juoheasti", "juoheus", "juoheva", "juohevasti", "juohevuus", "juohtua", "juoksennella", "juoksettaa", "juoksettua", "juokseva", "juoksevasti", "juoksuhauta", "juoksujalkainen", "juoksupoika", "juoksuttaa", "juolahtaa", "juolua", "juomahimo", "juomakausi", "juomakierre", "juomari", "juomingit", "juomuinen", "juomukondomi", "juonellinen", "juonellisesti", "juonia", "juonikas", "juonikkaasti", "juonitella", "juonittelija", "juontaa", "juonteikas", "juontua", "juoponnapissa", "juoponnappiin", "juopotella", "juoppo", "juoppohullu", "juoppohulluus", "juoppojuna", "juoppolalli", "juopporatti", "juopporenttu", "juopua", "juopunut", "juoruakka", "juoruilla", "juorukello", "juoruta", "juoruämmä", "juosta", "juotava", "juottaa"
+, "juottola", "juovainen", "juovikas", "juovittaa", "juovukkeeseen", "juovukkeessa", "juovuksiin", "juovuksissa", "juovuspäissä", "juovuspäissään", "juovuttaa", "jupista", "juppiutua", "juridinen", "juridisesti", "jurnuttaa", "juroa", "jurosti", "jurottaa", "juroutua", "jurppia", "jurrata", "jurri", "jurrikka", "justeerata", "jutaa", "jutella", "jutku", "jutsku", "jutustaa", "jutustella", "jututtaa", "juudas", "juukeli", "juupeli", "juurakkoinen", "juurehtia", "juurekas", "juureton", "juureva", "juurihoitaa", "juuria"
+, "juurittaa", "juurrettava", "juurruttaa", "juurtaa", "juurtua", "juustottua", "juustouttaa", "juustoutua", "juutalaisvaino", "juutalaisvastainen", "juutalaisvastaisuus", "juutalaisviha", "juutas", "juuttua", "jydätä", "jyhkeästi", "jykertää", "jykeväleukainen", "jykevästi", "jykevätekoinen", "jylhetä", "jylhistyä", "jylhästi"
+, "jylistä", "jyllätä", "jymistä", "jymistää", "jymähdellä", "jymähtää", "jymäytellä", "jymäyttää", "jynssätä", "jyristellä", "jyristä", "jyristää", "jyrisyttää", "jyrkentyä", "jyrkentää", "jyrketä", "jyrkistyä", "jyrkistää", "jyrkkäkaarteinen", "jyrkkäkattoinen", "jyrkkäluonteinen", "jyrkkänousuinen", "jyrkkäotteinen", "jyrkkäpiirteinen", "jyrkkärantainen", "jyrkkärinteinen", "jyrkkäsanainen", "jyrkkäseinäinen", "jyrkkäsävyinen", "jyrkästi", "jyrrätä", "jyrsiä", "jyrytä", "jyryyttää", "jyrähdellä", "jyrähtely", "jyrähtää", "jyrätä", "jyräyttää", "jyskiä", "jyskytellä", "jyskyttää", "jyskyä", "jyskähtää", "jyskää", "jysähdellä", "jysähtää", "jysäyttää", "jytistä", "jytistää", "jytkyttää", "jytkähtää", "jytyyttää", "jytää", "jyvittää"
+, "jyväjemmari", "jyystää", "jähmettyä", "jähmettää", "jähmetä", "jähmeästi", "jäitse", "jäkälöityä", "jäkättää", "jäljekkäin", "jäljelle", "jäljellä", "jäljemmä", "jäljemmäksi", "jäljemmäs", "jäljempänä", "jäljempää", "jäljentyä", "jäljentää", "jäljessä", "jäljestä", "jäljestäpäin", "jäljestää", "jäljetysten", "jäljetön", "jäljille", "jäljillä", "jäljiltä", "jäljitellä", "jäljittää", "jälkeen", "jälkeenjääneisyys", "jälkeenjäänyt", "jälkeenpäin", "jälki-ilmoittautua", "jälki-istunta", "jälki-istunto", "jälkikypsyttää", "jälkikypsyä"
 
 
 ];
 
-//seuraava alaken 15000
+//seuraava alaken 18000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
