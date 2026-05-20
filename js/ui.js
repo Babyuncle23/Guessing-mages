@@ -122,6 +122,13 @@ const renderOlList = () => {
     ).join('');
 };
 
+const clearWordsBeforeTurn = () => {
+    if (typeof wordList !== 'undefined') {
+        wordList.innerHTML = '';
+        wordList.style.display = "none";
+    }
+};
+
 const handleDiceRoll = (playerKey, btnId, visualId, nextBtnId, nextCardId, isLast) => {
     const rollBtn = document.getElementById(btnId);
     const diceVisual = document.getElementById(visualId);
@@ -180,9 +187,9 @@ const handleDiceRoll = (playerKey, btnId, visualId, nextBtnId, nextCardId, isLas
             // Отрисовываем финальные круглые точки по сетке
             renderDiceDots(diceVisual, roll);
             
-            let luckText = "Normaali mana";
-            if (roll <= 2) luckText = "Matala mana 📉";
-            if (roll >= 5) luckText = "Korkea mana! 📈";
+            let luckText = "Normaali 😐";
+            if (roll <= 2) luckText = "Minimi 🙁";
+            if (roll >= 5) luckText = "Maksimi 🙂";
             
             resultText.textContent = `Tulos: ${roll}`;
             rollBtn.textContent = luckText;
@@ -192,7 +199,7 @@ const handleDiceRoll = (playerKey, btnId, visualId, nextBtnId, nextCardId, isLas
                 if (nextCardId) document.getElementById(nextCardId).style.opacity = "1";
                 if (nextBtnId) document.getElementById(nextBtnId).disabled = false;
             } else {
-                document.getElementById('diceStatusText').textContent = "🔮 Molemmat maagit ovat määrittäneet voimansa!";
+                document.getElementById('diceStatusText').textContent = "🔮 Molemmat taikurit ovat määrittäneet voimansa!";
                 document.getElementById('confirmDiceMatchBtn').style.display = "block"; 
             }
         }
@@ -208,3 +215,17 @@ document.getElementById('p1DiceBtn').addEventListener('click', () => {
 document.getElementById('p2DiceBtn').addEventListener('click', () => {
     handleDiceRoll('p2', 'p2DiceBtn', 'p2DiceVisual', null, null, true);
 });
+
+// Добавили аргумент evt на первое место
+function openTab(evt, tabId) {
+  const contents = document.querySelectorAll('.tab-content');
+  contents.forEach(content => content.classList.remove('active'));
+
+  const buttons = document.querySelectorAll('.tab-button');
+  buttons.forEach(button => button.classList.remove('active'));
+
+  document.getElementById(tabId).classList.add('active');
+  
+  // Теперь используем переданный аргумент evt вместо глобального event
+  evt.currentTarget.classList.add('active');
+}

@@ -25,8 +25,8 @@ document.getElementById('startGameBtn').addEventListener('click', () => {
     }
     
     // Asetetaan valittujen hahmojen nimet noppalaatikoihin
-    document.getElementById('p1DiceName').textContent = `🧙‍♂️ ${setupOrder[0]}`;
-    document.getElementById('p2DiceName').textContent = `🧙‍♀️ ${setupOrder[1]}`;
+    document.getElementById('p1DiceName').textContent = `${setupOrder[0]}`;
+    document.getElementById('p2DiceName').textContent = `${setupOrder[1]}`;
     
     // Valmistellaan ensimmäisen pelaajan noppakortti aktiiviseksi
     document.getElementById('p1DiceCard').style.opacity = "1";
@@ -121,14 +121,23 @@ btnDisplayWords.addEventListener("click", () => {
 
 btnGuessed.addEventListener("click", () => { 
     playClickSound(); 
+    
+    // ИСПРАВЛЕНИЕ: Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
+    wordList.innerHTML = '';
+    wordList.style.display = "none";
+    
     endRound(true); 
 });
 
 btnGiveUp.addEventListener("click", () => { 
     playClickSound(); 
+    
+    // ИСПРАВЛЕНИЕ: Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
+    wordList.innerHTML = '';
+    wordList.style.display = "none";
+    
     endRound(false); 
 });
-
 // 4. Sanakorttien klikkauskuuntelija (Lukitsee valitun sanan)
 wordList.addEventListener('click', (e) => {
     const li = e.target.closest('li');

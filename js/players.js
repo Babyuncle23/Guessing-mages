@@ -37,7 +37,7 @@ document.querySelectorAll('.char-card').forEach(card => {
 
             if (setupOrder.length === 2) {
                 document.getElementById('startGameBtn').disabled = false;
-                document.getElementById('startGameBtn').textContent = "Määritä manasi määrä";
+                document.getElementById('startGameBtn').textContent = "Määritä loitsujesi määrä";
             }
         }
     });
