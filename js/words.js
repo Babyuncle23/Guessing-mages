@@ -45,7 +45,7 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 ,"auttamattomasti", "auttavasti", "autuaallisesti", "autuaasti"
 ,"avoimesti", "avojaloin", "avokatseisesti", "avokäsin", "avokätisesti"
 , "avionrikkoja", "aviorikos",
-, "bakkanaali", "banaani", "banaanivaltio", "bandiitti", "barbaari", "barbaarimainen", "barbaarimaisesti", "barbaarimaisuus", "barbaarinen", "barbaarisesti", "barbaarisuus", "bastardi", "besserwisser"
+, "bakkanaali", "banaanivaltio", "bandiitti", "barbaari", "barbaarimainen", "barbaarimaisesti", "barbaarimaisuus", "barbaarinen", "barbaarisesti", "barbaarisuus", "bastardi", "besserwisser"
 , "bigaaminen", "bigamia", "bikinialushousut", "bikinihousut", "bikinit", "bi-mies", "bi-nainen", "bioase",
 , "biataisteluaine", "biseksuaalinen", "biseksuaalisesti", "biseksuaalisuus", "body stocking", "bolsevikki", "bolševikki", "bolsevikkivallankumous", "bolševikkivallankumous", "bolsevismi", "bolševismi", "bolsevistinen", "bolševistinen", "blondi", "blondiini", "bluffata", "bluffaus", "bluffi"
 , "bordelli", "botuliini", "botulismi", "brenkku", "brežneviläinen", "brežneviläisesti", "brežneviläisyys", "broileripoliitikko", "brutaali", "brutaalius"
@@ -184,11 +184,41 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 , "juurittaa", "juurrettava", "juurruttaa", "juurtaa", "juurtua", "juustottua", "juustouttaa", "juustoutua", "juutalaisvaino", "juutalaisvastainen", "juutalaisvastaisuus", "juutalaisviha", "juutas", "juuttua", "jydätä", "jyhkeästi", "jykertää", "jykeväleukainen", "jykevästi", "jykevätekoinen", "jylhetä", "jylhistyä", "jylhästi"
 , "jylistä", "jyllätä", "jymistä", "jymistää", "jymähdellä", "jymähtää", "jymäytellä", "jymäyttää", "jynssätä", "jyristellä", "jyristä", "jyristää", "jyrisyttää", "jyrkentyä", "jyrkentää", "jyrketä", "jyrkistyä", "jyrkistää", "jyrkkäkaarteinen", "jyrkkäkattoinen", "jyrkkäluonteinen", "jyrkkänousuinen", "jyrkkäotteinen", "jyrkkäpiirteinen", "jyrkkärantainen", "jyrkkärinteinen", "jyrkkäsanainen", "jyrkkäseinäinen", "jyrkkäsävyinen", "jyrkästi", "jyrrätä", "jyrsiä", "jyrytä", "jyryyttää", "jyrähdellä", "jyrähtely", "jyrähtää", "jyrätä", "jyräyttää", "jyskiä", "jyskytellä", "jyskyttää", "jyskyä", "jyskähtää", "jyskää", "jysähdellä", "jysähtää", "jysäyttää", "jytistä", "jytistää", "jytkyttää", "jytkähtää", "jytyyttää", "jytää", "jyvittää"
 , "jyväjemmari", "jyystää", "jähmettyä", "jähmettää", "jähmetä", "jähmeästi", "jäitse", "jäkälöityä", "jäkättää", "jäljekkäin", "jäljelle", "jäljellä", "jäljemmä", "jäljemmäksi", "jäljemmäs", "jäljempänä", "jäljempää", "jäljentyä", "jäljentää", "jäljessä", "jäljestä", "jäljestäpäin", "jäljestää", "jäljetysten", "jäljetön", "jäljille", "jäljillä", "jäljiltä", "jäljitellä", "jäljittää", "jälkeen", "jälkeenjääneisyys", "jälkeenjäänyt", "jälkeenpäin", "jälki-ilmoittautua", "jälki-istunta", "jälki-istunto", "jälkikypsyttää", "jälkikypsyä"
-
-
+, "jälkikäteis-", "jälkkäri"
+, "jänishousu", "jänisrutto", "jännitys-"
+, "järjestöjyrä", "järjettömyys", "järjetön", "järkky"
+, "jästipää", "jätkä", "jätski"
+, "jätti-", "jättiläis-", "jätös", "jäykkäniska", "jäykkäniskainen"
+, "jääkaappi-pakastin", "jäärä", "jääräpäinen", "jääräpäisyys", "jääräpää"
+, "jää-viileäkaappi", "jörrikkä", "jörö", "jöröjukka", "jössikkä", "jötikkä", "jöö", "kaahaaja", "kaahailija", "kaahari", "kaakki"
+, "kaappijuoppo", "kaara"
+, "kaasukammio", "kaasukuolio", "kaasus", "kaatokänni", "kaatumatauti"
+, "kadotus", "kahareisin", "kahden kesken"
+, "kahdessadas", "kahdestaan", "kahdesti", "kaheli", "kahjo", "kahju", "kahta", "kahtaalla", "kahtaalle", "kahtaalta", "kahtaanne", "kahtapuolin", "kahtia", "kahvipapu"
+, "kai", "kaikaa", "kaiken kaikkiaan", "kaiketi", "kaikin", "kaikista", "kaikitenkin", "kaikkein", "kaikkiaan", "kaikkialla", "kaikkialle", "kaikkialta", "kaikkianne", "kaikusuhteet", "kainalokarvat"
+, "kaistapäinen", "kaistapää", "kait", "kaiunta", "kaivu"
+, "kajeontelo", "kajetto", "kakara", "kakaramainen", "kakata", "kakattaa", "kakka", "kakkahätä", "kakkainen", "kakkia", "kakkulat", "kakru", "kaks", "kaksari"
+, "kaksikymppinen", "kaksimielinen", "kaksimielisyys", "kaksin", "kaksinaamainen", "kaksinaamaisuus", "kaksinaismoraali", "kaksineuvoinen", "kaksineuvoisuus", "kaksinkertaisesti", "kaksistaan", "kaksisukupuolinen", "kaksisukupuolisuus", "kaksittain"
+, "kaksois-", "kaksosparikki", "kalahdella", "kalahdus", "kalahtaa"
+, "kalanperkeet", "kalansilmäinen", "kalatäi", "kalauttaa", "kaleeriorja", "kaleerivanki"
+, "kaliumsyanidi", "kaljabasso", "kaljamaha", "kaljoitella", "kalju", "kaljupäinen", "kaljupää", "kalkkaa", "kalkkis", "kallellaan", "kallelleen"
+, "kallonkutistaja", "kalmanhaju", "kalmankalpea", "kalmo", "kalmukki", "kalpaten", "kalpeanaama", "kalppia", "kalsa", "kalsareisillaan", "kalsareisilleen", "kalsarisillaan", "kalsarisilleen", "kalsarit"
+, "kalsongit", "kalterit", "kaltoin", "kalu", "kalukukkaro", "kalvia", "kalvin", "kalvinpora", "kalvinta", "kama", "kamala", "kamaluus"
+, "kamikazelentäjä", "kammoa", "kammottava", "kammottavasti", "kanalja", "kanamainen", "kanamaisesti", "kanankakka", "kananlanta"
+, "kananpää", "kanervakäärme", "kangaskäärme", "kangastaa", "kangastella", "kangastua", "kanittaa",
+"kankku", "kankkunen", "kannabis", "kannalla", "kannalle", "kannalta", "kannassa", "kannasta", "kannibaali", "kannibaalinen", "kannibalismi", "kannoilla", "kannoille", "kannoilta"
+, "kansalaissota", "kansalliskiihko", "kansalliskiihkoilija", "kansalliskiihkoinen", "kansallismielinen", "kansallismielisyys", "kansallissosialismi", "kansallissosialisti", "kansallissosialistinen"
+, "kansankiihottaja", "kansankiihotus", "kansanmurha"
+, "kansanvihollinen", "kansanvillitsijä", "kanssa", "kantaan", "kanta-astuja"
+, "kantelupukki", "kanttura", "kanttuvei", "kapakka"
+, "kapi", "kapiainen", "kapinahenkinen", "kapinaliike", "kapinalippu", "kapinallinen", "kapinallisuus", "kapinamieli", "kapinayritys", "kapinen", "kapinoida", "kapinoija", "kapinointi", "kapinoitsija", "kapitalisti", "kapitalistinen", "kapitulantti", "kappas", "kaput"
+, "kardinaalimunaus", "kardinaalivirhe", "karhuaja", "karhuamiskirje"
+, "karhukirje", "karhunkoppi", "karhuta", "karjahdella", "karjahdus", "karjahtaa", "karjaista", "karjaisu"
 ];
 
-//seuraava alaken 18000
+const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
+
+//seuraava alaken 2100
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -200,11 +230,9 @@ const parseWords = (text) => {
         .map(w => w.trim())
         .filter(w => w.length >= 3)
         .map(w => ({ original: w, normalized: w.toLowerCase() }))
-        .filter(item => !forbiddenWords.includes(item.normalized))
+        .filter(item => !forbiddenSet.has(item.normalized))
         .filter(item => {
-            if (seen.has(item.normalized)) {
-                return false;
-            }
+            if (seen.has(item.normalized)) return false;
             seen.add(item.normalized);
             return true;
         })

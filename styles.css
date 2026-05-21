@@ -1235,3 +1235,92 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     opacity: 0.6;
     width: 100%;
 }
+
+.spell-rules .multiplayer-accordion {
+    margin: 15px 0 5px 0; /* Минимальный нижний отступ, чтобы не прижиматься к краю */
+    width: 100%;
+    text-align: left;
+}
+
+.spell-rules .accordion-trigger {
+    /* Сделали фон чуть светлее подложки правил для контраста */
+    background: rgba(255, 255, 255, 0.04) !important; 
+    border: 1px solid rgba(229, 193, 88, 0.2) !important;
+    color: var(--text-light) !important;
+    padding: 10px 14px !important; /* Сделали чуть компактнее для размещения внутри правил */
+    font-size: 13px !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    text-align: left !important;
+    cursor: pointer;
+    margin-top: 10px !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (hover: hover) {
+    .spell-rules .accordion-trigger:hover {
+        background: rgba(229, 193, 88, 0.08) !important;
+        border-color: rgba(229, 193, 88, 0.4) !important;
+    }
+}
+
+.spell-rules .accordion-trigger.active {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    background: rgba(229, 193, 88, 0.05) !important;
+}
+
+.spell-rules .accordion-trigger::after {
+    content: '▼';
+    font-size: 9px;
+    color: var(--gold);
+    transition: transform 0.2s ease;
+}
+
+.spell-rules .accordion-trigger.active::after {
+    transform: rotate(180deg);
+}
+
+.spell-rules .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3); /* Более глубокий темный фон для контраста внутри правил */
+    border: 1px solid rgba(229, 193, 88, 0.2);
+    border-top: none;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 0 14px;
+    transition: max-height 0.25s ease-out, padding 0.25s ease-out;
+    box-sizing: border-box;
+}
+
+.spell-rules .accordion-content.open {
+    max-height: 450px; /* Высота подстроена под лаконичный текст */
+    padding: 14px;
+}
+
+.spell-rules .count-badge {
+    display: inline-block;
+    background: rgba(91, 33, 182, 0.25);
+    border: 1px solid rgba(91, 33, 182, 0.4);
+    color: #e2daf0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.spell-rules .player-count-option p {
+    font-size: 12.5px !important;
+    color: var(--text-muted) !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    margin: 0 !important;
+}

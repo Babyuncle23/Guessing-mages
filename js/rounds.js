@@ -196,7 +196,7 @@ const switchToWords = () => {
     wordList.classList.remove("hidden-words");
 
     if (activeCondition1 === "vapaavalintainen" || activeCondition2 === "vapaavalintainen") {
-        ruleInstruction.textContent = "Keksi oma sana ja selitä se toiselle pelaajalle ilman listaa. Paina sen jälkeen 'Arvattu!' tai 'Luovuta'.";
+        ruleInstruction.textContent = "✨ Keksi täysin oma sana mielessäsi ja selitä se toiselle pelaajalle ilman valmista listaa.";
         btnDisplayWords.style.display = "none";
         isWordListHidden = true;
         return; 
@@ -216,7 +216,7 @@ const switchToWords = () => {
     targetCount = Math.max(1, targetCount);
 
     let baseInstruction = (activeCondition1 === "perusvaihtoehto" || activeCondition2 === "perusvaihtoehto") ?
-        "Toinen pelaaja valitsee sanan ilman että näkee listaa. Selitä sana normaalisti." :
+        "🎲 Vastustaja valitsee numeron 1-5 väliltä. Sinun täytyy selittää suullisesti juuri se sana." :
         "Valitse yksi sana ja selitä se toiselle pelaajalle.";
 
     if (activeSpellsLog.length > 0) {

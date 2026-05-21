@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guessing Mages</title>
     <link rel="stylesheet" href="styles.css">
+    <link id="favicon" rel="icon" type="image/png" href="" />
 </head>
 <body>
 
@@ -23,14 +24,55 @@
             <h2>🧙‍♂️ Guessing Mages</h2>
 
             <!-- RULES -->
-            <div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
-                <h3>📜 Säännöt</h3>
-                <p style="margin-bottom: 15px;">
-                    Selitä sanoja vastustajille ja ansaitse pisteitä, jos he arvaavat sanasi. Käytä taikuutta vaikuttaaksesi pelin kulkuun. 
-                </p>
-                <p style="margin-bottom: 15px;">Huomio! Pelissä on erilaisia selitysehtoja, ja niitä sekä pelin kestoa voi muokata Asetukset-välilehdessä.</p>
-                <!-- Ошибка исправлена: убран незакрытый тег UL -->
+<!-- RULES -->
+<!-- RULES -->
+<div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
+    <h3 style="font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 0.5px;">📜 Näin pelaat</h3>
+    
+    <p style="margin-bottom: 12px; line-height: 1.5; font-size: 14px;">
+        Guessing Mages on viihdyttävä ja rento sanojen selityspeli, jossa taikuus muuttaa perinteisiä sääntöjä. Pelissä ei ole sisäänrakennettua ajastinta, joten voitte pelata täysin ilman stressiä ja kiirettä.
+    </p>
+
+    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 15px;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.4;">
+            <strong>Pelin ydin:</strong> Vuorossa oleva pelaaja toimii selittäjänä. Selittäjä kuvailee sanan kierroksen ehdon mukaisesti, ja vastustaja yrittää arvata sen. Onnistuneesta arvauksesta selittäjä ansaitsee pisteen. Loitsuja voi käyttää pelitilanteen muuttamiseen ennen sanojen katsomista.
+        </p>
+    </div>
+
+    <p style="margin-bottom: 12px; font-size: 13.5px; line-height: 1.4;">
+        🔄 <strong>Kierroksen aikana:</strong> Voitte sopia vapaasti omista kotisäännöistä (kuten äänien sallimisesta pantomiimissa). Jos rikot annettua selitysehtoa vahingossa, tai jos sana on liian vaikea etkä vain enää jaksa selittää sitä, paina rohkeasti "Luovuta vuoro" – se on täysin ok, ja voitte siirtää kapulan suoraan eteenpäin ilman stressiä.
+    </p>
+
+    <p style="margin-bottom: 15px; font-size: 13px; color: var(--text-muted); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+        ⚙️ <strong>Ennen peliä:</strong> Pelin pituutta sekä eri selitysehtojen todennäköisyyksiä voi muokata vapaasti <strong>Asetukset</strong>-välilehdessä juuri teidän porukallenne sopivaksi.
+    </p>
+
+    <!-- MULTIPLAYER ACCORDION -->
+    <div class="multiplayer-accordion">
+        <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            👥 Onko teitä enemmän kuin kaksi? (3+ pelaajaa)
+        </button>
+        <div class="accordion-content">
+            <p style="margin-bottom: 12px; color: var(--gold); font-weight: bold; font-size: 13px;">
+                Isommalla porukalla peli jakautuu kahteen tiimiin:
+            </p>
+            
+            <div class="player-count-option" style="margin-bottom: 12px;">
+                <span class="count-badge">3 pelaajaa (Pari vs Yksi)</span>
+                <p>Kaksi pelaajaa muodostaa pysyvän tiimin yhtä hahmoa kohden ja pelaa yhdessä kolmatta pelaajaa vastaan.</p>
             </div>
+
+            <div class="player-count-option">
+                <span class="count-badge">4+ pelaajaa (Tiimipeli)</span>
+                <p>Jakautukaa kahteen joukkueeseen (yksi per hahmo). Joukkue valitsee keskuudestaan vuorossa olevan selittäjän, ja vain tämä selittäjä saa katsoa sanat:</p>
+                <ul style="margin-left: 15px; margin-top: 5px; font-size: 12px; color: var(--text-muted); list-style: disc;">
+                    <li>Oma joukkue saa pisteen, jos he arvaavat selittäjän sanan oikein.</li>
+                    <li><strong>Vastustajat mukaan:</strong> Myös vastustajajoukkue saa yrittää arvata! Jos vastustajat sanovat oikean sanan ensin, oma tiimisi ei saa pisteitä tältä vuorolta.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- HAHMOVALINTAKORTIT -->
             <h3 style="margin-bottom: 5px;">🧙‍♀️ Valitkaa hahmot</h3>
@@ -74,43 +116,43 @@
                 <button id="startGameBtn" class="start-game-btn" disabled style="background: #5b21b6; color: #fff;">VALITKAA 2 HAHMOA</button>
             </div>
 
-            <!-- NOPPIEN HEITTOALUE -->
-            <div id="diceBlock" style="display: none; margin: 15px 0; text-align: center;">
-                <h3 style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 5px; font-size: 1.3rem; letter-spacing: 1px;">
-                    🎲 LOITSUJEN MÄÄRÄ
-                </h3>
-                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 25px;">
-                    Heittäkää kumpikin oma noppanne.
-                </p>
-                
-                <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
-                    <!-- Pelaaja 1 Laatikko -->
-                    <div id="p1DiceCard" class="dice-holder-card">
-                        <p id="p1DiceName" class="dice-player-title">Pelaaja 1</p>
-                        <div class="dice-box-wrapper">
-                            <div id="p1DiceVisual" class="dice-graphic">?</div>
-                        </div>
-                        <p id="p1DiceResultText" class="dice-result-subtext"></p>
-                        <button id="p1DiceBtn" class="dice-action-btn">Heitä noppaa</button>
-                    </div>
-
-                    <!-- Pelaaja 2 Laatikko -->
-                    <div id="p2DiceCard" class="dice-holder-card" style="opacity: 0.4;">
-                        <p id="p2DiceName" class="dice-player-title">Pelaaja 2</p>
-                        <div class="dice-box-wrapper">
-                            <div id="p2DiceVisual" class="dice-graphic">?</div>
-                        </div>
-                        <p id="p2DiceResultText" class="dice-result-subtext"></p>
-                        <button id="p2DiceBtn" class="dice-action-btn" disabled>Heitä noppaa</button>
-                    </div>
-                </div>
-                
-                <p id="diceStatusText" style="font-size: 14px; color: var(--gold); font-weight: bold; margin-bottom: 15px; min-height: 20px;"></p>
-                
-                <button id="confirmDiceMatchBtn" class="start-game-btn" style="display: none; width: auto; padding: 12px 35px; margin: 15px auto 0 auto; background: linear-gradient(135deg, #4c1d95, #6d28d9); border: 1px solid var(--gold); color: #fff;">
-                    Aloittakaa peli
-                </button>
+<!-- NOPPIEN HEITTOALUE -->
+<div id="diceBlock" style="display: none; margin: 15px 0; text-align: center;">
+    <h3 style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 5px; font-size: 1.3rem; letter-spacing: 1px;">
+        🎲 MATSIN TAIKAVOIMAT
+    </h3>
+    <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.4;">
+        Heittäkää nopat. Tulos määrittää, kuinka monta loitsua saatte käyttöönne tämän ottelun ajaksi (vähän, normaalisti vai paljon).
+    </p>
+    
+    <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;">
+        <!-- Pelaaja 1 Laatikko -->
+        <div id="p1DiceCard" class="dice-holder-card">
+            <p id="p1DiceName" class="dice-player-title">Pelaaja 1</p>
+            <div class="dice-box-wrapper">
+                <div id="p1DiceVisual" class="dice-graphic">?</div>
             </div>
+            <p id="p1DiceResultText" class="dice-result-subtext"></p>
+            <button id="p1DiceBtn" class="dice-action-btn">Heitä noppaa</button>
+        </div>
+
+        <!-- Pelaaja 2 Laatikko -->
+        <div id="p2DiceCard" class="dice-holder-card" style="opacity: 0.4;">
+            <p id="p2DiceName" class="dice-player-title">Pelaaja 2</p>
+            <div class="dice-box-wrapper">
+                <div id="p2DiceVisual" class="dice-graphic">?</div>
+            </div>
+            <p id="p2DiceResultText" class="dice-result-subtext"></p>
+            <button id="p2DiceBtn" class="dice-action-btn" disabled>Heitä noppaa</button>
+        </div>
+    </div>
+    
+    <p id="diceStatusText" style="font-size: 14px; color: var(--gold); font-weight: bold; margin-bottom: 15px; min-height: 20px; letter-spacing: 0.5px;"></p>
+    
+    <button id="confirmDiceMatchBtn" class="start-game-btn" style="display: none; width: auto; padding: 12px 35px; margin: 15px auto 0 auto; background: linear-gradient(135deg, #4c1d95, #6d28d9); border: 1px solid var(--gold); color: #fff;">
+        Aloita peli
+    </button>
+</div>
             
         </div> <!-- ЗАКРЫЛИ ВКЛАДКУ gameTab -->
   <!-- НАЧАЛО ВКЛАДКИ «НАСТРОЙКИ» (id изменен на settingsTab для совместимости с JS) -->
@@ -129,13 +171,13 @@
             </div>
 
             <!-- MUKAUTUSVALINNAT -->
-            <div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
+                        <div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
                 <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Ehtojen valinta ja painotus</p>
                 <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Määritä kunkin ehdon todennäköisyys. Jos ehdolle asetetaan arvoksi ”0”, se suljetaan pois satunnaisvalinnasta.</p>
                 
 <div style="display: flex; flex-direction: column; gap: 18px; text-align: left;">
     
-    <!-- Pantomiimi -->
+    <!-- Pantomiimi (Suositeltu oletus: 3) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Pantomiimi</span>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
@@ -144,85 +186,96 @@
         </div>
     </div>
 
-    <!-- Piirtäminen -->
+    <!-- Piirtäminen (Suositeltu oletus: 2) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Piirtäminen</span>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-piirtäminen" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-piirtäminen" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-piirtäminen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">3</span>
+            <input class="theme-weight-slider" id="theme-weight-piirtäminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-piirtäminen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
         </div>
     </div>
 
-    <!-- Espanja -->
+    <!-- Espanja (Matalan kynnyksen suositus: 0 - Pois päältä) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Espanja</span>
+        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
+            Käännä sana suoraan espanjaksi, käytä espanjalaisia lauseita tai selitä käsite espanjan kielellä.
+        </small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-espanja" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-espanja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-espanja" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-espanja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
         </div>
     </div>
 
-    <!-- Ilman verbejä -->
+    <!-- Ilman verbejä (Suositeltu oletus: 1) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman verbejä</span>
+        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
+            Tekemistä kuvaavat sanat on kielletty. Keskity kuvailemaan asioiden ulkonäköä, värejä, kokoa ja sijaintia.
+        </small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-ilman-verbeja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
         </div>
     </div>
 
-    <!-- Ilman substantiiveja -->
+    <!-- Ilman substantiiveja (Matalan kynnyksen suositus: 0 - Pois päältä) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman substantiiveja</span>
+        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
+            Esineiden ja asioiden nimet on kielletty. Keskity kuvailemaan pelkkää toimintaa – mitä asialla tehdään.
+        </small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-substantiiveja" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-ilman-substantiiveja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-ilman-substantiiveja" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-ilman-substantiiveja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
         </div>
     </div>
 
-    <!-- Vastakohdan kautta -->
+    <!-- Vastakohdan kautta (Suositeltu oletus: 2) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Vastakohdan kautta</span>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vastakohdan-kautta" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-vastakohdan-kautta" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-vastakohdan-kautta" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-vastakohdan-kautta" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
         </div>
     </div>
 
-    <!-- Elokuva -->
+    <!-- Elokuva (Suositeltu oletus: 3) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Elokuva</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Selityksen tulisi liittyä tiettyyn elokuvaan</small>
+        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
+            Sido sana johonkin elokuvaan, sarjaan tai tunnettuun kohtaukseen, jonka arvaaja tietää.
+        </small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-elokuva" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-elokuva" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-elokuva" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">3</span>
         </div>
     </div>
 
-    <!-- Kaksi ehtoa -->
+     <!-- Kaksi ehtoa (Matalan kynnyksen suositus: 0 - Pois päältä) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Kaksi ehtoa</span>
         <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Kahden muun ehdon satunnainen yhdistelmä</small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-kaksi-ehtoa" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-kaksi-ehtoa" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-kaksi-ehtoa" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-kaksi-ehtoa" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-kaksi-ehtoa" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-kaksi-ehtoa" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
         </div>
     </div>
 
-    <!-- Perusvaihtoehto -->
+    <!-- Perusvaihtoehto (Suositeltu oletus: 4 - Korkein todennäköisyys) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Perusvaihtoehto</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Vastustaja valitsee arvattavan sanan</small>
+        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Vastustaja valitsee arvattavan sanan numeron listalta</small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-perusvaihtoehto" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-perusvaihtoehto" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+            <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="4" data-value-id="themeWeightValue-perusvaihtoehto" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-perusvaihtoehto" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">4</span>
         </div>
     </div>
 
-    <!-- Vapaavalintainen -->
+    <!-- Vapaavalintainen (Suositeltu oletus: 1) -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Vapaavalintainen</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Keksi sana itse</small>
+        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Keksi sana kokonaan itse omassa mielessäsi</small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-vapaavalintainen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>

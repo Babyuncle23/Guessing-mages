@@ -154,3 +154,48 @@ wordList.addEventListener('click', (e) => {
     wordList.querySelectorAll('li').forEach(el => el.classList.remove('selected-word'));
     li.classList.add('selected-word');
 });
+
+window.addEventListener('DOMContentLoaded', () => {
+    document.fonts.ready.then(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+            ctx.imageSmoothingEnabled = false;
+
+            // 1. РИСУЕМ ВОЛШЕБНИКА (Сдвигаем в самый левый край до упора)
+            ctx.font = '44px sans-serif';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'left';
+            ctx.fillText('🧙‍♂️', -8, 32); 
+
+            // 2. РИСУЕМ БУКВУ G ЧЁТКИМ РУБЛЕНЫМ ШРИФТОМ
+            // Замена на sans-serif делает внутренний просвет буквы широким, убирая кашу
+            ctx.font = '900 42px "Arial Black", "Impact", sans-serif'; 
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'right'; 
+
+            // Смещаем координату на 66, чтобы впечатать букву в правый край
+            const textX = 66; 
+            const textY = 32;
+
+            // 3. ПЛОТНЫЙ КОНТУР ДЛЯ ОТРЫВА ОТ ШЛЯПЫ МАГА
+            ctx.strokeStyle = '#000000';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 7; 
+            ctx.strokeText('G', textX, textY);
+
+            // 4. НАКЛАДЫВАЕМ СВЕРХУ ЗОЛОТОЙ ЦВЕТ
+            ctx.fillStyle = '#e5c158'; 
+            ctx.fillText('G', textX, textY);
+        }
+
+        // 5. Записываем готовую картинку в тег фавиконки
+        const favicon = document.getElementById('favicon');
+        if (favicon) {
+            favicon.href = canvas.toDataURL('image/png');
+        }
+    });
+});

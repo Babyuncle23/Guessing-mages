@@ -23,11 +23,11 @@ const spellHelpModalBody = document.getElementById("spellHelpModalBody");
 const closeSpellHelpModal = document.getElementById("closeSpellHelpModal");
 
 const spellDescriptions = {
-    Korttitulva: "🐺 Korttitulva: Lisää sanalistan pituutta kahdella, jolloin voit valita selitettävän sanan laajemmasta vaihtoehtojoukosta.",
-    Sanametamorfoosi: "🌀 Sanametamorfoosi: Muuttaa kaikki valittavat sanat helpommiksi. Onnistumisesta saa vain puoli pistettä.",
-    Korttinälkä: "📉 Korttinälkä: Supistaa sanalistan vain kolmeen vaihtoehtoon. Aktivoituu oman vuoron jälkeen vastustajan vuorolla",
-    Sanakaaos: "☿ Sanakaaos: Todennäköisesti korvaa vastustajan kolme lista­sanaa vaikeammilla tai oudoimmilla sanoilla, jotta selitettävä sana on hankalampi arvata. Aktivoituu oman vuoron jälkeen vastustajan vuorolla.",
-    Kasvupurkaus: "🌱 Kasvupurkaus: Onnistuneen arvauksen jälkeen saat heti bonusvuoron, mutta bonusvuorosta saa vain 0,5 pistettä. Aktivoi ennen sanoja."
+    Korttitulva: "🐺 Korttitulva: Laajentaa sanalistaasi kahdella lisäsanalla ennen vuorosi alkua. Antaa enemmän valinnanvaraa, jos luokka tuntuu vaikealta.",
+    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin kesken vuoron ja pyyhkii pois mahdolliset kiroukset. Rajoitus: Tästä kierroksesta voi ansaita vain 0,5 pistettä.",
+    Korttinälkä: "📉 Korttinälkä: Iskee vastustajan seuraavaan vuoroon. Kutistaa hänen sanalistansa vain 3 sanaan, mikä vähentää hänen valinnanvaraansa.",
+    Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa osan hänen sanoistaan oudoilla ja erittäin haastavilla sanoilla, joita on vaikeampi selittää.",
+    Kasvupurkaus: "🌱 Kasvupurkaus: Aktivoi ennen sanojen katsomista. Jos vastustaja arvaa sanasi oikein, saat heti perään ylimääräisen bonusvuoron! Bonusvuoron onnistumisesta saa 0,5 pistettä."
 };
 
 const showSpellInfo = (spellKey) => {
@@ -228,4 +228,13 @@ function openTab(evt, tabId) {
   
   // Теперь используем переданный аргумент evt вместо глобального event
   evt.currentTarget.classList.add('active');
+}
+
+function toggleAccordion(button) {
+    button.classList.toggle('active');
+    const content = button.nextElementSibling;
+    content.classList.toggle('open');
+    if (typeof playClickSound === 'function') {
+        playClickSound();
+    }
 }
