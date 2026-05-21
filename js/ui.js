@@ -233,7 +233,18 @@ function openTab(evt, tabId) {
 function toggleAccordion(button) {
     button.classList.toggle('active');
     const content = button.nextElementSibling;
-    content.classList.toggle('open');
+    
+    // Tarkistetaan onko akkordioni jo auki
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        content.style.maxHeight = null; // Suljetaan nollaan
+    } else {
+        content.classList.add('open');
+        // Laskee tarkan korkeuden lennosta puhelimen ruudun mukaan:
+        content.style.maxHeight = content.scrollHeight + "px"; 
+    }
+
+    // Ääniefekti säilyy ennallaan
     if (typeof playClickSound === 'function') {
         playClickSound();
     }

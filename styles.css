@@ -1237,17 +1237,16 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 }
 
 .spell-rules .multiplayer-accordion {
-    margin: 15px 0 5px 0; /* Минимальный нижний отступ, чтобы не прижиматься к краю */
+    margin: 15px 0 5px 0;
     width: 100%;
     text-align: left;
 }
 
 .spell-rules .accordion-trigger {
-    /* Сделали фон чуть светлее подложки правил для контраста */
     background: rgba(255, 255, 255, 0.04) !important; 
     border: 1px solid rgba(229, 193, 88, 0.2) !important;
     color: var(--text-light) !important;
-    padding: 10px 14px !important; /* Сделали чуть компактнее для размещения внутри правил */
+    padding: 10px 14px !important;
     font-size: 13px !important;
     font-weight: bold !important;
     border-radius: 8px !important;
@@ -1286,10 +1285,11 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     transform: rotate(180deg);
 }
 
+/* Joustava pohja animaatiolle */
 .spell-rules .accordion-content {
     max-height: 0;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.3); /* Более глубокий темный фон для контраста внутри правил */
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(229, 193, 88, 0.2);
     border-top: none;
     border-bottom-left-radius: 8px;
@@ -1299,8 +1299,8 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     box-sizing: border-box;
 }
 
+/* Kun akkordion on auki, käytetään reilua maksimikorkeutta, johon mobiiliteksti mahtuu aina */
 .spell-rules .accordion-content.open {
-    max-height: 450px; /* Высота подстроена под лаконичный текст */
     padding: 14px;
 }
 
@@ -1314,7 +1314,16 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     font-size: 11px;
     font-weight: bold;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+}
+
+/* Varmistetaan, että laatikon sisältö rivittyy puhelimella kauniisti allekkain */
+.spell-rules .player-count-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    width: 100%;
 }
 
 .spell-rules .player-count-option p {
@@ -1323,4 +1332,6 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     line-height: 1.4 !important;
     text-align: left !important;
     margin: 0 !important;
+    white-space: normal !important; /* Pakottaa rivityksen */
+    width: 100%;
 }
