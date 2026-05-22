@@ -14,6 +14,8 @@ const sounds = {
     diceRollSound: new Audio("sounds/u_qpfzpydtro-dice-142528.mp3")
 };
 
+sounds.drum.volume = 0.65;
+
 // Esiladataan kaikki äänitiedostot
 Object.values(sounds).forEach(audio => {
     audio.preload = "auto";
