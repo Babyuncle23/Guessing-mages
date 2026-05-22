@@ -101,8 +101,12 @@ const updateTurnDisplay = () => {
     document.getElementById('roundDisplay').textContent = `Kierros: ${currentRound} / ${totalTurns}`;
     const avatarEl = document.getElementById('currentAvatar');
     if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
-    document.getElementById('currentName').textContent = `Vuoro: ${gamePlayers[currentPlayerIndex].name}`;
-    document.getElementById('scoreDisplay').innerHTML = `<span>${p1.name}: <strong>${p1.score}p</strong></span> &nbsp;&nbsp;⚡&nbsp;&nbsp; <span>${p2.name}: <strong>${p2.score}p</strong></span>`;
+    
+    // MUUTOS: Lisätty <br> ja laitettu hahmon nimi <span> sisään, jotta CSS voi muokata sitä erikseen
+    document.getElementById('currentName').innerHTML = `Vuoro:<br><span>${gamePlayers[currentPlayerIndex].name}</span>`;
+    
+    // MUUTOS: Poistettu salama ja laitettu tiimit omiksi riveikseen <br>-tagilla
+    document.getElementById('scoreDisplay').innerHTML = `<span>${p1.name}: <strong>${p1.score}p</strong></span><br><span>${p2.name}: <strong>${p2.score}p</strong></span>`;
 
     const debuffContainer = document.getElementById('debuffIcons');
     debuffContainer.innerHTML = '';

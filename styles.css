@@ -31,6 +31,7 @@ body {
     align-items: center;
     padding: 15px;
     line-height: 1.5;
+    font-size: 14px;
 }
 
 /* --- TÄRKEIDEN KOHTIEN KOROSTUKSET --- */
@@ -43,7 +44,7 @@ strong, b {
 
 /* --- PELIKONTENNERI --- */
 .container {
-    display: flex;
+    display: flex !important;
     background: var(--card-bg);
     border: 1px solid var(--gold); /* Ohuempi, elegantimpi reuna */
     border-radius: 16px;
@@ -55,7 +56,23 @@ strong, b {
     position: relative;
     overflow: hidden;
     gap: 20px;
-    flex-direction: column;
+    flex-direction: column !important;
+}
+
+
+
+/* --- ПЛАШКА ВОЗРАСТА В УГЛУ --- */
+.age-badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+    font-size: 9px !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+    z-index: 10 !important;
 }
 
 /* --- PELAAJATIEDOT JA KIERROSNÄYTTÖ --- */
@@ -63,23 +80,23 @@ strong, b {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 25px;
-    padding: 20px 15px; /* Немного увеличили вертикальные отступы для воздуха */
+    gap: 2px !important;                 
+    margin-bottom: 6px !important;   
+    padding: 6px 14px !important;  
     
-    /* 1. КЛЮЧЕВОЙ ШАГ: Растягиваем блок на всю ширину и убираем внутренние отступы модалки */
-    width: calc(100% + 60px) !important; /* На ПК компенсирует padding: 30px у .container/.modal-content */
-    margin-left: -30px !important;       /* Сдвигает блок ровно к левому краю золотой рамки */
-    margin-top: -30px !important;        /* Поднимает блок вплотную к верхнему краю золотой рамки */
+    /* 1. КЛЮЧЕВОЙ ШАГ: Сохраняем растягивание блока на всю ширину */
+    width: calc(100% + 60px) !important; 
+    margin-left: -30px !important;       
+    margin-top: -30px !important;        
     
     /* 2. Делаем фон единым целым с верхней частью окна */
     background: rgba(0, 0, 0, 0.2) !important; 
     
-    /* 3. Убираем внутреннюю рамку, чтобы она не спорила с главной золотой обводкой */
+    /* 3. Убираем внутреннюю рамку */
     border: none !important; 
-    border-bottom: 1px solid var(--soft-border) !important; /* Оставляем только тонкую нижнюю линию-разделитель */
+    border-bottom: 1px solid var(--soft-border) !important; 
     
-    /* Скругляем только верхние углы, чтобы они идеально легли внутрь модального окна */
+    /* Скругляем только upper углы */
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
     border-bottom-left-radius: 0;
@@ -87,45 +104,40 @@ strong, b {
 }
 
 .round-counter {
-    font-size: 0.8rem !important;
-    color: var(--text-muted) !important; /* Убираем яркий золотой цвет */
+    font-size: 10px !important; 
+    color: var(--text-muted) !important; 
     font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    text-decoration: none !important; /* Убираем тяжелое подчеркивание */
-    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+    text-decoration: none !important; 
+    margin-bottom: 0 !important; 
 }
 
+/* РОДИТЕЛЬСКИЙ БЛОК: Levittää suden (teksteineen) vasemmalle ja pisteet oikealle */
 .player-block {
-    display: flex;
-    flex-direction: column; /* Элементы идут аккуратно друг под другом */
-    align-items: center;
-    gap: 8px;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;    /* Keskittää molemmat pääosapuolet pystysuunnassa */
+    justify-content: space-between !important; /* Työntää elementit reunoihin */
+    width: 100% !important;
+    margin-top: 6px !important;
+    min-height: 52px !important;
 }
 
-/* Исправлено: выравниваем текстовый блок строго по центру, как и всё остальное */
-.player-block > div:last-child {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Текст центрируется, убирая визуальный перекос */
-    flex-grow: 1;
-}
-
+/* VASEN PUOLI: Keskittää suden, "Vuoro:"-sanan ja hahmon nimen täydellisesti allekkain */
 .avatar-wrapper {
-    position: relative;
-    width: 48px; /* Делаем аватарку компактной и аккуратной */
-    height: 48px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    width: auto !important;
 }
-
-/* Исправлено: если в верстке появится тег img, он идеально впишется в 48px обертку */
+/* Jos asettelu käyttää kuvaa emojin sijaan */
 .avatar-wrapper img {
-    width: 100%;
-    height: 100%;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: 1px solid var(--gold);
     box-shadow: 0 0 10px var(--gold-glow);
@@ -134,91 +146,128 @@ strong, b {
 }
 
 .current-avatar-emoji {
-    font-size: 36px !important;
-    line-height: 48px !important;
-    text-align: center;
+    font-size: 26px !important;        /* Selkeä ja sopivan kokoinen susi */
+    line-height: 1 !important;
+}
+
+.current-avatar-emoji, 
+.avatar-wrapper img {
+    position: relative !important; /* Делаем саму ветку/волка опорной точкой */
 }
 
 .debuff-icons {
-    position: absolute;
-    bottom: -5px;
-    right: -5px;
-    display: flex;
-    gap: 2px;
+    position: absolute !important;
+    /* Центрируем по вертикали относительно родителя, но приподнимаем на уровень иконки */
+    top: 12px !important; 
+    /* Сдвигаем вправо ровно к краю иконки, игнорируя длину текста */
+    left: 55% !important;  
+    transform: translateX(10px) !important; /* Небольшой аккуратный отступ вбок */
+    
+    display: flex !important;
+    gap: 2px !important;
+    z-index: 5 !important;
 }
 
+
+/* Сам круглый значок делаем чуть компактнее, чтобы он изящно смотрелся рядом с иконкой */
 .debuff-badge {
-    background: #0b0711;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    border: 1px solid var(--gold);
+    background: #0b0711 !important;
+    border-radius: 50% !important;
+    width: 20px !important;  /* Слегка уменьшили с 24px, чтобы не перекрывал персонажа */
+    height: 20px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-size: 10px !important;
+    border: 1px solid var(--gold) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
 }
 .debuff-badge.buff { background: #2c3e50; }
 .debuff-badge.buff-druid { background: #143319; }
 
+/* VUOROTEKSTI JA HAHMON NIMI (Sijaitsee nyt suden alapuolella) */
 #currentName {
-    font-size: 1.15rem !important;
-    font-weight: bold;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 4px;
-    letter-spacing: 0.3px;
+    font-size: 13.5px !important; 
+    font-weight: 700 !important;
+    color: #fff !important;
+    text-align: center !important;     /* Keskittää tekstin suden mukaan */
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+
+/* Alarivin hahmon nimi (esim. Muodonmuuttaja) */
+#currentName span {
+    font-size: 11px !important;   
+    font-weight: 500 !important;
+    color: var(--text-muted) !important; /* Tyylikäs himmeä harmaa */
+    letter-spacing: 0.2px;
+    display: block !important;         /* Varmistaa siistin rivinvaihdon */
+    text-align: center !important;
+    margin-top: 2px !important;
+}
+
+#currentName::first-line {
+    font-size: 13.5px !important;         
+    font-weight: 700 !important;
+    color: #fff !important;   
+    text-align: center !important;
+}
+
+/* OIKEA PUOLI: Pisteet siistinä sarakkeena oikeassa laidassa */
+.player-block > div:last-child {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important; /* Pakottaa sisällön oikeaan reunaan */
+    justify-content: center !important;
 }
 
 .score-display {
-    border-top: none !important; /* Гарантированно убираем разделительную линию */
-    margin-top: 5px !important;
+    border-top: none !important; 
+    margin-top: 0 !important;       
     padding-top: 0 !important;
-    font-size: 0.8rem !important; /* Уменьшаем шрифт, чтобы разгрузить интерфейс */
-    color: var(--text-muted) !important;
+    font-size: 10px !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-muted);
-    /* Исправление наложения текста: возвращаем естественный поток строк вашего JS */
     display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 6px !important;
+    flex-direction: column !important; /* Tiimit allekkain ilman salamaa */
+    align-items: flex-end !important;  
+    text-align: right !important;
+    gap: 1px !important;            
 }
 
 .score-display span {
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
 }
 
 .score-display strong {
     color: var(--gold) !important;
-    font-weight: bold;
-    border-bottom: none !important;
+    font-weight: bold !important;
 }
 
 /* --- TEEMAT JA KUVAT --- */
 .theme-text {
-    font-size: 1.25rem !important; /* Уменьшили размер, чтобы текст не давил на глаза */
+    font-size: 15px !important;            
     font-weight: bold;
-    color: var(--text-light) !important; /* Меняем яркий золотой на мягкий белый */
-    margin: 15px 0 10px 0 !important;
+    color: var(--text-light) !important; 
+    margin: 4px 0 !important;              
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    text-transform: none !important; /* УБРАЛИ CAPS LOCK — теперь текст читается легче */
+    text-transform: none !important; 
     letter-spacing: 0.5px;
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 .theme-text strong, .theme-text b {
     color: var(--gold) !important;
-    border-bottom: none !important; /* Убираем подчеркивание в этой зоне */
+    border-bottom: none !important; 
 }
 
-/* Tuki sille, että teema näkyy pienenä yläreunassa, kun sanat ovat auki */
 .container.words-active .theme-text {
-    font-size: 1.1rem;
-    margin: 5px 0 15px 0;
+    font-size: 14px !important;            
+    margin: 4px 0 8px 0 !important;        
     background: rgba(0, 0, 0, 0.2);
-    padding: 6px 12px;
+    padding: 4px 10px !important;          
     border-radius: 8px;
     display: inline-block;
     border: 1px dashed var(--soft-border);
@@ -238,7 +287,9 @@ strong, b {
     background: transparent;
     border: none;
     box-shadow: none;
-    margin-bottom: 0;
+    margin-top: 2px !important;            
+    margin-bottom: 0 !important;
+    font-size: 26px !important;            
 }
 
 /* Kun sanat ovat auki, teemakuva pienenee siististi ylälaitaan viemästä tilaa */
@@ -253,13 +304,13 @@ button, .spell-btn, .start-game-btn {
     background: linear-gradient(135deg, #d4af37 0%, #b89324 100%);
     color: #0f0b12;
     border: none;
-    padding: 14px 28px;
-    font-size: 1.05rem;
+    padding: 10px 20px;              /* Сделали базовые кнопки компактнее по высоте (было 14px 28px) */
+    font-size: 14.5px;               /* Слегка уменьшили базовый шрифт */
     font-weight: bold;
     border-radius: 8px;
     transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s;
     width: 100%;
-    margin-top: 12px;
+    margin-top: 8px;                 /* Уменьшили верхний отступ (было 12px) */
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
@@ -282,10 +333,39 @@ button:disabled, .spell-btn:disabled {
 }
 
 .round-controls-block {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
+    order: 6 !important; 
+    display: flex !important;
+    flex-direction: row !important;         /* Зелёная СЛЕВА, красная СПРАВА */
+    justify-content: space-between !important;
+    gap: 8px !important;            
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 10px !important;       
+    margin-bottom: 5px !important;
+    padding: 0 !important;
 }
+
+
+#btn { order: 7 !important; }  
+
+.round-controls-block button,
+.round-controls-block #btnGuessed,
+.round-controls-block #btnGiveUp {
+    flex: 1 1 50% !important;       
+    width: 50% !important;          
+    max-width: 50% !important;
+    margin-top: 0 !important;       
+    padding: 10px 6px !important;   
+    font-size: 11.5px !important;   
+    line-height: 1.3 !important;
+    white-space: normal !important; 
+    text-align: center !important;
+    min-height: 42px !important;    
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
 
 /* --- SANALISTA JA OHJEET --- */
 #wordList {
@@ -301,6 +381,7 @@ button:disabled, .spell-btn:disabled {
     overflow-y: visible !important;
     mask-image: none !important;
     -webkit-mask-image: none !important;
+    order: 5 !important;
 }
 
 #wordList li {
@@ -317,6 +398,7 @@ button:disabled, .spell-btn:disabled {
     color: #e2daf0;
     transition: all 0.2s ease;
     position: relative;
+    
 }
 
 #wordList.hidden-words li,
@@ -500,38 +582,63 @@ button:disabled, .spell-btn:disabled {
     background: rgba(255, 255, 255, 0.03) !important;
 }
 
+
+
 .spell-action-row {
-    display: flex !important;
-    align-items: center !important; /* Центрирует "?" строго по вертикальной оси кнопки */
+    display: flex; /* БЕЗ !important, чтобы JS мог скрывать строки через display: none */
+    flex-direction: row !important;
+    align-items: center !important;   
+    justify-content: center !important;
     gap: 8px !important;
-    justify-content: center;
+    width: 100% !important;
 }
 
 .spell-action-row .spell-btn {
-    flex-grow: 1; /* Кнопка занимает все свободное место */
-    max-width: 200px; /* Ограничиваем ширину, чтобы на больших экранах она не расползалась */
-    margin-top: 0 !important; /* Убираем лишние верхние отступы */
-    padding: 10px 15px !important; /* Делаем кнопку более компактной и аккуратной */
-    font-size: 0.9rem !important;
+    flex-grow: 1; 
+    max-width: 200px; 
+    margin-top: 0 !important; 
+    padding: 7px 12px !important;    /* Компактная высота кнопки */
+    font-size: 13px !important;      
 }
-
+/* ==========================================
+   КНОПКА ЗНАКА ВОПРОСА (?) ДЛЯ ЗАКЛИНАНИЙ
+   ========================================== */
 .spell-help-icon {
-    min-width: 34px !important; /* Делаем кнопку вопроса чуть крупнее для удобного нажатия пальцем */
-    min-height: 34px !important;
-    width: 34px !important;
-    height: 34px !important;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    background: rgba(255,255,255,0.03) !important;
-    color: var(--text-muted) !important; /* Приглушаем цвет знака вопроса, убирая лишнее золото */
-    font-size: 0.9rem !important;
+    display: flex !important;         
+    align-items: center !important;    /* Идеально центрирует "?" по вертикали */
+    justify-content: center !important;/* Идеально центрирует "?" по горизонтали */
+    
+    width: 28px !important;            /* Зафиксировали аккуратный размер */
+    height: 28px !important;           
+    min-width: 28px !important;        /* Защита от сжатия, если текст кнопки длинный */
+    min-height: 28px !important;
+    
+    border-radius: 50% !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: var(--text-muted) !important; 
+    font-weight: 700 !important;
+    font-size: 13px !important;        
+    
+    /* Сброс всех мешающих свойств */
+    line-height: 1 !important;         
+    padding: 0 !important;
     margin: 0 !important;
+    text-align: center !important;
+    box-sizing: border-box !important; 
+    
+    cursor: pointer;
+    user-select: none;                 /* Чтобы знак вопроса не выделялся синим при частых тапах */
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.spell-help-icon:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+    transform: scale(1.08) !important;
+    color: var(--gold) !important;     /* Слегка подсветим золотом при наведении */
 }
 
-.spell-help-icon:hover {
-    background: rgba(255,255,255,0.16);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+.spell-help-icon:active {
+    transform: scale(0.95) !important; /* Эффект нажатия пальцем */
 }
 
 .spell-info-box {
@@ -609,24 +716,6 @@ button:disabled, .spell-btn:disabled {
     line-height: 1.7;
 }
 
-.spell-help-icon {
-    min-width: 28px;
-    min-height: 28px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.08);
-    color: var(--gold);
-    font-weight: 700;
-    font-size: 1rem;
-    line-height: 1;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-}
 
 .spell-help-icon:hover {
     background: rgba(255,255,255,0.16);
@@ -639,28 +728,16 @@ body.spell-help-modal-open {
 }
 
 #btnDisplayWords {
-    /* Легкий, глубокий фиолетовый фон — кнопка имеет объем, но не горит ярким пятном */
-    background: rgba(91, 33, 182, 0.08) !important; 
-    
-    /* Четкая сплошная рамка цвета приглушенного золота — сразу понятно, что это кнопка */
-    border: 1px solid rgba(229, 193, 88, 0.3) !important; 
-    
-    /* Цвет текста делаем чуть светлее, чтобы он хорошо читался */
-    color: #e2daf0 !important; 
-    
-    /* Оставляем аккуратные компактные отступы и шрифты */
-    padding: 12px 14px !important; 
-    font-size: 0.85rem !important; 
-    font-weight: bold !important; /* Делаем текст жирным для уверенного считывания */
-    border-radius: 8px;
-    box-shadow: none !important; 
-    width: 100%;
-    margin-top: 15px;
-    margin-bottom: 5px !important;
-    line-height: 1.4;
-    white-space: normal !important; 
-    cursor: pointer;
-    transition: all 0.2s ease;
+    /* УБЕРИТЕ ОТСЮДА display: none, пусть им управляет только JS */
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;         
+    max-width: 100% !important;
+    margin-top: 12px !important;    
+    margin-bottom: 8px !important;  
+    padding: 10px 16px !important;  
+    font-size: 13px !important;
+    order: 4 !important;
 }
 
 /* Добавим точечный эффект при нажатии (актуально для телефонов), чтобы кнопка физически откликалась */
@@ -716,11 +793,12 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 @media (max-width: 768px) {
     /* --- ИСПРАВЛЕНО: Теперь этот блок находится строго внутри медиа-запроса --- */
     .player-turn-container {
-        /* На мобильных padding у контейнера меньше, адаптируем ширину шапки вплотную к краям */
+        /* На мобильных адаптируем ширину шапки вплотную к краям, но делаем padding компактным */
         width: calc(100% + 36px) !important;
         margin-left: -18px !important;
         margin-top: -18px !important;
-        padding: 15px 10px !important;
+        padding: 8px 10px !important; /* Уменьшили вертикальный padding с 15px до 8px для мобилок */
+        gap: 2px !important;          /* Еще сильнее сжимаем расстояние между элементами на телефонах */
     }
 
     body {
@@ -735,7 +813,7 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     }
 
     .theme-text {
-        font-size: 1.3rem;
+        font-size: 15px !important;        /* Зафиксировали аккуратный размер вместо огромного 1.3rem */
     }
 
     /* Карточки выстраиваются строго в вертикальный столбик */
@@ -833,22 +911,37 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     }
 
     /* Игровые исходы выстраиваются вертикально, делая кнопки крупными для пальцев */
-    .round-controls-block {
-        flex-direction: column !important;
-        gap: 10px !important;
+.round-controls-block {
+        display: flex !important;
+        flex-direction: row !important; /* На мобильных тоже зеленая слева, красная справа */
         width: 100% !important;
+        gap: 6px !important; 
     }
 
-    button, .spell-btn, .start-game-btn {
-        padding: 15px;
-        font-size: 1rem;
+    .round-controls-block button,
+    .round-controls-block #btnGuessed,
+    .round-controls-block #btnGiveUp {
+        width: 50% !important;          
+        max-width: 50% !important;
+        padding: 8px 4px !important;    
+        font-size: 11px !important;     
+    }
+
+ button, .spell-btn, .start-game-btn {
+        padding: 10px 14px !important; /* ИСПРАВЛЕНО: Запрещаем кнопкам раздуваться до 15px на смартфонах */
+        font-size: 13.5px !important;  /* Делаем шрифт кнопок компактным на маленьких экранах */
+    }
+
+        #btnDisplayWords {
+        width: 100% !important;
+        padding: 10px 14px !important;
     }
 }
 
 /* --- ТАКТИЛЬНЫЕ И СВЕРХМАЛЕНЬКИЕ ЭКРАНЫ (Экраны до 380px) --- */
 @media (max-width: 380px) {
     .theme-text {
-        font-size: 1.1rem;
+        font-size: 13.5px !important;      /* Делаем шрифт еще чуть меньше, чтобы слово гарантированно не переносилось */
     }
     
     .container {
@@ -874,6 +967,10 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         font-size: 30px !important;
         width: 40px !important;
         margin-right: 10px !important;
+    }
+
+        #img.theme-emoji {
+        font-size: 24px !important;        /* Чуть уменьшаем эмодзи на совсем крошечных дисплеях */
     }
 }
 
@@ -1197,16 +1294,17 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     display: none !important;
 }
 
+
 /* --- УМНОЕ СКРЫТИЕ ПУСТОГО БЛОКА ТЕМЫ --- */
 #themeBlock {
-    /* Если внутри элемента #themeDisplay нет текста, скрываем весь блок */
     display: block; 
     background: rgba(91, 33, 182, 0.05) !important; 
     border: 1px solid rgba(91, 33, 182, 0.15) !important; 
     border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 15px !important; /* Отступ до блока заклинаний */
+    padding: 6px 12px !important;     /* Сильно сжали внутренние отступы (было 12px 15px) */
+    margin-bottom: 8px !important;    /* Уменьшили внешний отступ до следующего блока до 8px */
     text-align: center;
+    order: 1 !important; 
 }
 
 #themeBlock:has(#themeDisplay:empty) {
@@ -1215,22 +1313,23 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 
 /* --- СТИЛЬ ДЛЯ БЛОКА ЗАКЛИНАНИЙ (Когда JS делает его видимым) --- */
 #spellContainer {
-    background: rgba(0, 0, 0, 0.2) !important; /* Контрастный темный фон */
+    background: rgba(0, 0, 0, 0.2) !important; 
     border: 1px solid rgba(255, 255, 255, 0.04) !important; 
     border-radius: 12px;
-    padding: 14px;
-    margin: 0 !important; 
+    margin-top: 5px !important;
+    margin-bottom: 8px !important;
+    order: 3 !important;
 }
 
 .zone-badge-title {
     display: block !important;
-    font-size: 0.75rem !important;
+    font-size: 10px !important;
     font-weight: bold;
     color: var(--text-muted) !important;
     text-transform: uppercase;
     letter-spacing: 1px;
     text-align: left !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
     margin-top: 5px !important;
     opacity: 0.6;
     width: 100%;
@@ -1334,4 +1433,152 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     margin: 0 !important;
     white-space: normal !important; /* Pakottaa rivityksen */
     width: 100%;
+}
+
+.age-badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important; /* Еще более прозрачный фон */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important; /* Тонкая, едва заметная рамка */
+    color: rgba(255, 255, 255, 0.3) !important; /* Приглушенный серый текст, чтобы не отвлекал */
+    font-size: 9px !important;   /* Уменьшили размер */
+    font-weight: bold !important;
+    padding: 1px 4px !important; /* Сжали плашку */
+    border-radius: 3px !important;
+    z-index: 10 !important;
+}
+
+
+.modal-age-badge {
+    position: absolute;
+    top: 14px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--soft-border);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    pointer-events: none; /* Чтобы не мешал нажимать на вкладки, если они близко */
+    z-index: 100;         /* Чтобы быть поверх других элементов модалки */
+}
+
+/* На мобильных устройствах, если вкладки прижмутся к краю, значок не будет мешать */
+@media (max-width: 480px) {
+    .modal-age-badge {
+        top: 10px;
+        right: 10px;
+        font-size: 9px;
+        padding: 1px 4px;
+    }
+}
+
+/* ==========================================
+   LOITSUJEN AKTIVOINTIANIMAATIOT (TURVALLINEN/PEHMEÄ)
+   ========================================== */
+.spell-flash-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none; /* Ei estä klikkauksia */
+    z-index: 999;
+    opacity: 0;
+    border-radius: 16px; /* Sama kuin .container */
+}
+
+/* Punainen pehmeä hehku (Muodonmuuttaja) */
+.flash-curse {
+    animation: spellGlowRed 1.2s ease-in-out forwards; /* Плавное время 1.2 секунды */
+}
+
+/* Violetti pehmeä hehku (Kirouksenlangettaja) */
+.flash-morph {
+    animation: spellGlowPurple 1.2s ease-in-out forwards; /* Плавное время 1.2 секунды */
+}
+
+/* Vihreä pehmeä hehku (Yrttitarhuri) */
+.flash-druid {
+    animation: spellGlowGreen 1.2s ease-in-out forwards; /* Плавное время 1.2 секунды */
+}
+
+/* БЕЗОПАСНЫЕ АНИМАЦИИ: Мягкое проявление и медленное угасание без резких скачков */
+@keyframes spellGlowRed {
+    0% { background: rgba(239, 68, 68, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(239, 68, 68, 0); }
+    20% { background: rgba(239, 68, 68, 0.25); opacity: 1; box-shadow: inset 0 0 30px rgba(239, 68, 68, 0.4); } /* Пик мягкий и ненасыщенный */
+    100% { background: rgba(239, 68, 68, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(239, 68, 68, 0); }
+}
+
+@keyframes spellGlowPurple {
+    0% { background: rgba(147, 51, 234, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(147, 51, 234, 0); }
+    20% { background: rgba(147, 51, 234, 0.3); opacity: 1; box-shadow: inset 0 0 30px rgba(147, 51, 234, 0.4); } /* Пик мягкий и ненасыщенный */
+    100% { background: rgba(147, 51, 234, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(147, 51, 234, 0); }
+}
+
+@keyframes spellGlowGreen {
+    0% { background: rgba(34, 197, 94, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(34, 197, 94, 0); }
+    20% { background: rgba(34, 197, 94, 0.25); opacity: 1; box-shadow: inset 0 0 30px rgba(34, 197, 94, 0.4); } /* Пик мягкий и ненасыщенный */
+    100% { background: rgba(34, 197, 94, 0); opacity: 0; box-shadow: inset 0 0 0px rgba(34, 197, 94, 0); }
+}
+
+[style*="display: none"] {
+    display: none !important;
+}
+
+/* ==========================================
+   1. ИНСТРУКЦИЯ (Максимально чистая, без лишних рамок и фонов)
+   ========================================== */
+.container .rule-instruction, 
+.rule-instruction,
+.container.words-active .theme-text {
+    font-size: 12.5px !important;       /* Чуть уменьшили для аккуратности */
+    color: var(--text-muted) !important; /* Мягкий, не кричащий цвет текста */
+    background: transparent !important;  /* Полностью прозрачный фон */
+    border: none !important;            /* Убрали рамку, чтобы не дробить интерфейс */
+    padding: 4px 0 !important;          /* Минимальные отступы */
+    margin: 8px 0 !important;
+    border-radius: 0 !important;
+}
+
+/* ==========================================
+   2. ЕДИНЫЙ ПРИГЛУШЕННЫЙ СТИЛЬ ДЛЯ КНОПОК (В тон темному дизайну)
+   ========================================== */
+#btnDisplayWords, 
+.spell-action-row .spell-btn {
+    /* Полупрозрачный черный фон, сливающийся с карточкой */
+    background: rgba(0, 0, 0, 0.25) !important; 
+    
+    /* Очень тонкая, деликатная золотая рамка */
+    border: 1px solid rgba(229, 193, 88, 0.25) !important; 
+    
+    /* Мягкий светлый текст вместо резкого белого */
+    color: var(--text-muted) !important; 
+    
+    /* Аккуратный, лаконичный шрифт */
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.6px !important;
+    
+    /* Убираем тяжелые тени и свечение */
+    box-shadow: none !important; 
+}
+
+/* Эффект при наведении (для ПК) */
+@media (hover: hover) {
+    #btnDisplayWords:hover, 
+    .spell-action-row .spell-btn:hover {
+        background: rgba(229, 193, 88, 0.05) !important; /* Легкий золотистый отлив */
+        border-color: rgba(229, 193, 88, 0.45) !important;
+        color: #ffffff !important;
+    }
+}
+
+/* Тактильный отклик при нажатии пальцем на телефоне */
+#btnDisplayWords:active, 
+.spell-action-row .spell-btn:active {
+    background: rgba(229, 193, 88, 0.12) !important;
+    border-color: var(--gold) !important;
+    color: #ffffff !important;
+    transform: scale(0.99) !important; /* Чуть менее резкое сжатие */
 }

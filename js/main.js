@@ -199,3 +199,14 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+const initGameDisplay = () => {
+    btn.style.display = "block";           // Только кнопка "Aloita kierros" должна быть видна
+    btnDisplayWords.style.display = "none"; // Прячем показ слов
+    roundControls.style.display = "none";   // Прячем кнопки правильно/неправильно
+    wordList.style.display = "none";        // Прячем список слов
+    spellContainer.style.display = "none";  // Прячем магию
+};
+
+// Запустите её при старте
+initGameDisplay();

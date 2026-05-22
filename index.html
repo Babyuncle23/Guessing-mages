@@ -12,6 +12,8 @@
     <!-- ALKU- JA ASETUSMODAALI -->
 <div id="characterModal" class="modal-overlay">
     <div class="modal-content" style="max-height: 85vh; width: 90%; max-width: 650px; overflow-y: auto;">
+        
+        <div class="modal-age-badge">18+</div>
 
         <!-- ПАНЕЛЬ НАВИГАЦИИ (Класс изменен на modal-navigation для соответствия вашему CSS) -->
         <div class="modal-navigation">
@@ -292,18 +294,24 @@
 
 <!-- VARSINAINEN PELIALUE -->
 <div class="container" id="gameContainer">
+    <div class="age-badge">18+</div>
     <div id="playerTurn" class="player-turn-container" style="display: none;">
         <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
-        <div class="player-block">
-            <div class="avatar-wrapper">
-                <div id="currentAvatar" class="current-avatar-emoji" style="font-size:40px; width:48px; text-align:center;"></div>
-                <div id="debuffIcons" class="debuff-icons"></div>
-            </div>
-            <div>
-                <span id="currentName"></span>
-                <div id="scoreDisplay" class="score-display">Pisteet: 0 - 0</div>
-            </div>
-        </div>
+<div class="player-block">
+    <!-- Переносим имя ИГРОКА сюда, к волку -->
+    <div class="avatar-wrapper">
+        <div id="currentAvatar" class="current-avatar-emoji" style="font-size:40px; width:48px; text-align:center;"></div>
+        <div id="debuffIcons" class="debuff-icons"></div>
+        
+        <!-- ВОТ СЮДА ПЕРЕНЕСЛИ ИМЯ ИЗ БЛОКА НИЖЕ -->
+        <div id="currentName"></div> 
+    </div>
+    
+    <!-- Справа остаются только очки команд -->
+    <div>
+        <div id="scoreDisplay" class="score-display">Pisteet: 0 - 0</div>
+    </div>
+</div>
     </div>
 
     <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
@@ -320,23 +328,27 @@
         <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
     </div>
 
-    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
-        <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
-        <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
-        
-        <div class="spell-action-row" id="spellRow1">
-            <button id="spellBtn1" class="spell-btn"></button>
-            <button id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</button>
-        </div>
-        <div class="spell-action-row" id="spellRow2">
-            <button id="spellBtn2" class="spell-btn"></button>
-            <button id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</button>
-        </div>
-        <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
+<div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
+    <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
+    <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
+    
+    <div class="spell-action-row" id="spellRow1">
+        <button id="spellBtn1" class="spell-btn"></button>
+        <!-- ЗАМЕНЕНО НА DIV -->
+        <div id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
     </div>
+    <div class="spell-action-row" id="spellRow2">
+        <button id="spellBtn2" class="spell-btn"></button>
+        <!-- ЗАМЕНЕНО НА DIV -->
+        <div id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+    </div>
+    <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
+</div>
 
     <!-- SANALISTA JA OHJEET -->
+  <!-- SANALISTA JA OHJEET -->
     <ol id="wordList" style="display: none;"></ol>
+
     <div id="ruleInstruction" class="rule-instruction"></div>
     <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
@@ -360,11 +372,25 @@
 
     <button id="btn">Aloita kierros</button>
 
+    <!-- НИЖЕ ИДЕТ КОНТЕЙНЕР ДЛЯ ЗАКЛИНАНИЙ, КОТОРЫЙ У ТЕБЯ В HTML НАПИСАН ДАЛЬШЕ -->
+    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
+        <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
+        <div class="spell-action-row" id="spellRow1">
+            <button id="spellBtn1" class="spell-btn"></button>
+            <div id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+        </div>
+        <div class="spell-action-row" id="spellRow2">
+            <button id="spellBtn2" class="spell-btn"></button>
+            <div id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+        </div>
+        <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
+    </div>
+
+    <!-- БЛОК КНОПОК ДЕЙСТВИЙ (Остается в самом низу HTML, чтобы JS не путался) -->
     <div id="roundControls" class="round-controls-block" style="display: none;">
         <button id="btnGuessed" class="btn-success">Arvattu oikein (+1 piste)</button>
         <button id="btnGiveUp" class="btn-danger">Luovutan vuoron / laiminlöin ehdon</button>
     </div>
-</div>
 
 <!-- LOITSUJEN APUMODAALI -->
 <div id="spellHelpModal" class="spell-help-modal-overlay" style="display: none;">

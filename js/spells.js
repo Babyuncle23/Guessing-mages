@@ -1,4 +1,3 @@
-// UUSI REILU LASKENTAKAAVA (Perustuu pelin pituuteen + nopan tuomaan bonukseen/haittaan)
 const calculateSpells = (rounds, basePercent, diceRoll) => {
     let baseAmount = Math.max(1, Math.floor(rounds * basePercent));
     
@@ -13,7 +12,9 @@ const calculateSpells = (rounds, basePercent, diceRoll) => {
 const renderSpellButtonsBeforeWords = () => {
     const p = gamePlayers[currentPlayerIndex];
     spellContainer.style.display = "flex";
-    spellRow1.style.display = "inline-flex";
+    
+    // Alustetaan rivit ja painikkeet aina piiloon puhtaasti ilman inline-häiriöitä
+    spellRow1.style.display = "none";
     spellRow2.style.display = "none";
     spellBtn1.style.display = "none";
     spellBtn2.style.display = "none";
@@ -22,66 +23,73 @@ const renderSpellButtonsBeforeWords = () => {
     if (spellInfoBox) spellInfoBox.style.display = "none";
 
     if (p.name === "Muodonmuuttaja") {
-        spellBtn1.style.display = "inline-block";
+        spellRow1.style.display = "flex"; // Avaa rivin siistinä flex-laatikkona
+        spellBtn1.style.display = "block";
         if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.style.display = "flex";
             spellHelpBtn1.dataset.spell = "Korttitulva";
         }
         spellBtn1.innerHTML = `ᛗ Korttitulva (${p.spells.flood})`;
         spellBtn1.disabled = p.spells.flood <= 0 || currentActiveTheme === "vapaavalintainen" || activeModifiers.extendToEight;
         spellBtn1.onclick = () => {
+            triggerSpellAnimation('curse'); // <-- Поменяли на 'curse' (Красный)
             activeModifiers.extendToEight = true;
-            isMetamorphosisUsedThisTurn = false; // <-- VARMISTETAAN, että tämä on false!
+            isMetamorphosisUsedThisTurn = false;
             p.spells.flood--;
             playAudio(sounds.morph);
             renderSpellButtonsBeforeWords();
         };
     } else if (p.name === "Kirouksenlangettaja") {
-        spellRow2.style.display = "inline-flex";
-        spellBtn1.style.display = "inline-block";
-        spellBtn2.style.display = "inline-block";
+        // Kirouksenlangettajalla on kaksi eri loitsua eri riveillä, avataan molemmat flex-muotoon
+        spellRow1.style.display = "flex";
+        spellRow2.style.display = "flex";
+        spellBtn1.style.display = "block";
+        spellBtn2.style.display = "block";
         if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.style.display = "flex";
             spellHelpBtn1.dataset.spell = "Korttinälkä";
         }
         if (spellHelpBtn2) {
-            spellHelpBtn2.style.display = "inline-flex";
+            spellHelpBtn2.style.display = "flex";
             spellHelpBtn2.dataset.spell = "Sanakaaos";
         }
 
         spellBtn1.innerHTML = `ᚎ Korttinälkä (${p.spells.hunger})`;
         spellBtn1.disabled = p.spells.hunger <= 0 || pendingCurses.hunger;
         spellBtn1.onclick = () => {
+            triggerSpellAnimation('morph'); // <-- Поменяли на 'morph' (Фиолетовый)
             pendingCurses.hunger = true;
             p.spells.hunger--;
             playAudio(sounds.curse);
             renderSpellButtonsBeforeWords();
         };
-
         spellBtn2.innerHTML = `☿ Sanakaaos (${p.spells.chaos})`;
         spellBtn2.disabled = p.spells.chaos <= 0 || pendingCurses.chaos;
         spellBtn2.onclick = () => {
+            triggerSpellAnimation('morph'); // <-- Поменяли на 'morph' (Фиолетовый)
             pendingCurses.chaos = true;
             p.spells.chaos--;
             playAudio(sounds.curse);
             renderSpellButtonsBeforeWords();
         };
     } else if (p.name === "Yrttitarhuri") {
-        spellBtn1.style.display = "inline-block";
+        spellRow1.style.display = "flex"; // Avaa rivin siistinä flex-laatikkona
+        spellBtn1.style.display = "block";
         if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.style.display = "flex";
             spellHelpBtn1.dataset.spell = "Kasvupurkaus";
         }
         spellBtn1.innerHTML = `ᛘ Kasvupurkaus (${p.spells.regrowth})`;
         spellBtn1.disabled = (p.spells.regrowth <= 0 || p.extraTurnGranted === true || isExtraTurnRound);
         spellBtn1.onclick = () => {
+            triggerSpellAnimation('druid'); // <-- LISÄTTY TÄMÄ
             p.extraTurnGranted = true;
             p.spells.regrowth--;
             playAudio(sounds.druid);
             playClickSound();
             renderSpellButtonsBeforeWords();
             updateTurnDisplay();
-            ruleInstruction.textContent = "Kasvupurkaus aktivoitu! Jos selität sanan onnistuneesti, saat heti uuden vuoron perään. Bonusvuorosta saa vain 0,5 pistettä.";
+            ruleInstruction.textContent = "Kasvupurkaus aktivoitu!...";
         };
     }
 };
@@ -89,21 +97,30 @@ const renderSpellButtonsBeforeWords = () => {
 const renderSpellButtonsAfterWords = () => {
     const p = gamePlayers[currentPlayerIndex];
     if (spellInfoBox) spellInfoBox.style.display = "none";
+    
+    // Tarkistetaan onko pelaaja Muodonmuuttaja ja onko loitsuja jäljellä
     if (p && p.name === "Muodonmuuttaja" && p.spells.metamorphosis > 0) {
         spellContainer.style.display = "flex";
-        spellRow1.style.display = "inline-flex";
-        spellRow2.style.display = "none";
-        spellInfoBox.style.display = "none";
-        spellBtn1.style.display = "inline-block";
+        
+        // Otetaan ensimmäinen rivi käyttöön puhtaana flex-rakenteena
+        spellRow1.style.display = "flex";
+        spellBtn1.style.display = "block";
         if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "inline-flex";
+            spellHelpBtn1.style.display = "flex";
             spellHelpBtn1.dataset.spell = "Sanametamorfoosi";
         }
+        
+        // Pakotetaan toinen rivi ja sen kysymysmerkki TÄYDELLISESTI piiloon
+        spellRow2.style.display = "none";
         spellBtn2.style.display = "none";
+        if (spellHelpBtn2) {
+            spellHelpBtn2.style.display = "none";
+        }
+        
         spellBtn1.innerHTML = `🌀 Sanametamorfoosi (${p.spells.metamorphosis})`;
         spellBtn1.disabled = false;
         
- spellBtn1.onclick = () => {
+        spellBtn1.onclick = () => {
             // Päivitetty varmistusikkuna suoralla yksikköpuheella (sinuttelu)
             const vahvistus = confirm(
                 "VAROITUS:\n\n" +
@@ -114,9 +131,12 @@ const renderSpellButtonsAfterWords = () => {
 
             if (!vahvistus) return;
 
-            // Jos pelaaja hyväksyy (OK), suoritetaan sanojen muutos normaalisti:
+            // ИЗМЕНЕНО: Muodonmuuttaja использует 'curse' для КРАСНОЙ вспышки
+            triggerSpellAnimation('curse');
+
             const cleanLetters = new Set();
             let commonCopy = [...commonWords];
+            
             generatedWordsList = generatedWordsList.map(() => {
                 let foundWord = "";
                 let subAttempts = 0;
@@ -144,7 +164,7 @@ const renderSpellButtonsAfterWords = () => {
             isMetamorphosisUsedThisTurn = true; // Lukitaan puolikkaat pisteet
             spellContainer.style.display = "none";
             
-            // Päivitetään myös peliruudun ohjeteksti (Vaihtoehto 4) pitämään tila näkyvissä selittäjälle
+            // Päivitetään myös peliruudun ohjeteksti (Vaihtoehto 4) pitämään tila näkyвissä selittäjälle
             let baseInstruction = (activeCondition1 === "perusvaihtoehto" || activeCondition2 === "perusvaihtoehto") ?
                 "Toinen pelaaja valitsee sanan ilman että näkee listaa. Selitä sana normaalisti." :
                 "Valitse yksi sana ja selitä se toiselle pelaajalle.";
@@ -155,5 +175,21 @@ const renderSpellButtonsAfterWords = () => {
         
     } else {
         spellContainer.style.display = "none";
+        spellRow1.style.display = "none";
+        spellRow2.style.display = "none";
     }
+};
+
+const triggerSpellAnimation = (type) => {
+    const container = document.querySelector('.container');
+    if (!container) return;
+
+    const flash = document.createElement('div');
+    flash.className = `spell-flash-overlay flash-${type}`;
+    container.appendChild(flash);
+
+    // ИЗМЕНЕНО: Удаляем элемент через 1200мс, чтобы анимация успела плавно завершиться
+    setTimeout(() => {
+        flash.remove();
+    }, 1200); 
 };
