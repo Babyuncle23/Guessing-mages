@@ -1,62 +1,7 @@
-const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","paskapää",
-, "aakkosittain", "aalloittain", "aamuisin", "aamupäivisin", "aamusella", "aamutuimaan", "aamuvarhain"
-, "aasimaisesti", "aavemaisesti", "abi", "abo"
-, "absoluuttisesti", "abstraktisti", "absurdisti", "adekvaatisti", "adjektiivisesti", "adverbiaalisesti", "adverbisesti", "adversatiivisesti", "aerodynaamisesti",
-"abortoida", "abortointi", "abortti", "aborttipilleri", "aborttitabletti",
-, "affektiivisesti", "affektisesti", "aggressiivisesti", "agnostisesti", "ahdashenkisesti", "ahdasmielisesti", "ahdasnäköisesti", "ahdasrajaisesti", "ahdistuneesti",
-"aggressio", "ahdinko", "ahdinkotila", "ahdistaa", "ahdistaja", "ahdistelija", "ahdistella", "ahdistelu", "ahdistua", "ahdistuneisuus",
-, "ahdistunut", "ahkeraan", "ahkerasti", "ahnaasti", "ahneesti", "ahtaalla", "ahtaalle", "ahtaasti", "aiemmin", "aiheetottomasti", "aijai",
-"ahdistuneisuushäiriö", "ahdistus", "ahdistusneuroosi", "ahdistustila", "ahmimishäiriö", "ahteri", "AIDS", "AIDS-potilas",
-, "aikaisemmin", "aikaisin", "aikaisintaan", "aikanaan", "aikansa", "aikoinaan", "aikojaan", "aina", "ainaiseksi",
-"aikamiina", "aikapommi",
-"ainakaan", "ainakin", "ainiaaksi", "ainiaan", "ainiaksi", "ainian", "ainoastaan", "aistikkaasti", "aistillisesti",
-"aistiharha", "aistivammainen"
-, "aivan", "ajallaan", "ajallisesti", "ajan mittaan", "ajanmukaisesti",
-"aitosyöpä", "aivohalvaus", "aivoinvalidi", "aivojenpesu", "aivokalvontulehdus", "aivokasvain", "aivokuolema", "aivokuollut", "aivokuume", "aivoleikkaus", "aivopestä", "aivopesu", "aivosairaus", "aivotärähdys", "aivovamma", "aivovammainen", "aivovaurio", "aivovauriolapsi", "aivoverenvuoto", "aivoveritulppa", , "ajassa", "ajassaan", "ajattelemattomasti", "ajattomasti", "ajatuksellisesti", "ajatuksettomasti", "ajetuksissa", "ajoissa", "ajoittain",
-"ajatusharha", "ajojahti"
-, "akateemisesti", "akkamaisesti",
-"ajomiina", "akka", "akkamainen", "akkamaisuus", "akkavalta",
-"akselivallat", "akseptata", "akseptaus", "aktiivat", "ala-arvoinen", "ala-arvoisesti", "ala-arvoisuus",
-"alakanttiin", "alakautta", "alakkain", "alakynnessä", "alakynteen", "alallaan", "alalleen", "alamaihin", "alamaissa", "alapää", "alas", "alaspäin", "alassuin", "alasti", "alastonkuva", "alastonmalli", "alateitse", "alati", "alatusten", "alatuuleen", "alatuulessa", "alaviistoon", "alaviistossa"
-,"albiino", "alekkain", "alemma", "alemmaksi", "alemmas", "alempaa", "alempana", "aletusten", "alhaalla", "alhaalle", "alhaalta", "ali"
-, "alimma", "alimmaksi", "alimmas", "alimpana", "alinomaa", "alipalkattu", "aliravittu", "alistua", "alitse", "alituiseen", "alituisesti", "alitusten", "alkaen", "alkeet"
-, "alkeistiedot", "alkoholihumala", "alkoholimyrkytys", "alkoholiongelma", "alkoholiongelmainen", "alkoholiriippuvuus", "alkoholismi", "alkoholisoitua", "alkoholisti", "alkuaan", "alkuasukas", "alkuasukasheimo", "alkuisin", "alkujaan", "alkuopinnot",
-"alkupää", "alkuvaikeudet", "alkuun", "alkuunkaan", "alla", "alla mainittu", "alla oleva", "allapäin", "alle", "allekirjoittanut", "allekkain", "alletusten",
-"aloillaan", "aloilleen", "aloittain", "alta", "altapäin", "alueittain",
-"aluksi", "alulla", "alullaan", "alumpana", "alun", "alun alkaen", "alun perin", "alun pitäen", "alussa mainittu", "alusta", "alusvaatteisillaan", "alusvaatteisilleen", "alvariinsa",
-"amfetamiini", "ammateittain", "ammattihaureus", "ammattiopinnot",
-"ammattirikollinen", "ammattitappaja", "ammis", "ammoin", "ammolla", "ammollaan", "ammolle", "ammolleen", "ammu", "amokjuoksija", "amokjuoksu", "ampu",
-, "anaalinen", "anakronistisesti", "analfabeetti", "analgeettisesti", "analogisesti", "analyyttisesti", "anamnestinen", "anarkistisesti", "anatomisesti", "androgeeninen", "androgyyninen", "andrologisesti", "aneemisesti", "anestesiologisesti", "anglikaaninen"
-, "anglosaksinen", "ankarasti", "ankeasti", "annoksittain", "anomaalisesti",
-, "ansaitusti", "ansiokkaasti", "ansiottomasti", "antaumuksellisesti", "anteeksiantamattomasti", "antidepressiivi", "antikristus", "antisemiitti", "antisemiittinen",
-, "antisemiittisesti", "antisemitismi", "antisosiaalinen", "antoisasti", "antropologisesti", "apaattisesti", "apartheid", "apartheidpolitiikka", "apeasti", "apeissaan", "apokryfisesti", "apposen", "apposet"
-, "apriorisesti", "apukoulu", "arasti"
-, "aristokraattisesti", "arjalainen", "arkaistisesti", "arkeittain", "arkeologisesti", "arkipäivisin", "arkisesti", "arkisin", "arkittain", "arkkitehtonisesti",
-, "armeliaasti", "armollisesti", "armomurha", "armottomasti", "arrogantisti"
-, "arvaamattomasti", "arvatenkaan", "arvatenkin", "arvattavasti", "arvelevasti", "arveluttavasti", "arviolta", "arvoituksellisesti", "arvokkaasti"
-, "arvostelevasti", "arvostelukyvyttömästi", "arvottomasti", "arvovaltaisesti", "arvoväritteisesti", "asbesti", "asbestikangas", "asbestikuitu", "asbestilevy", "asbestoosi", "aseistakieltäytyjä", "asemasta", "asemesta"
-, "asenteellisesti", "aseptisesti",
-"asianmukaisesti", "asiantuntevasti", "asiattomasti", "askeettisesti", "asosiaalisesti", "askelittain", "askelmittain", "askele",
-"aspi", "astahtaa", "asuin-",
-"asuma", "asutustilallinen",
-"atk-kirjoittaja", "atk-pohjainen", "atropia", "atto-", "aukea", "auki",
-"auktoritatiivisesti", "auliisti", "aurinkoisesti", "aussi", "autella"
-,"automaattisesti", "autoritaarisesti", "autoritäärisesti"
-,"auttamattomasti", "auttavasti", "autuaallisesti", "autuaasti"
-,"avoimesti", "avojaloin", "avokatseisesti", "avokäsin", "avokätisesti"
-, "avionrikkoja", "aviorikos",
-, "bakkanaali", "banaanivaltio", "bandiitti", "barbaari", "barbaarimainen", "barbaarimaisesti", "barbaarimaisuus", "barbaarinen", "barbaarisesti", "barbaarisuus", "bastardi", "besserwisser"
-, "bigaaminen", "bigamia", "bikinialushousut", "bikinihousut", "bikinit", "bi-mies", "bi-nainen", "bioase",
-, "biataisteluaine", "biseksuaalinen", "biseksuaalisesti", "biseksuaalisuus", "body stocking", "bolsevikki", "bolševikki", "bolsevikkivallankumous", "bolševikkivallankumous", "bolsevismi", "bolševismi", "bolsevistinen", "bolševistinen", "blondi", "blondiini", "bluffata", "bluffaus", "bluffi"
-, "bordelli", "botuliini", "botulismi", "brenkku", "brežneviläinen", "brežneviläisesti", "brežneviläisyys", "broileripoliitikko", "brutaali", "brutaalius"
-, "bryssä", "bulevardilehdistö", "bulevardilehti", "buliimikko", "bulimia", "bulvaani", "burnout", "busmanni", "bušmanni", "buuata", "buuaus", "byrokraatti", "byrokraattinen", "byrokraattisesti", "byrokraattistaa", "byrokraattistua", "byrokraattisuus", "byrokratia", "byrokratisoida", "byrokratisointi", "byrokratisoitua", "bänet", "bänks", "casanova"
-, "contrasissi", "crack"
-, "debiili", "deekikselle", "deekiksellä", "deeku", "degeneraatio", "degeneroitua", "dekadenssi", "dekadentti", "delata", "demagogi", "demagogia", "demagoginen", "demari", "dementikko", "dementti"
-, "demoni", "demoninen", "demonisesti", "demonisuus", "demoralisoida", "demoralisointi", "demoralisoitua", "depis", "depressiivinen", "depressiivisesti", "depressiivisyys", "depressio", "depressiokausi", "depressiolääke", "depressiotila", "desantti", "despootti", "despoottinen", "despoottisesti", "despoottisuus", "despotia", "despotismi"
-, "diabeetikko", "diabetes", "diatsepaami"
-, "diileri", "diiva", "diivailla", "diivailu", "diivata", "diktaattori", "diktatorinen", "diktatorisesti", "diktatorisuus", "diktatuuri", "diktatuurivaltio", "diletantismi", "diletantti", "dioksiini", "disinformaatio", "diskata", "diskaus", "diskriminaatio", "diskriminoida", "diskriminointi", "diskvalifioida", "diskvalifiointi", "dissidentti"
-, "dokata", "dokaus", "doku", "dorka", "dorkasti", "doupata"
-, "dumdumluoti", "dumpata", "dumppaus", "dödö", "dösä", "edelle", "edelleen", "edellisen kaltainen", "edellä", "edellä esitetty", "edellä mainittu", "edeltä", "edeltäkäsin", "edeltäpäin", "edemmä", "edemmäksi", "edemmäs", "edempänä", "edempää", "edes", "edespäin", "edessä", "edessäpäin", "edestakaisin", "edestä", "edestäpäin"
+const forbiddenWords = [
+"syksymmäksi", "paskapää", "abortoida", "abortointi", "abortti", "aborttipilleri", "aborttitabletti", "aggressio", "ahdinko", "ahdinkotila", "ahdistaa", "ahdistaja", "ahdistelija", "ahdistella", "ahdistelu", "ahdistua", "ahdistuneisuus", "ahdistunut", "aiheetottomasti", "ahdistuneisuushäiriö", "ahdistus", "ahdistusneuroosi", "ahdistustila", "ahmimishäiriö", "ahteri", "AIDS", "AIDS-potilas", "aikamiina", "aikapommi", "aistiharha", "aistivammainen", "aitosyöpä", "aivohalvaus", "aivoinvalidi", "aivojenpesu", "aivokalvontulehdus", "aivokasvain", "aivokuolema", "aivokuollut", "aivokuume", "aivoleikkaus", "aivopestä", "aivopesu", "aivosairaus", "aivotärähdys", "aivovamma", "aivovammainen", "aivovaurio", "aivovauriolapsi", "aivoverenvuoto", "aivoveritulppa", "ajetuksissa", "ajatusharha", "ajojahti", "ajomiina", "akka", "akkamainen", "akkamaisuus", "akkavalta", "akseptata", "akseptaus", "aktiivat", "ala-arvoinen", "ala-arvoisesti", "ala-arvoisuus", "alakanttiin", "alakautta", "alakynnessä", "alakynteen", "alapää", "alastonkuva", "alastonmalli", "alipalkattu", "aliravittu", "alkeet", "alkeistiedot", "alkoholihumala", "alkoholimyrkytys", "alkoholiongelma", "alkoholiongelmainen", "alkoholiriippuvuus", "alkoholismi", "alkoholisoitua", "alkoholisti", "alkuopinnot", "alkupää", "alkuvaikeudet", "allapäin", "amfetamiini", "ammattihaureus", "ammattiopinnot", "ammattirikollinen", "ammattitappaja", "ammis", "amokjuoksija", "amokjuoksu", "analfabeetti", "anamnestinen", "antidepressiivi", "antikristus", "antisemiitti", "antisemiittinen", "antisemiittisesti", "antisemitismi", "antisosiaalinen", "apartheid", "apartheidpolitiikka", "apukoulu", "arjalainen", "armomurha", "arvostelukyvyttömästi", "asbesti", "asbestikangas", "asbestikuitu", "asbestilevy", "asbestoosi", "aseistakieltäytyjä", "asosiaalisesti", "askele", "aspi", "asuin-", "asuma", "asutustilallinen", "atk-kirjoittaja", "atk-pohjainen", "atropia", "atto-", "aussi", "avionrikkoja", "aviorikos"
+,"banaanivaltio", "bandiitti", "barbaari", "barbaarimainen", "barbaarimaisesti", "barbaarimaisuus", "barbaarinen", "barbaarisesti", "barbaarisuus", "bastardi", "besserwisser", "bioase", "biataisteluaine", "bolsevikki", "bolševikki", "bolsevikkivallankumous", "bolševikkivallankumous", "blondi", "blondiini", "brenkku", "broileripoliitikko", "bryssä", "buliimikko", "bulimia", "burnout", "busmanni", "bušmanni", "bänet", "bänks", "crack", "debiili", "deekikselle", "deekiksellä", "deeku", "delata", "demari", "dementikko", "dementti", "depis", "depressiivinen", "depressiivisesti", "depressiivisyys", "depressio", "depressiokausi", "depressiolääke", "depressiotila", "desantti", "despootti", "diabeetikko", "diabetes", "diatsepaami", "diileri", "diiva", "diivailla", "diivailu", "diivata", "diktaattori", "diletantti", "dokata", "dokaus", "doku", "dorka", "dorkasti", "doupata", "dumdumluoti", "dödö", "dösä"
+, "edelle", "edelleen", "edellisen kaltainen", "edellä", "edellä esitetty", "edellä mainittu", "edeltä", "edeltäkäsin", "edeltäpäin", "edemmä", "edemmäksi", "edemmäs", "edempänä", "edempää", "edes", "edespäin", "edessä", "edessäpäin", "edestakaisin", "edestä", "edestäpäin"
 , "editse", "edus", "edusta", "edusteilla", "eespäin"
 , "ehdyksiin", "ehdyksissä", "ehei", "ehken", "ei-kenenkään-maa"
 , "ejakulaatio", "eioo", "ekshibitionismi", "ekshibitionisti", "ekshibitionistinen", "ekstaasi"
@@ -214,11 +159,42 @@ const forbiddenWords = ["eivät", "kuin", "kasvattajaseura", "syksymmäksi","pas
 , "kapi", "kapiainen", "kapinahenkinen", "kapinaliike", "kapinalippu", "kapinallinen", "kapinallisuus", "kapinamieli", "kapinayritys", "kapinen", "kapinoida", "kapinoija", "kapinointi", "kapinoitsija", "kapitalisti", "kapitalistinen", "kapitulantti", "kappas", "kaput"
 , "kardinaalimunaus", "kardinaalivirhe", "karhuaja", "karhuamiskirje"
 , "karhukirje", "karhunkoppi", "karhuta", "karjahdella", "karjahdus", "karjahtaa", "karjaista", "karjaisu"
+, "karkeakäytöksinen", "karkealuonteinen", "karkeapuheinen", "karkeasanainen", "karkeasti", "karkeistae", "karkeistaos", "karkenee", "karku", "karkuteille", "karkuteillä", "karkuteiltä", "karkuun"
+, "karrella", "karrelle", "karsi", "karsinogeeni", "karsinogeeninen", "karsinogeenisuus", "karsinooma"
+, "karttupiilo", "karttupiilosilla", "karttusilla", "karussa", "karvanaama", "karvanaamainen"
+, "kas", "kasapäissä", "kasari", "kasi"
+, "kassapäinen", "kassapää", "kastraatio", "kastraatti", "kastroida", "kastrointi", "kasvannainen"
+, "kasvettua", "kasvettuma", "kasvimyrkky"
+, "kasvohalvaus", "kasvohäiriö", "kasvukipu", "katala", "katalasti", "kataluus"
+, "katarri", "katastrofaalinen", "katastrofiapu", "katastrofielokuva", "katastrofirahasto", "katastrofivalmius", "kateeksi", "kateisiin", "kateissa", "kateissaan", "katkaisuhoito", "katkaisuhoitola", "katkeransävyinen", "katkerasti", "katkero", "katkeroittaa", "katkeroitua", "katki", "katkismus", "katkokävely", "katkonaisesti", "katkonaisuus"
+, "katovuosi", "katseenvangitsija", "katsoma", "katteeton", "katteinen", "katti"
+, "katulapsi", "katumapäälle", "katumapäällä", "katumuspilleri", "katunainen", "katutappelu", "katutyttö", "katuväkivalta", "kauaksi", "kauas", "kauemma", "kauemmaksi", "kauemmas", "kauemmin", "kauempaa", "kauempana", "kauheasti", "kauheus", "kauhistella", "kauhistua", "kauhistus", "kauhistuttaa", "kauhuissaan", "kauhujuttu", "kauhukakara"
+,"kauimma", "kauimmaksi", "kauimmas", "kauimmin", "kauimpaa", "kauimpana", "kauintaan", "kaukaa", "kaukana", "kaukolasit", "kaukonäköisesti", "kaukovalot"
+,"kaulakkain", "kaulata", "kaulatuksin", "kaulatusten", "kaulia", "kaulita", "kauniisti", "kaunistaa", "kaunistautua", "kaunistella", "kaunistua", "kaupaksi käymätön", "kaupaksi käyvä", "kaupaksi menevä", "kaupallisesti", "kaupallistaa", "kaupallistua"
+,"kaupata", "kaupinta", "kaupita", "kaupitella", "kaupungeittain"
+, "kaupungistaa", "kaupungistua", "kaupunkilaisesti", "kaupunkilaisittain", "kaupunkilaistua", "kaupunkimaistaa", "kaupunkimaistua", "kaupustella", "kausijuoppo", "kausijuoppous", "kausittain", "kautta", "kautta-ajo", "kauttaaltaan"
+, "kautta rantain", "kavahtaa", "kavalasti", "kavaltaa", "kaveerata", "kaventaa", "kaventua", "kaveta", "kavuta", "kehaista", "kehdata", "kehitellä", "kehitteille", "kehitteillä", "kehittyä", "kehittää", "kehitysvammainen", "kehitysvammaisuus", "kehityttää", "kehiä"
+, "kehjetä", "kehkeytyä", "kehnontaa", "kehnontua", "kehnosti", "kehnota", "kehnätä", "kehotella", "kehottaa", "kehruuttaa", "kehrätä", "kehräyttää", "kehtokuolema", "kehua", "kehuskella", "kehuttavasti", "kehystää", "kehäkuolema", "kehäraakki"
+, "keimit", "keino-", "keinotekoisesti"
+, "keisarinistuin", "keisarinkruunu", "keittiönpöytä"
+, "kellan-", "kellelleen", "kellellään", "kellojensoitto", "kellonlyömä", "kellonperät"
+, "kellonvitjat", "kelteisilleen", "kelteisillään"
+, "ken", "kengänkanta", "kengänkieli", "kengänkiilloke", "kengänkiillote", "kengänkiillottaja", "kengänkiillotus", "kengänkorjaus", "kengänkorko", "kengänkärki", "kengännauha", "kengännumero", "kengänpohja", "kengänpäällinen", "kengänvarsi", "kenkään", "kenollaan", "kenoon", "kenossa"
+, "kentänvoimakkuus", "keralla", "keralle", "kerinpuut"
+,"kerralla", "kerrallaan", "kerroksittain", "kerrottava"
+, "kesemmäksi", "kesemmälle", "kesemmällä", "kesempänä", "keskelle", "keskellä", "keskeltä", "keskemmä", "keskemmäksi", "keskemmälle", "keskemmällä", "keskemmältä", "keskemmäs", "keskempänä", "keskempää"
+, "keskenään", "keskessä", "keskestä", "keskeyksiin", "keskeyksissä", "keskeytyksiin", "keskeytyksissä", "keski-", "keskipaikkeilla", "keskipaikkeille", "keskipaikkeilta", "keskipakois-"
+, "keskenmeno"
+, "keskityis", "keskitysleiri", "keskivaiheilla", "keskivaiheille", "keskivaiheilta", "keskiviikkoisin"
+, "keskuudessa", "keskuudesta", "keskuuteen", "kesti", "kestitä", "kesäisin"
+, "kesäteloilla", "kesäteloillaan", "kesäteloille", "kesäteloilleen", "kesäteloilta", "kesäteloiltaan", "ketale", "ketkale"
+, "ketku", "ketunmyrkky", "keuhkoinfarkti", "keuhkokasvain", "keuhkokuume", "keuhkopussintulehdus", "keuhkoputkentulehdus", "keuhkosairaus", "keuhkosyöpä", "keuhkotauti", "keuhkotuberkuloosi", "keuhkotulehdus", "keuhkoveritulppa", "keulemmaksi", "keulemmas", "keulempaa", "keulempana", "kevytkenkäinen"
+, "kevytmielinen", "kevytmielisesti", "keväin", "keväisin", "keväämmäksi", "keväämmälle", "keväämmällä", "keväämmäs", "keväämpänä", "kidnapata", "kidnappaaja", "kidnappaus", "kiduttaa", "kiduttaja", "kidutus", "kidutuskammio"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 2100
+//seuraava alaken 2400
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];

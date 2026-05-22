@@ -106,10 +106,9 @@ const renderSpellButtonsAfterWords = () => {
  spellBtn1.onclick = () => {
             // Päivitetty varmistusikkuna suoralla yksikköpuheella (sinuttelu)
             const vahvistus = confirm(
-                "🧙‍♂️ LOITSUN VAROITUS:\n\n" +
+                "VAROITUS:\n\n" +
                 "Oletko aktivoimassa Sanametamorfoosin?\n" +
-                "Tämä muuttaa kierroksen tilaksi: 'Helpotetut sanat — Puolitettu palkinto'.\n\n" +
-                "Jos onnistut selityksessä, saat tästä vuorosta vain +0.5 pistettä normaalin 1 pisteen sijaan.\n\n" +
+                "Jos onnistut selityksessä, saat tästä vuorosta vain +0.5 pistettä.\n\n" +
                 "Haluatko jatkaa?"
             );
 
@@ -151,7 +150,7 @@ const renderSpellButtonsAfterWords = () => {
                 "Valitse yksi sana ja selitä se toiselle pelaajalle.";
 
             ruleInstruction.style.display = "block";
-            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">⚠️ AKTIIVINEN TILA: Helpotetut sanat — Puolitettu palkinto (+0.5p)</span>` + baseInstruction;
+            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat ovat vaihdettu — Puolitettu palkinto (+0.5p)</span>` + baseInstruction;
         };
         
     } else {

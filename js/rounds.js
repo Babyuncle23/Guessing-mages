@@ -216,7 +216,7 @@ const switchToWords = () => {
     targetCount = Math.max(1, targetCount);
 
     let baseInstruction = (activeCondition1 === "perusvaihtoehto" || activeCondition2 === "perusvaihtoehto") ?
-        "🎲 Vastustaja valitsee numeron 1-5 väliltä. Sinun täytyy selittää suullisesti juuri se sana." :
+        "🎲 Vastustaja valitsee arvattavan sanan numeron listalta listaa katsomatta. Sinun täytyy selittää suullisesti juuri se sana." :
         "Valitse yksi sana ja selitä se toiselle pelaajalle.";
 
     if (activeSpellsLog.length > 0) {

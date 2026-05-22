@@ -278,7 +278,7 @@ button:disabled, .spell-btn:disabled {
     color: #fc8181 !important; /* Спокойный красный текст */
     box-shadow: none !important;
     padding: 10px !important;
-    font-size: 0.9rem !important;
+    /*font-size: 0.9rem !important;*/
 }
 
 .round-controls-block {
@@ -814,8 +814,8 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         padding-right: 4px !important;
         
         /* Эффект затухания для намека на скролл ТОЛЬКО на телефонах */
-        mask-image: linear-gradient(to bottom, black 75%, transparent 100%) !important;
-        -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%) !important;
+        mask-image: linear-gradient(to bottom, black 90%, transparent 100%) !important;
+        -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%) !important;
     }
 
     #wordList li {

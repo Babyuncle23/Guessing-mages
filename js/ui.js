@@ -23,11 +23,11 @@ const spellHelpModalBody = document.getElementById("spellHelpModalBody");
 const closeSpellHelpModal = document.getElementById("closeSpellHelpModal");
 
 const spellDescriptions = {
-    Korttitulva: "🐺 Korttitulva: Laajentaa sanalistaasi kahdella lisäsanalla ennen vuorosi alkua. Antaa enemmän valinnanvaraa, jos luokka tuntuu vaikealta.",
-    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin kesken vuoron ja pyyhkii pois mahdolliset kiroukset. Rajoitus: Tästä kierroksesta voi ansaita vain 0,5 pistettä.",
-    Korttinälkä: "📉 Korttinälkä: Iskee vastustajan seuraavaan vuoroon. Kutistaa hänen sanalistansa vain 3 sanaan, mikä vähentää hänen valinnanvaraansa.",
-    Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa osan hänen sanoistaan oudoilla ja erittäin haastavilla sanoilla, joita on vaikeampi selittää.",
-    Kasvupurkaus: "🌱 Kasvupurkaus: Aktivoi ennen sanojen katsomista. Jos vastustaja arvaa sanasi oikein, saat heti perään ylimääräisen bonusvuoron! Bonusvuoron onnistumisesta saa 0,5 pistettä."
+    Korttitulva: "🐺 Korttitulva: Laajentaa sanalistaasi kahdella lisäsanalla. Antaa enemmän valinnanvaraa, jos selityksen ehto tuntuu vaikealta.",
+    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin. Rajoitus: Tästä kierroksesta voi ansaita vain 0,5 pistettä.",
+    Korttinälkä: "📉 Korttinälkä: Iskee vastustajan seuraavaan vuoroon. Kutistaa hänen sanalistansa kahdella sanalla, mikä vähentää hänen valinnanvaraansa.",
+    Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa osan hänen sanoistaan todennäköisesti oudoimilla sanoilla, joita on vaikeampi selittää.",
+    Kasvupurkaus: "🌱 Kasvupurkaus: Jos vastustaja arvaa sanasi oikein, saat heti perään ylimääräisen bonusvuoron! Bonusvuoron onnistumisesta saa 0,5 pistettä."
 };
 
 const showSpellInfo = (spellKey) => {
