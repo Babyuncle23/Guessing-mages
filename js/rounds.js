@@ -152,8 +152,8 @@ const randomizeTheme = () => {
 
             const activeSpellsLog = [];
             if (activeModifiers.extendToEight) activeSpellsLog.push("Korttitulva: lista kasvaa kahdella sanalla");
-            if (activeModifiers.reduceToThree) activeSpellsLog.push("Korttinälkä: lista supistuu 3 sanaan");
-            if (activeModifiers.chaosFourWords) activeSpellsLog.push("Sanakaaos: korvaa 3 sanaa vaikeammilla");
+            if (activeModifiers.reduceToThree) activeSpellsLog.push("Korttinälkä: lista supistuu kolmella sanalla");
+            if (activeModifiers.chaosFourWords) activeSpellsLog.push("Sanakaaos: korvaa kolme sanaa vaikeammilla");
 
             if (activeSpellsLog.length > 0 && !isMetamorphosisUsedThisTurn) {
                 ruleInstruction.style.display = "block";
