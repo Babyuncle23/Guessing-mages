@@ -1582,3 +1582,4 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     color: #ffffff !important;
     transform: scale(0.99) !important; /* Чуть менее резкое сжатие */
 }
+

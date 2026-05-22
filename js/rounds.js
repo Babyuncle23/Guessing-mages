@@ -379,17 +379,29 @@ const endRound = (isGuessed) => {
         isExtraTurnRound = true; 
     }
 
-    // KORJATTU PISTELASKU JA LOPPURUUTU:
     if (currentRound > totalTurns) {
+        // 1. Принудительно останавливаем звук success, если он всё ещё играет
+        if (sounds.success) {
+            sounds.success.pause();
+            sounds.success.currentTime = 0; // Сбрасываем дорожку в начало
+        }
+
+        // 2. Включаем главный звук победы в игре
+        playAudio(sounds.gameWin);
+
         const sortedPlayers = [...gamePlayers].sort((a, b) => b.score - a.score);
         const winnerText = sortedPlayers[0].score === sortedPlayers[1].score ?
             "Peli päättyi tasan!" : `Voittaja on ${sortedPlayers[0].name}!`;
         const scoreSummary = gamePlayers.map(pl => `${pl.name}: ${pl.score}p`).join('\n');
-        alert(`Peli ohi!\n${winnerText}\n\nLopulliset pisteet:\n${scoreSummary}`);
-        location.reload();
+        
+        // 3. Даем звуку победы красиво проиграться, прежде чем заморозить страницу алертом
+        setTimeout(() => {
+            alert(`Peli ohi!\n${winnerText}\n\nLopulliset pisteet:\n${scoreSummary}`);
+            location.reload();
+        }, 2000); // 2000 миллисекунд (2 секунды) задержки
+        
         return;
     }
-
     gamePlayers.forEach(pl => {
         if (pl.name === "Yrttitarhuri" && !triggersExtraTurnNext) {
             pl.extraTurnGranted = false; 
