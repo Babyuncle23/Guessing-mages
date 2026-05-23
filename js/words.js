@@ -143,7 +143,7 @@ const forbiddenWords = [
 ,"kaupata", "kaupinta", "kaupita", "kaupitella", "kaupungeittain"
 , "kaupungistaa", "kaupungistua", "kaupunkilaisesti", "kaupunkilaisittain", "kaupunkilaistua", "kaupunkimaistaa", "kaupunkimaistua", "kaupustella", "kausijuoppo", "kausijuoppous", "kausittain", "kautta", "kautta-ajo", "kauttaaltaan"
 , "kautta rantain", "kavahtaa", "kavalasti", "kavaltaa", "kaveerata", "kaventaa", "kaventua", "kaveta", "kavuta", "kehaista", "kehdata", "kehitellä", "kehitteille", "kehitteillä", "kehittyä", "kehittää", "kehitysvammainen", "kehitysvammaisuus", "kehityttää", "kehiä"
-, "kehjetä", "kehkeytyä", "kehnontaa", "kehnontua", "kehnosti", "kehnota", "kehnätä", "kehotella", "kehottaa", "kehruuttaa", "kehrätä", "kehräyttää", "kehtokuolema", "kehua", "kehuskella", "kehuttavasti", "kehystää", "kehäkuolema", "kehäraakki"
+, "kehjetä", "kehnontaa", "kehnontua", "kehnosti", "kehnota", "kehnätä", "kehotella", "kehottaa", "kehruuttaa", "kehrätä", "kehräyttää", "kehtokuolema", "kehua", "kehuskella", "kehuttavasti", "kehystää", "kehäkuolema", "kehäraakki"
 , "keimit", "keino-", "keinotekoisesti"
 , "keisarinistuin", "keisarinkruunu", "keittiönpöytä"
 , "kellan-", "kellelleen", "kellellään", "kellojensoitto", "kellonlyömä", "kellonperät"
@@ -159,11 +159,51 @@ const forbiddenWords = [
 , "kesäteloilla", "kesäteloillaan", "kesäteloille", "kesäteloilleen", "kesäteloilta", "kesäteloiltaan", "ketale", "ketkale"
 , "ketku", "ketunmyrkky", "keuhkoinfarkti", "keuhkokasvain", "keuhkokuume", "keuhkopussintulehdus", "keuhkoputkentulehdus", "keuhkosairaus", "keuhkosyöpä", "keuhkotauti", "keuhkotuberkuloosi", "keuhkotulehdus", "keuhkoveritulppa", "keulemmaksi", "keulemmas", "keulempaa", "keulempana", "kevytkenkäinen"
 , "kevytmielinen", "kevytmielisesti", "keväin", "keväisin", "keväämmäksi", "keväämmälle", "keväämmällä", "keväämmäs", "keväämpänä", "kidnapata", "kidnappaaja", "kidnappaus", "kiduttaa", "kiduttaja", "kidutus", "kidutuskammio"
+, "kommari", "kompura", "kompus"
+, "kondylooma", "koni", "konitohtori"
+, "konkreettisesti", "konservatiivisesti"
+, "konstikkaasti", "kontallaan", "kontalleen", "kontillaan", "kontilleen"
+, "koolla", "koolle", "koomisesti", "koossa", "kopeasti", "koppavasti"
+, "koreasti", "koreittain", "koris", "koristeellisesti"
+, "korjaamattomasti", "korjussa", "korjuun", "korjuuseen", "korjuussa", "korkealla", "korkealle", "korkealta", "korkeasti", "korkeimmillaan", "korkeimmilleen", "korkeintaan", "korkenee"
+, "korkeussuhteet", "koronaariskleroosi", "koronaaritauti", "koronaarivaltimo", "korosteisesti"
+, "korrektisti", "korskeasti", "korsteeni", "kortonki"
+, "koruttomasti", "korvantaus", "korvantausta", "korviahuumaava", "korviasärkevä", "korviavihlova", "korvilla", "korville", "korvis", "korvissa"
+, "kidutuskeino", "kidutusväline", "kiehtovasti", "kielellisesti", "kielevästi"
+, "kieliopillisesti", "kielteisesti", "kieltämättä", "kieppeille", "kieppeillä", "kieppeissä", "kierosti"
+, "kierroksittain", "kierryksiin", "kierryksissä", "kierryksistä", "kierteisesti", "kiertoteitse"
+, "kiharaan", "kiharassa", "kihloihin", "kihloissa", "kiihdyksiin", "kiihdyksissä", "kiihdyksissään"
+, "kiihkeästi", "kiihkoisasti", "kiihkottomasti", "kiihottumisherkkyys", "kiihottumisvaihe", "kiihottuneisuus", "kiihotustila", "kiihtymystila", "kiihtyneisyys", "kiikissä", "kiikistä", "kiikkiin", "kiikun kaakun"
+, "kiima-aika", "kiimainen", "kiinnemmäksi", "kiinnemmäs", "kiinnempänä", "kiinni", "kiinnostavasti"
+, "kiinteästi", "kiintoisasti", "kiintyneisyys", "kiireellisesti", "kiireesti", "kiireettömästi", "kiireimmiten", "kiireisesti", "kiiruusti"
+, "kiistattomasti", "kiistämättä", "kiistämättömästi", "kiitettävästi", "kiitti", "kiittimet", "kiittämättömästi", "kiivaasti", "kikkeli"
+, "killillään", "kiloittain", "kilometreittäin", "kilpaa"
+, "kilpasilla", "kilpasille", "kilsa", "kiltisti", "kiltsi", "kimakasti", "kimeästi", "kimma", "kimmoisasti"
+, "kimppuun", "kimpsut", "kimpuittain", "kimpussa", "kimpusta", "kinkunpala", "kintereille", "kintereillä", "kintereiltä"
+, "kippuraan", "kippurassa", "kireälle", "kireällä", "kireässä"
+, "kiristyksissä"
+, "kirjeitse"
+, "kirkkopäivät", "kirkonmeno", "kirosana", "kirottu", "kirotusti", "kirous"
+, "kirroosi", "kirroottinen"
+, "kissanpäivät", "kissanristiäiset", "kissarutto", "kituset"
+, "kiukuissaan", "kiukuspäissään", "kiusanpäiten", "kives", "kivespussi", "kivestulehdus", "kivipölykeuhko"
+, "kivuliaasti", "klamydia", "klamydiatartunta", "klamydiatulehdus", "klitoris"
+, "kobolttikanuuna", "kobolttipommi", "kodikkaasti", "koepala"
+, "koeputkihedelmöitys", "koetteeksi", "koetteella", "koetteelle", "koetteilla", "koetteille", "kohden", "kohdunkaula", "kohdunlaskeuma", "kohdunnapukka", "kohdunpoisto", "kohdunrunko", "kohdunsisäinen", "kohdunsuu", "kohdunulkoinen", "kohdunvuokraus", "kohmeeseen", "kohmeessa"
+, "koholla", "kohollaan", "koholle", "koholleen", "kohtaan", "kohtalaisesti", "kohtalokkaasti", "kohtapuoleen", "kohtapuoliin", "kohtapuolin", "kohtauksittain", "kohteliaasti", "kohti", "kohtisuorasti", "kohtsillään", "kohtsiltään", "kohtu", "kohtusyöpä", "kohtuuttomasti"
+, "kokeeksi"
+, "kokeellisesti", "kokemusperäisesti", "kokeneesti", "kokkarit", "kokoilta", "kokonaan", "kokonaiskustannukset", "kokonaismenot", "kokonaispisteet", "kokonaisvaltaisesti", "kokonaisyksikkökustannukset"
+, "kokoon", "kokoperunat", "kokopäivätoiminen", "kokovartalopuudutus", "koleasti", "kolera", "kolerabakteeri"
+, "kolibakteeri", "kolkosti", "kolkkaa", "kollektiivisesti", "kolmasti", "kolmestaan", "kolmesti", "kolmia"
+, "kolminkertaisesti", "kolmisin", "kolmistaan", "kolmittain", "kolmiäänisesti", "kolmosraskaus"
+, "komeasti"
+
+
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 2400
+//seuraava alaken 28000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
