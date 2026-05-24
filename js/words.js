@@ -197,13 +197,39 @@ const forbiddenWords = [
 , "kolibakteeri", "kolkosti", "kolkkaa", "kollektiivisesti", "kolmasti", "kolmestaan", "kolmesti", "kolmia"
 , "kolminkertaisesti", "kolmisin", "kolmistaan", "kolmittain", "kolmiäänisesti", "kolmosraskaus"
 , "komeasti"
-
-
+, "kosketusmiina", "kosketustartunta", "kostomurha"
+, "kotia", "kotieläintauti", "kotiin", "kotiinpäin", "kotiloma"
+, "kotiryssä", "kotisynnytys", "kotoa"
+, "kotona", "koukkuun", "koukussa"
+, "kouluväkivalta", "kovaa", "kovaan", "kovalla", "kovalle", "kovassa"
+, "kovilla", "koville", "kreikan kieli", "krematoida", "krematointi", "krematorio"
+, "kriminaalipotilas"
+, "kroonikko", "krooninen", "kroonisesti", "kroonistaa", "kroonistua", "kroonisuus", "kruununkalleudet", "kudoksensiirto", "kudosvaurio"
+, "kuhun", "kuhunka", "kuivaa"
+, "kuiviin", "kuivilla", "kuiville", "kuiviltaan"
+, "kukkurallaan", "kukkuralleen", "kukkuranaan", "kukkuroillaan", "kukkuroilleen", "kulauksittain"
+, "kuljetuskustannukset", "kulkeilla", "kulkeille", "kulkusalla", "kulkusalle"
+, "kulli", "kulmatusten", "kulmittain", "kulttuurikilpailut"
+, "kulutusmenot", "kulussa", "kumaraan", "kumarassa", "kumarruksiin", "kumarruksissa"
+, "kummarit", "kummastuksissaan", "kummissaan", "kumollaan", "kumolleen", "kumoon", "kumossa"
+, "kuninkuusravit"
+, "kunnittain", "kunnossa"
+, "kuntoon", "kuohuksiin", "kuohuksissa", "kuolaimet", "kuolema", "kuolemaantuomittu", "kuolemanhiljaisuus", "kuolemanhätä", "kuolemanjälkeinen", "kuolemankaarre", "kuolemankaipuu", "kuolemankauppa", "kuolemankauppias", "kuolemankello", "kuolemankolari", "kuolemankurva", "kuolemanleiri", "kuolemanloukku"
+, "kuolemanmerkki", "kuolemanpartio", "kuolemanpelko", "kuolemanrangaistus", "kuolemansairas", "kuolemansynti", "kuolemansyy", "kuolemansäde", "kuolemantanssi", "kuolemantapaus", "kuolemantauti", "kuolemantuomio", "kuolemantuottamus", "kuolemantuska", "kuolemanvaara", "kuolemanvakava", "kuolemanvakavasti", "kuolemanvakavuus", "kuolemanväsynyt", "kuolematon", "kuolemattomuus", "kuolettava", "kuolettavasti", "kuolettavuus", "kuolevainen", "kuolevaisuus", "kuolevuus", "kuoliaaksi", "kuoliaana", "kuolinaika", "kuolinapu", "kuolinhetki", "kuolinilmoitus", "kuolinisku", "kuolinkamppailu", "kuolinkellot", "kuolinkouristus", "kuolinnaamio", "kuolinpesä", "kuolinpuku", "kuolinpäivä", "kuolinsanoma", "kuolinsyy", "kuolintodistus", "kuolinvuode", "kuolio", "kuolioinen", "kuolioitua", "kuolla", "kuolleenkoura", "kuolleeton", "kuolleisuus", "kuolleisuustilasto", "kuollut", "kuolo", "kuolokohta", "kuolonenkeli", "kuolonkalpea", "kuolonkalpeus", "kuolonkankeus", "kuolonkolari", "kuolonuhri"
+, "kuorima-", "kuorimis-", "kuormittain", "kuparimyrkytys"
+, "kupeella", "kupeelle", "kupeelta", "kupeeseen", "kupeessa", "kupeesta", "kuppa", "kuppainen", "kuppapahkura", "kuppatauti", "kuppatautinen"
+, "kurillaan", "kurin", "kurista", "kurkkukipu", "kurkkumätä", "kurkkumätärokote", "kurkkumätärokotus", "kurkkutauti", "kurkkutulehdus"
+, "kusaista", "kuseksia", "kuseskella", "kusettaa", "kusettaja", "kusi", "kusiainen", "kusiaispesä", "kusihätä", "kusiluistin", "kusinen", "kusiputka", "kusipäinen", "kusipää", "kusta"
+, "kuteet", "kuteilla", "kuteille", "kutri", "kutrit"
+, "kuukautinen", "kuukautishäiriö", "kuukautiskierto", "kuukautiskipu", "kuukautissuoja", "kuukautisveri", "kuukautisvuoto", "kuulemiin", "kuuliaiset"
+, "kuulonheikkenemä", "kuulovamma", "kuulovammainen", "kuulovammaisuus", "kuulovika", "kuulumattomiin", "kuulumattomissa", "kuulumiset", "kuuluviin", "kuuluvilla", "kuuluville", "kuuluvilta", "kuuluvissa", "kuuluvista"
+, "kuumehoure", "kuumekohtaus", "kuumekouristus", "kuumelääke", "kuumepotilas", "kuumereuma", "kuumesairas", "kuumesairaus", "kuumetauti", "kuumetautinen", "kuumiltaan", "kuumissaan", "kuunaan", "kuuromykkyys", "kuuromykkä", "kuuroittain", "kuurosokea"
+, "kuurupiilosilla", "kuutioittain", "kuutiometreittäin"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 28000
+//seuraava alaken 31000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
