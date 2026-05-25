@@ -225,11 +225,42 @@ const forbiddenWords = [
 , "kuulonheikkenemä", "kuulovamma", "kuulovammainen", "kuulovammaisuus", "kuulovika", "kuulumattomiin", "kuulumattomissa", "kuulumiset", "kuuluviin", "kuuluvilla", "kuuluville", "kuuluvilta", "kuuluvissa", "kuuluvista"
 , "kuumehoure", "kuumekohtaus", "kuumekouristus", "kuumelääke", "kuumepotilas", "kuumereuma", "kuumesairas", "kuumesairaus", "kuumetauti", "kuumetautinen", "kuumiltaan", "kuumissaan", "kuunaan", "kuuromykkyys", "kuuromykkä", "kuuroittain", "kuurosokea"
 , "kuurupiilosilla", "kuutioittain", "kuutiometreittäin"
+, "kuutisen", "kuutisenkymmentä", "kuvaamataidonopettaja", "kuvaamattomasti", "kuvaannollisesti", "kuvallisesti", "kuvas"
+, "kvalitatiivisesti", "kvantitatiivisesti"
+, "kyhmyruusu", "kyljekkäin", "kyljelleen", "kyljellään", "kyljes", "kyljittäin", "kyljitysten", "kylkiluunmurtuma", "kylkimyyryä", "kylmilleen", "kylmillään", "kylmiltään", "kylmissään"
+, "kylmäkiskoisesti", "kylmänvihat", "kylmäpäisesti", "kylmäsydämisesti", "kylmästi", "kylmäverisesti"
+, "kylässä", "kylästä", "kylään", "kymmenen", "kymmenesti", "kymmenisen", "kymmenittäin"
+, "kynsisieni", "kynsisilsa", "kypsi", "kypsästi"
+, "kyrmyssä", "kyrmyyn", "kyrpiintyä", "kyrpä", "kyrvähtää", "kyrväyttää", "kysta", "kysyvästi", "kyykkysilleen", "kyykkysillään", "kyykkysiltään", "kyykkyyn"
+, "kyykylleen", "kyykyllään", "kyykyltään", "kyykyssä", "kyykystä", "kyynisesti", "kyyrylleen", "kyyryllään", "kyyryltään", "kyyryssä", "kyyrystä", "kyyryyn", "kyytiä", "käden käänteessä"
+, "käheästi", "kännipäissä", "kännipäissään"
+, "kärjekkäästi", "kärkevästi", "kärkkäästi"
+, "käsikaulaa", "käsikopelolla", "käsikopelolta", "käsiksi"
+, "käsille", "käsillä", "käsin", "käsipohjaa", "käsissä", "käsityksin", "käsitysten"
+, "kätkytkuolema"
+, "käymäjalkaa", "käymäseltä", "käymäseltään"
+, "käyvästi"
+, "käärinliina", "käärmeissään"
+, "köniin", "köykkyyn", "köykyssä", "köykystä", "köyryssä", "köyrystä", "köyryyn"
+, "laajalti"
+, "laatuunkäyvästi"
+, "lahdata", "laidemmaksi", "laidemmalla", "laidemmalle", "laidemmalta", "laidemmas"
+, "laidunhalvaus", "laidunkouristus", "laidunkuume", "laidempaa", "laidempana", "laikkutauti"
+, "laita-alkoholisti"
+, "laitamyötäinen", "laitoshoito", "laitospotilas"
+, "lakastumistauti", "lakiaukile"
+, "laktaasinpuutos", "laktoosi-intoleranssi", "laktoosi-intolerantti", "lamaan", "lamassa", "lamasta"
+, "lankeemus"
+, "lannepisto", "laossa", "laparoskopia", "laparoskopialeikkaus", "lapamato"
+, "lappeellaan", "lappeelleen", "lapsenpäästö", "lapsenryöstö", "lapsettomuus", "lapsihalvaus", "lapsikauppa", "lapsikuolleisuus", "lapsiporno", "lapsipornografia", "lapsipotilas", "lapsiprostituoitu", "lapsiprostituutio"
+, "lapsirikollinen", "lapsiseksimatkailu", "lapsivesitutkimus", "lapsivuodekuume", "lasaretti", "laserhoito", "laserleikkaus", "lasiainen", "lasiaisneste"
+, "laskeuma", "laskeutuma", "laskimonlaajentuma", "laskimotukos", "laskimotulehdus"
+
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 31000
+//seuraava alaken 34000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
