@@ -255,12 +255,40 @@ const forbiddenWords = [
 , "lappeellaan", "lappeelleen", "lapsenpäästö", "lapsenryöstö", "lapsettomuus", "lapsihalvaus", "lapsikauppa", "lapsikuolleisuus", "lapsiporno", "lapsipornografia", "lapsipotilas", "lapsiprostituoitu", "lapsiprostituutio"
 , "lapsirikollinen", "lapsiseksimatkailu", "lapsivesitutkimus", "lapsivuodekuume", "lasaretti", "laserhoito", "laserleikkaus", "lasiainen", "lasiaisneste"
 , "laskeuma", "laskeutuma", "laskimonlaajentuma", "laskimotukos", "laskimotulehdus"
+, "lastasidos"
+, "latenssivaihe", "lattiasieni", "lauantaisin"
+, "laukkuryssä", "laumoittain"
+, "lavantauti", "lavantautibakteeri", "lavantautiepidemia", "lavantautipotilas", "lavantautirokotus", "lavantautitartunta"
+, "legioonalaistauti", "lehtikuolema"
+, "lehtilapsi", "leikillään"
+, "leikisti", "leikiten", "leikkausarpi", "leikkaushaava", "leikkaushoito", "leikkausjono", "leikkauspotilas", "leikkauspöytä", "leikkaussali", "leikkausveitsi", "leikkausviilto"
+, "lemmentuska"
+, "lennokkaasti", "lentomyrkytys"
+, "lento-onnettomuus", "lentopostitse", "lentoturma", "leppeästi", "leppoisasti", "leppymättömästi"
+, "lepra", "lepsusti", "lerpalla", "lerpallaan", "lerpalle", "lerpalleen", "lerppua", "lesbopari", "leskeys", "leski", "leskikuningatar", "leskimies", "leskirouva", "leskiäiti", "letkeästi", "leudosti"
+, "leuhkasti", "leukavasti", "leukemia", "leveälti", "leveästi", "levollisesti", "levottomasti"
+, "levälleen", "levällään", "leväperäisesti", "liberaalisesti", "liberaalisti", "liehakkaasti"
+, "liepeille", "liepeillä", "liepeiltä", "liettua", "liettuan kieli", "lievästi"
+, "lihasheikkous", "lihaskasvain", "lihaskipu", "lihaskouristus", "lihaskramppi", "lihasrappeuma", "lihasreuma", "lihasrevähtymä", "lihassurkastuma", "lihassärky", "lihasvamma", "lihasvenähtymä", "liiaksi", "liialti", "liian", "liiemmin", "liiemmälti"
+, "liikaa", "liika-annostus", "liikahappoisuus", "liikaherkkyys", "liikaherkkä", "liikajännitys", "liikakansoittua", "liikakansoitus", "liikakasvu", "liikakuormitus", "liikalihava", "liikalihavuus", "liikarasittunut", "liikarasitus", "liikatoiminta", "liikekannalla", "liikekannalle", "liikennejuopumus", "liikennekaaos", "liikennekuolema"
+, "liikenneonnettomuus", "liikennepako", "liikennerikkomus", "liikennerikos", "liikenneturma", "liikennevahinko", "liiketaloudellisesti", "liiketappio", "liikkeelle", "liikkeellä", "liikkeessä"
+, "liikkumisvaikeus", "liikkuvasti", "liikuntaesteinen", "liikuntakyvytön", "liikuntarajoitteinen", "liikuntavamma", "liikuntavammainen", "liikuttavasti", "liimakorva", "liioin", "liiskaksi", "liiskana"
+, "liittoutuneet", "liivin kieli", "likavaatteet"
+, "likelle", "likellä", "likeltä", "likemmäksi", "likemmäs", "likempänä", "likempää", "likimmäksi", "likimmäs", "likimpänä", "likimpää", "likoon", "likvori"
+, "linnanrauniot", "linnoitusjoukot"
+, "linnuntietä", "lintallaan", "lintalleen", "lintassa", "lintukotolaiset", "lintuniisikangas", "lintuniisisidos", "liossa", "liosta", "liperit", "lipettiin", "lipeämyrkytys"
+, "lirunlaru"
+, "lisäksi", "lisäkulut", "litistyksiin", "litistyksissä", "litroittain"
+, "liuotushoito", "livohkaan"
+, "loissairaus", "loistartunta", "loistauti", "loitolla", "loitolle", "loitolta", "loitommaksi", "loitommas", "loitompaa", "loitompana"
+, "lomaan", "lomakkain", "lolita"
+
 
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 34000
+//seuraava alaken 37000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
