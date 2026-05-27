@@ -281,8 +281,7 @@ const forbiddenWords = [
 , "liuotushoito", "livohkaan"
 , "loissairaus", "loistartunta", "loistauti", "loitolla", "loitolle", "loitolta", "loitommaksi", "loitommas", "loitompaa", "loitompana"
 , "lomaan", "lomakkain", "lolita"
-
-
+, "herätemiina"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
