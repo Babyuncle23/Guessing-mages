@@ -311,6 +311,27 @@ const switchToWords = () => {
     renderSpellButtonsAfterWords();
 };
 
+const toggleWordVisibility = () => {
+    if (wordList.children.length === 0) {
+        switchToWords();
+        return;
+    }
+
+    if (wordList.style.display === "none") {
+        wordList.style.display = "block";
+    }
+
+    if (isWordListHidden) {
+        wordList.classList.remove("hidden-words");
+        btnDisplayWords.textContent = "🙈 Piilota sanat";
+        isWordListHidden = false;
+    } else {
+        wordList.classList.add("hidden-words");
+        btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle)";
+        isWordListHidden = true;
+    }
+};
+
 const endRound = (isGuessed) => {
     const p = gamePlayers[currentPlayerIndex];
     let triggersExtraTurnNext = false;
