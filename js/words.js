@@ -292,9 +292,20 @@ let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
 
-const parseWords = (text) => {
+const parseWords = (text, maxLines = Infinity) => {
     const seen = new Set();
-    return text
+    
+    // 1. Разбиваем файл строго по переносам строк
+    let lines = text.split('\n');
+    
+    // 2. Оставляем только строки с 1 по 36999 (индексы от 0 до 36998)
+    if (maxLines !== Infinity) {
+        lines = lines.slice(0, maxLines - 1); 
+    }
+
+    // 3. Соединяем обратно и обрабатываем каждую строку по вашему алгоритму
+    return lines
+        .join('\n')
         .split(/[,\n]/)
         .map(w => w.trim())
         .filter(w => w.length >= 3)
@@ -305,9 +316,16 @@ const parseWords = (text) => {
             seen.add(item.normalized);
             return true;
         })
-        .map(item => item.original);
+        .map(item => item.original); // Возвращает слова в нижнем регистре
 };
 
-fetch('words/kaikkisanat.txt').then(res => res.text()).then(d => allWords = parseWords(d)).catch(e => console.log("kaikkisanat.txt failed:", e));
-fetch('words/yleisetsanat.txt').then(res => res.text()).then(d => commonWords = parseWords(d)).catch(e => console.log("yleisetsanat.txt failed:", e));
+// При вызовах fetch передаем лимит для kaikkisanat.txt:
+fetch('words/kaikkisanat.txt')
+    .then(res => res.text())
+    .then(d => allWords = parseWords(d, 37000)) // Строка 37000 и далее не попадут в игру
+    .catch(e => console.log("kaikkisanat.txt failed:", e));
 
+fetch('words/yleisetsanat.txt')
+    .then(res => res.text())
+    .then(d => commonWords = parseWords(d)) // Загружается полностью без ограничений
+    .catch(e => console.log("yleisetsanat.txt failed:", e));

@@ -187,7 +187,6 @@ const switchToWords = () => {
     playClickSound();
     playAudio(sounds.flip);
     
-    // Teeman kuvat ja tekstit jätetään päälle, uusi CSS (words-active) hoitaa asettelun
     document.getElementById("gameContainer").classList.add("words-active");
     roundControls.style.display = 'flex';
     spellContainer.style.display = "none";
@@ -202,9 +201,14 @@ const switchToWords = () => {
         return; 
     }
 
-    // Suodatetaan pelin sanalistoista pois sanat, jotka on jo käytetty tässä pelissä
-    let filteredAllWords = allWords.filter(w => !usedWordsInThisGame.includes(capitalize(w)));
-    let filteredCommonWords = commonWords.filter(w => !usedWordsInThisGame.includes(capitalize(w)));
+    // Делаем слова заглавными СРАЗУ при создании копий массивов для раунда
+    let filteredAllWords = allWords
+        .map(w => capitalize(w))
+        .filter(w => !usedWordsInThisGame.includes(w));
+        
+    let filteredCommonWords = commonWords
+        .map(w => capitalize(w))
+        .filter(w => !usedWordsInThisGame.includes(w));
 
     let targetCount = 5;
     let activeSpellsLog = [];
@@ -232,26 +236,24 @@ const switchToWords = () => {
     // 1. Haetaan ensimmäinen sana (harvinaisemmista sanoista jos mahdollista)
     if (filteredAllWords.length > 0) {
         const randIdx = Math.floor(Math.random() * filteredAllWords.length);
-        const w = capitalize(filteredAllWords[randIdx]);
+        const w = filteredAllWords[randIdx]; // Уже с большой буквы
         generatedWordsList.push(w);
-        usedWordsInThisGame.push(w); // Tallennetaan globaaliin pelimuistiin
         usedFirstLetters.add(w.charAt(0).toLowerCase());
+        filteredAllWords.splice(randIdx, 1); // Удаляем, чтобы не было дубликатов в Sanakaaos
     }
 
     // 2. Täytetään lista uniikeilla yleisillä sanoilla (eri alkukirjaimet)
     let attempts = 0;
-    let commonCopy = [...filteredCommonWords];
-    while (generatedWordsList.length < targetCount && commonCopy.length > 0 && attempts < 500) {
-        const randIdx = Math.floor(Math.random() * commonCopy.length);
-        const w = capitalize(commonCopy[randIdx]);
+    while (generatedWordsList.length < targetCount && filteredCommonWords.length > 0 && attempts < 500) {
+        const randIdx = Math.floor(Math.random() * filteredCommonWords.length);
+        const w = filteredCommonWords[randIdx]; // Уже с большой буквы
         const firstLetter = w.charAt(0).toLowerCase();
         
         if (!usedFirstLetters.has(firstLetter)) {
             generatedWordsList.push(w);
-            usedWordsInThisGame.push(w); // Tallennetaan globaaliin pelimuistiin
             usedFirstLetters.add(firstLetter);
+            filteredCommonWords.splice(randIdx, 1); // Удаляем из доступных на раунд
         }
-        commonCopy.splice(randIdx, 1);
         attempts++;
     }
 
@@ -259,18 +261,16 @@ const switchToWords = () => {
     let fallbackAttempts = 0;
     while (generatedWordsList.length < targetCount && filteredCommonWords.length > 0 && fallbackAttempts < 200) {
         const randIdx = Math.floor(Math.random() * filteredCommonWords.length);
-        const w = capitalize(filteredCommonWords[randIdx]);
+        const w = filteredCommonWords[randIdx]; // Уже с большой буквы
         if (!generatedWordsList.includes(w)) {
             generatedWordsList.push(w);
-            usedWordsInThisGame.push(w); // Tallennetaan globaaliin pelimuistiin
+            filteredCommonWords.splice(randIdx, 1);
         }
         fallbackAttempts++;
     }
 
-    // 3. Sanakaaos-loitsun mekaaninen korvaus (vaikeat sanat tilalle)
-// 3. KORJATTU Sanakaaos: Toimii aina kun sanoja on vähintään 1 jäljellä
+    // 3. Sanakaaos-loitsun mekaaninen korvaus (без дубликатов и лишнего забивания истории)
     if (activeModifiers.chaosFourWords && filteredAllWords.length > 0) {
-        // Korvataan kolme satunnaista sanaa vaikeilla sanoilla
         const maxToReplace = Math.min(3, generatedWordsList.length);
         const replaceIndices = [];
 
@@ -284,37 +284,31 @@ const switchToWords = () => {
         replaceIndices.forEach(idx => {
             if (filteredAllWords.length > 0) {
                 const randIdx = Math.floor(Math.random() * filteredAllWords.length);
-                const w = capitalize(filteredAllWords[randIdx]);
-                generatedWordsList[idx] = w;
-                usedWordsInThisGame.push(w);
-                filteredAllWords.splice(randIdx, 1);
+                const w = filteredAllWords[randIdx]; // Уже с большой буквы
+                generatedWordsList[idx] = w; // Заменяем старое слово в отображаемом списке раунда
+                filteredAllWords.splice(randIdx, 1); // Безопасно удаляем из массива доступных трудных слов
             }
         });
     }
 
-    generatedWordsList.sort(() => Math.random() - 0.5);
+    // Вносим в глобальную историю игры только те слова, которые РЕАЛЬНО отобразились игроку
+    generatedWordsList.forEach(w => {
+        if (!usedWordsInThisGame.includes(w)) {
+            usedWordsInThisGame.push(w);
+        }
+    });
+
+    // Алгоритм Фишера-Йетса для гарантированно случайного перемешивания в любом браузере
+    for (let i = generatedWordsList.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [generatedWordsList[i], generatedWordsList[j]] = [generatedWordsList[j], generatedWordsList[i]];
+    }
+
     renderOlList();
     btnDisplayWords.style.display = "block";
     btnDisplayWords.textContent = "🙈 Piilota sanat";
     isWordListHidden = false;
     renderSpellButtonsAfterWords();
-};
-
-const toggleWordVisibility = () => {
-    if (wordList.style.display === "none" || wordList.children.length === 0) {
-        switchToWords();
-        return;
-    }
-
-    if (isWordListHidden) {
-        wordList.classList.remove("hidden-words");
-        btnDisplayWords.textContent = "🙈 Piilota sanat";
-        isWordListHidden = false;
-    } else {
-        wordList.classList.add("hidden-words");
-        btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle)";
-        isWordListHidden = true;
-    }
 };
 
 const endRound = (isGuessed) => {

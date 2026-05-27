@@ -98,11 +98,9 @@ const renderSpellButtonsAfterWords = () => {
     const p = gamePlayers[currentPlayerIndex];
     if (spellInfoBox) spellInfoBox.style.display = "none";
     
-    // Tarkistetaan onko pelaaja Muodonmuuttaja ja onko loitsuja jäljellä
     if (p && p.name === "Muodonmuuttaja" && p.spells.metamorphosis > 0) {
         spellContainer.style.display = "flex";
         
-        // Otetaan ensimmäinen rivi käyttöön puhtaana flex-rakenteena
         spellRow1.style.display = "flex";
         spellBtn1.style.display = "block";
         if (spellHelpBtn1) {
@@ -110,7 +108,6 @@ const renderSpellButtonsAfterWords = () => {
             spellHelpBtn1.dataset.spell = "Sanametamorfoosi";
         }
         
-        // Pakotetaan toinen rivi ja sen kysymysmerkki TÄYDELLISESTI piiloon
         spellRow2.style.display = "none";
         spellBtn2.style.display = "none";
         if (spellHelpBtn2) {
@@ -121,7 +118,6 @@ const renderSpellButtonsAfterWords = () => {
         spellBtn1.disabled = false;
         
         spellBtn1.onclick = () => {
-            // Päivitetty varmistusikkuna suoralla yksikköpuheella (sinuttelu)
             const vahvistus = confirm(
                 "VAROITUS:\n\n" +
                 "Oletko aktivoimassa Sanametamorfoosin?\n" +
@@ -131,18 +127,21 @@ const renderSpellButtonsAfterWords = () => {
 
             if (!vahvistus) return;
 
-            // ИЗМЕНЕНО: Muodonmuuttaja использует 'curse' для КРАСНОЙ вспышки
             triggerSpellAnimation('curse');
 
             const cleanLetters = new Set();
-            let commonCopy = [...commonWords];
+            
+            // ИСПРАВЛЕНО: Фильтруем слова, исключая уже использованные в этой игре
+            let commonCopy = commonWords
+                .map(w => capitalize(w))
+                .filter(w => !usedWordsInThisGame.includes(w));
             
             generatedWordsList = generatedWordsList.map(() => {
                 let foundWord = "";
                 let subAttempts = 0;
                 while (commonCopy.length > 0 && subAttempts < 100) {
                     const randIdx = Math.floor(Math.random() * commonCopy.length);
-                    const w = capitalize(commonCopy[randIdx]);
+                    const w = commonCopy[randIdx]; // Уже с большой буквы благодаря .map()
                     if (!cleanLetters.has(w.charAt(0).toLowerCase())) {
                         foundWord = w;
                         cleanLetters.add(w.charAt(0).toLowerCase());
@@ -152,19 +151,27 @@ const renderSpellButtonsAfterWords = () => {
                     commonCopy.splice(randIdx, 1);
                     subAttempts++;
                 }
-                if (foundWord === "" && commonWords.length > 0) {
-                    foundWord = capitalize(commonWords[Math.floor(Math.random() * commonWords.length)]);
+                if (foundWord === "" && commonCopy.length > 0) {
+                    const randIdx = Math.floor(Math.random() * commonCopy.length);
+                    foundWord = commonCopy[randIdx];
+                    commonCopy.splice(randIdx, 1);
                 }
                 return foundWord !== "" ? foundWord : "Taikasana";
+            });
+
+            // ИСПРАВЛЕНО: Записываем новые трансформированные слова в глобальную историю игры
+            generatedWordsList.forEach(w => {
+                if (w !== "Taikasana" && !usedWordsInThisGame.includes(w)) {
+                    usedWordsInThisGame.push(w);
+                }
             });
 
             playAudio(sounds.morph);
             renderOlList();
             p.spells.metamorphosis--;
-            isMetamorphosisUsedThisTurn = true; // Lukitaan puolikkaat pisteet
+            isMetamorphosisUsedThisTurn = true; 
             spellContainer.style.display = "none";
             
-            // Päivitetään myös peliruudun ohjeteksti (Vaihtoehto 4) pitämään tila näkyвissä selittäjälle
             let baseInstruction = (activeCondition1 === "perusvaihtoehto" || activeCondition2 === "perusvaihtoehto") ?
                 "Toinen pelaaja valitsee sanan ilman että näkee listaa. Selitä sana normaalisti." :
                 "Valitse yksi sana ja selitä se toiselle pelaajalle.";
