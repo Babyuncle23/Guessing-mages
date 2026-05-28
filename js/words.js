@@ -11,16 +11,16 @@ const forbiddenWords = [
 , "halikkain", "hallintoalamainen"
 , "hallitustenvälinen", "hallussa", "hallusta", "halpa-arvoinen", "halpa-arvoisuus", "halpahintainen", "halpakorkoinen", "halpamaisesti", "haltioihinsa", "haltioissaan", "haltuun", "halukkaasti", "halullinen", 
 , "haluttomasti", "halvattu", "halveerata", "halveksinta", "halvennus", "halventavasti", "hamevalta"
-, "hampaattomasti", "hampaattomuus", "hamppari", "hampparoida", "hampuusi", "hanakasti", "hanakka", "hanakkuus", "handicap", "handu", "hangoitella", "hankala", "hankalakulkuinen", "hankalakäyttöinen", "hankalatöinen", "hankaloittaa", "hankaloitua", "hankaluus"
-, "hanslankari", "hantlankari", "hanttapuli", "hantti", "hanttihomma", "hanttiin", "hanttikortti", "hanttimies", "hanttityö", "hanuri", "hapannaama", "happamasti", "happamesti", "happoveikko", "happy hour"
-, "harakanvarvas", "harakiri", "haralla", "harallaan", "haralle", "haralleen", "harha-aistimus", "harhaan", "harhaanjohtava", "harhaannuttaa", "harhaantua", "harhaanvievä", "harha-askel", "harhahavainto", "harhaheitto", "harhailla", "harhailu", "harhainen", "harhaisku", "harhakuva", "harhakuvitelma", "harhakäsitys", "harhalaukaus", "harhaluoti", "harhaluulo", "harhamielisyys", "harhanäky", "harhaoppi", "harhaoppinen", "harhapolku", "harhapäätelmä", "harharetki", "harhasoitto", "harhassa", "harhasyöttö", "harhateille", "harhateillä", "harhateiltä", "harhauma", "harhauttaa", "harhautua", "harhautuma", "harhautus", "harilla", "harillaan", "harille", "harilleen", "harjaantumaton", "harjaantumiskoulu"
-, "harkinnanvarainen", "harkitsematon", "harkitsemattomasti", "harkitsemattomuus", "harkitseva", "harkitsevainen", "harkitsevaisuus", "harkitsevuus", "harkittu", "harkitusti", "harmaahapsinen", "harmaahiuksinen", "harmaapartainen", "harmaapäinen", "harmaasilmäinen", "harmaatukkainen", "harmillinen"
-, "harmissaan", "harmistuksissaan", "harmiton", "harrastelijamainen", "hartaasti"
-, "harvaan", "harvahampainen", "harvainvalta", "harvainvaltainen", "harvakseen", "harvakseltaan", "harvalukuinen", "harvapuheinen", "harvasanainen", "harvassa", "harvemmin", "harvempaan", "harventamaton", "harvoin", "hasardi", "hasis", "hassahtanut", "hassahtava", "hassata", "hassu", "hassunkurinen", "hassusti", "hassutella", "hassuttaa", "hassuttelu", "hassutus", "hatara", "hatarasti", "hataruus", "hatkat", "hattupäinen", "hattureuhka", "hatunreuhka", "hatuttaa", "haudanhiljainen", "haudanhiljaisuus", "haudanhäpäisy", "haudankaivaja", "haudanryöstö", "haudantakainen", "haudanvakava", "haudanvakavasti", "haudanvakavuus"
-, "haukkua", "haukkumakirje", "haukkumanimi", "haukkumasana", "haureellinen", "haureellisuus", "haureus", "hauskannäköinen", "hauskasti", "hauva"
-, "he", "hedelmöidä", "hedelmöittyä", "hedelmöittää", "hedelmöityä"
+, "hampaattomasti", "hampaattomuus", "hamppari", "hampparoida", "hampuusi", "hanakasti", "handicap", "handu", "hangoitella", "hankalakulkuinen", "hankalatöinen"
+, "hanslankari", "hantlankari", "hanttapuli", "hantti", "hanttiin", "hanttikortti", "hanttimies", "hanttityö", "happamesti", "happoveikko", "happy hour"
+, "harakanvarvas", "harakiri", "haralla", "haralle", "haralleen", "harhaan", "harhaannuttaa", "harhaantua", "harhaanvievä", "harhahavainto", "harhaheitto", "harhainen", "harhaisku", "harhakuva", "harhakäsitys", "harhalaukaus", "harhaluoti", "harhamielisyys", "harhanäky", "harhasoitto", "harhassa", "harhasyöttö", "harhateille", "harhateillä", "harhateiltä", "harhauma", "harhautuma", "harilla", "harillaan", "harille", "harilleen", "harjaantumiskoulu"
+, "harkitsevuus", "harkittu", "harmaahapsinen", "harmaapartainen", "harmaatukkainen"
+, "harmissaan", "harmistuksissaan"
+,"harvainvalta", "harvainvaltainen", "harvalukuinen", "harvasanainen", "harvassa", "harvempaan", "harventamaton", "hasardi", "hasis", "hassahtanut", "hassahtava", "hassata", "hassuttaa", "hassutus", "hattureuhka", "hatunreuhka", "hatuttaa", "haudanhiljainen", "haudanhiljaisuus", "haudanhäpäisy", "haudankaivaja", "haudanryöstö", "haudantakainen", "haudanvakavuus"
+, "haukkumakirje", "haukkumanimi", "haureellinen", "haureellisuus"
+, "hedelmöidä", "hedelmöittyä", "hedelmöittää", "hedelmöityä"
 , "heijari", "heikkolahjainen", "heikkolahjaisuus", "heikkomielinen", "heikkomielisyys", "heikkopäinen", "heilaus"
-, "heinähattu", "heitteille", "heitteillä", "heitteiltä", "heittiö", "heittopussi"
+, "heinähattu", "heitteille", "heitteillä", "heitteiltä", "heittopussi"
 , "helibor", "heliborkorko", "helkatti", "helkkarinmoinen", "helkkaristi", "helkkari", "helkutti", "hellapoliisi"
 , "hellitä", "helppoheikki"
 , "helskutti", "helvetillinen", "helvetinkone", "helvetinmoinen", "helvetisti", "helvetti", "hemmetinmoinen", "hemmetisti", "hemmetti", "hempukka", "hengissä"
@@ -282,11 +282,71 @@ const forbiddenWords = [
 , "loissairaus", "loistartunta", "loistauti", "loitolla", "loitolle", "loitolta", "loitommaksi", "loitommas", "loitompaa", "loitompana"
 , "lomaan", "lomakkain", "lolita"
 , "herätemiina"
+, "lomassa", "lomasta", "lommoilla", "loogisesti", "loppumattomasti"
+, "loppuun", "lopuillaan", "lopuksi", "lopulla", "lopullaan", "lopullisesti", "lopulta", "lopussa", "loputtomasti", "loputtomiin", "lossiksi"
+, "lues"
+, "luihusti", "luimussa", "luimuun", "lujaa", "lujaan", "lujakätisesti", "lujalla", "lujalle", "lujassa", "lujasta", "lujasti", "lujilla", "lujille", "lukien"
+, "lukkoon", "lukossa", "lukosta", "lukuisasti", "lukumääräisesti"
+, "lukuun ottamatta", "lumbaalipunktio", "lumisotasilla"
+, "lunkisti", "luo", "luokkasota", "luokkaviha"
+, "luokse", "luona", "luonnehäiriö", "luonnehäiriöinen", "luonnenäytelmä", "luonnevikainen", "luonnikkaasti", "luonnollisesti"
+, "luonnonmukaisesti", "luonnonolot", "luonnostaan", "luonnottomasti", "luontaisesti", "luonteenomaisesti"
+, "luontevasti", "luontojaan", "luota", "luotaantyöntävästi", "luotettavasti", "luottamuksellisesti"
+, "luotti", "lurpalla", "lurpallaan", "lurpalle", "lurpalleen", "lurpassa", "lurppaan", "lutka"
+, "lutkuttaa", "lutkutus", "luukasvain", "luukato", "luumätä", "luunmurtuma", "luunsiirto", "luunsiirtoleikkaus", "luusyöpä", "luuytimensiirto"
+, "lyhyeen", "lyhyelle", "lyhyellä", "lyhytkirurgia", "lyijymyrkytys"
+, "lymfooma", "lysyssä", "lysyyn", "lyttyyn", "lytyssä"
+, "lähelle", "lähellä", "läheltä", "lähemmin", "lähemmä", "lähemmäksi", "lähemmäs", "lähempi", "lähempänä", "lähempää", "lähentely", "lähettyville", "lähettyvillä", "lähettyviltä", "lähetyssaarnaaja-asento"
+, "lähimailla", "lähimaille", "lähimailta", "lähimmin", "lähimmäksi", "lähimmäs", "lähimpänä", "lähimpää", "lähin", "lähiseutuvilla", "lähiseutuville", "lähiseutuvilta", "lähtiäiset", "lähtökuopat"
+, "lähtöpassit", "läjäpäissä", "läksiäiset", "läksiäisjuhla", "läksiäiskahvit", "läksiäispuhe", "läkähdyksiin", "läkähdyksissä", "läkähdyksissään"
+, "lämpimikseen", "lämpimiltään", "lämpimältään", "lämpöhalvaus"
+, "lämpöydinpommi", "länget", "lännemmäksi", "lännemmäs", "lännempänä", "lännempää", "länsipuolitse", "länttään", "läntälleen", "läntällään", "läntässä", "läpeensä"
+, "läppävika", "läppävikainen", "läskimaha", "läskimooses"
+, "lääkeaddikti", "lääkeainemyrkytys", "lääkeriippuvuus", "lääkärinapu", "lääkärinhoito", "lääkärinlausunto", "lääkärinpalkkio", "lääkärintarkastus", "lääkärintodistus", "lääkärintutkimus", "lääkärinvirka"
+, "lääneittäin", "lääpälleen", "lääpällään", "löyhdyttää", "löyhennys", "löyhentyä", "löyhentää", "löyhetä", "löyhkä", "löyhkätä", "löyhtyä", "löyhytellä", "löyhyttää", "löyhyys", "löyhä", "löyhähtää", "löyhäkätinen", "löyhäpäinen", "löyhärakenteinen", "löyhästi", "löyhäsuinen", "löyly", "löylyhuone", "löylykauha", "löylymies", "löylynlyömä", "löylyttää", "löylytys", "löylyvesi", "löysentyä", "löysentää", "löystyttää", "löystyä", "löysyys", "löysä", "löysäpäinen", "löysästi", "löysätä", "löytymättömiin", "löytymättömissä", "löytäjä", "löytää", "löytö", "löytölapsi", "löytöpaikka"
+, "maahanhyökkäys", "maahanpaniaiset", "maahansyöksy", "maahantunkeutuja", "maahantunkeutuminen", "maailmanloppu"
+, "maailmanpalo", "maailmansota", "maailmantuska", "maailmanvallankumous"
+, "maalaisesti", "maalaisittain", "maalaismainesti", "maalauksellisesti"
+, "maaltapako", "maamuna", "maanantaisin", "maanikko", "maaninen", "maanis-depressiivinen", "maanjäristys", "maanjäristysaalto", "maanjäristysmittari", "maanjäristysoppi", "maankavallus", "maankavaltaja", "maanpako", "maanpakolainen", "maanpakolaisuus", "maanpetoksellinen", "maanpetos", "maanpetturi"
+, "maanrako", "maansuru", "maanteitse", "maantiegangsteri", "maantienoja", "maantierosvo", "maantieteellinen", "maantieteellisesti", "maanvaiva", "maanvajoama", "maanvieremä", "maanvyörymä", "maanääri", "maaorja", "maaorjuus"
+, "maarin", "maasodankäynti", "maasota", "maasotatoimi", "maastakarkotus", "maastoitse", "maastopalo"
+, "maatameno", "maatapano", "maate", "maateitse", "maaton", "machiavellilainen", "machiavellismi", "machiavellisti", "machiavellistinen", "madonhäätö", "madonkantaja", "madonluku", "madonsyömä", "magna cum laude approbatur"
+, "magneettimiina", "magneettisesti", "mahahaava", "mahahuuhtelu", "mahakatarri", "mahakipu", "mahalasku", "mahanpuru", "mahasyöpä", "mahatauti", "mahavaiva", "mahdikkaasti", "mahdollisesti", "mahdottomasti", "mahtailevasti"
+, "maihin"
+, "maissa", "maista", "maitokuume"
+, "maitorauhastulehdus", "maitorupi", "maitse", "maittain", "make-up"
+, "makki", "makkilanta", "maksakirroosi", "maksasairaus", "maksasyöpä", "maksatulehudus"
+, "makuulla", "makuulle", "makuulta", "makuuhaava", "malaria", "malariasääski", "maligni", "malignisoitua", "malignistua", "maligniteetti", "malignoitua"
+, "maltaat", "mammografia"
+, "mammuttitauti", "management", "manne"
+, "manöveroida", "manöverointi", "manövroida", "marihuana"
+, "marjapussi", "markkinat", "marmelaati"
+, "marssimurtuma", "marttyyrikuolema", "masennus", "masennuskausi", "masennuslääke", "masennustila", "massamurha", "massapsykoosi"
+, "masturbaatio", "masturboida", "masturbointi", "matalalla", "matalalle", "matalalta"
+, "matkalla", "matkalle"
+, "matsi", "matsku"
+, "medisiina", "medisiinari"
+, "meikku", "meitski", "meitsi", "melanooma"
+, "menehdyksiin", "menehdyksissä", "menehdyksissään", "meneillä", "meneillään", "menkat", "menkut", "mennessä"
+, "menopaussi", "menopäällä", "mensikset", "menstruaatio", "menstruoida", "mensut"
+, "merikipeä", "merisairas", "meriteitse", "meritse"
+, "merkille pantava"
+, "mesta", "mesu", "metadoni"
+, "metastaasi", "metastaattinen", "metastasoida", "metastasointi", "metelivesi", "metreittäin"
+, "metsäkuolema"
+, "miehelässä", "miehelään", "miehenkipeä"
+, "miehennielijä", "mieleen", "mielellään", "mielestä"
+, "mielihyvin", "mielikseen", "mieliksi", "mielin kielin", "mielin määrin", "mielissään", "mieluimmin", "mieluiten", "mieluummin", "mieluusti"
+, "miesmuistiin", "miesmurha", "miestennielijä", "mihin", "mihinkin", "mihinkä", "mihinkään"
+, "mihinpäin", "mikin", "miksi", "mikä", "mikäkin", "mikäli", "mikään"
+, "miljoonittain", "millainen", "milloin", "milloinka", "milloinkaan", "milloinkin", "millänsäkään", "millään", "milläänkään", "miltei", "mimmoinen"
+, "minne", "minnekin", "minnekä", "minnekään", "minnepäin", "minunlaiseni", "minuuteittain", "minä", "missä"
+, "missäkin", "missäpäin", "missään", "mistä", "mistäkin", "mistäpäin", "mistään", "misu", "miten", "mitenkin", "mitenkuten", "mitenkä", "mitenkään", "miten päin", "mittain", "mitä"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 37000
+//seuraava alaken 43000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -321,7 +381,7 @@ const parseWords = (text, maxLines = Infinity) => {
 // При вызовах fetch передаем лимит для kaikkisanat.txt:
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
-    .then(d => allWords = parseWords(d, 37000)) // Строка 37000 и далее не попадут в игру
+    .then(d => allWords = parseWords(d, 43000)) // Строка 43000 и далее не попадут в игру
     .catch(e => console.log("kaikkisanat.txt failed:", e));
 
 fetch('words/yleisetsanat.txt')

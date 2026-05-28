@@ -165,34 +165,42 @@ window.addEventListener('DOMContentLoaded', () => {
         if (ctx) {
             ctx.imageSmoothingEnabled = false;
 
-            // 1. РИСУЕМ ВОЛШЕБНИКА (Сдвигаем в самый левый край до упора)
+            // 1. РИСУЕМ ВОЛШЕБНИКА (Внизу справа, как основа композиции)
             ctx.font = '44px sans-serif';
-            ctx.textBaseline = 'middle';
-            ctx.textAlign = 'left';
-            ctx.fillText('🧙‍♂️', -8, 32); 
+            ctx.textBaseline = 'bottom'; // Привязка к низу
+            ctx.textAlign = 'right';
+            // Сажаем мага в правый нижний угол
+            ctx.fillText('🧙‍♂️', 68, 66); 
 
-            // 2. РИСУЕМ БУКВУ G ЧЁТКИМ РУБЛЕНЫМ ШРИФТОМ
-            // Замена на sans-serif делает внутренний просвет буквы широким, убирая кашу
+            // 2. НАСТРОЙКА МАГИЧЕСКОГО СВЕЧЕНИЯ ДЛЯ БУКВЫ S
+            ctx.shadowColor = '#00ffff'; // Бирюзовое/голубое магическое свечение (можно заменить на #f1c40f для золотого)
+            ctx.shadowBlur = 10;          // Радиус размытия свечения
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // 3. РИСУЕМ БУКВУ S (Крупная, в левом верхнем углу)
             ctx.font = '900 42px "Arial Black", "Impact", sans-serif'; 
-            ctx.textBaseline = 'middle';
-            ctx.textAlign = 'right'; 
+            ctx.textBaseline = 'top';    // Привязка к верху
+            ctx.textAlign = 'left';      // Привязка к левому краю
 
-            // Смещаем координату на 66, чтобы впечатать букву в правый край
-            const textX = 66; 
-            const textY = 32;
+            const textX = -2; // Прижимаем к левому краю
+            const textY = -2; // Прижимаем к верхнему краю
 
-            // 3. ПЛОТНЫЙ КОНТУР ДЛЯ ОТРЫВА ОТ ШЛЯПЫ МАГА
+            // Плотный темный контур (на него тоже ляжет свечение)
             ctx.strokeStyle = '#000000';
             ctx.lineJoin = 'round';
-            ctx.lineWidth = 7; 
-            ctx.strokeText('G', textX, textY);
+            ctx.lineWidth = 6; 
+            ctx.strokeText('S', textX, textY);
 
-            // 4. НАКЛАДЫВАЕМ СВЕРХУ ЗОЛОТОЙ ЦВЕТ
+            // Накладываем сверху золотой цвет
             ctx.fillStyle = '#e5c158'; 
-            ctx.fillText('G', textX, textY);
+            ctx.fillText('S', textX, textY);
+
+            // Сбрасываем тень, чтобы она не влияла на другие элементы в будущем
+            ctx.shadowBlur = 0;
         }
 
-        // 5. Записываем готовую картинку в тег фавиконки
+        // 4. Записываем готовую картинку в тег фавиконки
         const favicon = document.getElementById('favicon');
         if (favicon) {
             favicon.href = canvas.toDataURL('image/png');
