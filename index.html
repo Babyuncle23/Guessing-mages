@@ -32,23 +32,23 @@
 <div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
     
     <p style="margin-bottom: 12px; line-height: 1.5; font-size: 14px;">
-        Selittävät velhot on viihdyttävä sanaselityspeli, jossa taikuus muuttaa sääntöjä (loitsujen tarkemmat kuvaukset löytyvät pelin aikana). 
+        Selittävät velhot on sanaselityspeli, jossa taikuus muuttaa sääntöjä kesken pelin.
     </p>
 
     <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 15px;">
         <p style="margin: 0; font-size: 13.5px; line-height: 1.4;">
-            <strong>Peli kahden kesken:</strong> Vuorossa oleva pelaaja toimii selittäjänä. Selittäjä kuvailee sanan kierroksen satunnaisen ehdon mukaisesti, ja toinen yrittää arvata sen katsomatta sanaa nätöllä. Onnistuneesta arvauksesta selittäjä ansaitsee pisteen ja paina "Arvattu oikein". Vaikka olettekin ”vastustajia”, pelin idea on, että teette yhteistyötä ja yritätte todella arvata sanan.
+            <strong>Peli kahden kesken:</strong> Pelataan yhdellä puhelimella vuorotellen. Selittäjä kuvailee sanaa satunnaisen ehdon mukaan ja toinen arvaa. Oikeasta vastauksesta saa pisteen painamalla ”Arvattu oikein”. Peli perustuu yhteistyöhön.
         </p>
     </div>
 
     <p style="margin-bottom: 12px; font-size: 13.5px; line-height: 1.4;">
-        <strong>Milloin 0 pistettä?</strong>  Jos vuorossa oleva pelaaja rikkoo selityssääntöjä tai jos molemmat pelaajat eivät jaksa arvaamaan ja selittämään, selittäjän on painettava ”Luovuta vuoro” -painiketta.
+        <strong>Milloin 0 pistettä?</strong> Paina ”Luovuta vuoro”, jos sääntöjä rikotaan tai kumpikaan ei keksi selitystä tai arvausta.
     </p>
 
     <!-- MULTIPLAYER ACCORDION -->
     <div class="multiplayer-accordion">
         <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
-            👥 Onko teitä enemmän kuin kaksi? (3+ pelaajaa)
+            👥 Onko teitä 3 tai enemmän?
         </button>
         <div class="accordion-content">
             <p style="margin-bottom: 12px; color: var(--gold); font-weight: bold; font-size: 13px;">
@@ -56,23 +56,23 @@
             </p>
             
             <div class="player-count-option" style="margin-bottom: 12px;">
-                <span class="count-badge">3 pelaajaa (Pari vs Yksi)</span>
-                <p>Kaksi pelaajaa muodostaa pysyvän tiimin yhtä hahmoa kohden ja pelaa yhdessä kolmatta pelaajaa vastaan.</p>
+                <span class="count-badge">3 pelaajaa</span>
+                <p>Kaksi pelaajaa muodostaa tiimin ja pelaa yhdessä kolmatta vastaan.</p>
             </div>
 
             <div class="player-count-option">
-                <span class="count-badge">4+ pelaajaa (Kilpailu kahden joukkuen kesken)</span>
-                <p>Jakautukaa kahteen joukkueeseen (yksi per hahmo). Joukkue valitsee keskuudestaan vuorossa olevan selittäjän, ja vain tämä selittäjä saa katsoa sanat:</p>
+                <span class="count-badge">4+ pelaajaa</span>
+                <p>Jakaantukaa kahteen joukkueeseen. Vuorossa oleva selittäjä katsoo sanan yksin:</p>
                 <ul style="margin-left: 15px; margin-top: 5px; font-size: 12px; color: var(--text-muted); list-style: disc;">
-                    <li>Oma joukkue saa pisteen, jos he arvaavat selittäjän sanan oikein.</li>
-                    <li><strong>Vastustajat mukaan:</strong> Myös vastustajajoukkue saa yrittää arvata! Jos vastustajat sanovat oikean sanan ensin, oma tiimisi ei saa pisteitä tältä vuorolta.</li>
+                    <li>Oma joukkue saa pisteen arvaamalla sanan oikein.</li>
+                    <li><strong>Vastustajat mukaan:</strong> Myös vastustajat saavat arvata. Jos he ehtivät ensin, oma tiimi jää ilman pisteitä.</li>
                 </ul>
             </div>
         </div>
     </div>
 
-        <p style="margin-bottom: 15px; font-size: 13px; color: var(--text-muted); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-        ⚙️ <strong>Ennen peliä:</strong> Pelin pituutta sekä eri selitysehtojen todennäköisyyksiä voi muokata vapaasti <strong>Asetukset</strong>-välilehdessä juuri teidän porukallenne sopivaksi. Voitte myös sopia vapaasti omista kotisäännöistä. 
+    <p style="margin-bottom: 15px; font-size: 13px; color: var(--text-muted); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+        ⚙️ <strong>Asetukset:</strong> Pelin pituutta, sääntöjä ja kotisääntöjä voi muuttaa vapaasti <strong>Asetukset</strong>-välilehdellä.
     </p>
 </div>
 
