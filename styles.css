@@ -1583,3 +1583,45 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     transform: scale(0.99) !important; /* Чуть менее резкое сжатие */
 }
 
+#drawingCanvas {
+    cursor: crosshair;
+}
+#drawingCanvas:active {
+    border-color: var(--gold) !important;
+}
+
+/* Минималистичный круглый значок «i» без системных синих эмодзи */
+.theme-rules-badge-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto 0 auto !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    font-family: 'Comfortaa', sans-serif !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.4) !important; /* Приглушенный белый цвет текста */
+    cursor: pointer !important;
+    box-sizing: border-box;
+    /* Уникальное имя анимации, чтобы не ломать лоадер Noniin */
+    animation: blinkInfoRules 2s ease-in-out 2;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+/* При нажатии значок мягко подсвечивается золотом */
+.theme-rules-badge-btn:active {
+    background: rgba(229, 193, 88, 0.15) !important;
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+}
+
+/* Изолированная анимация мигания для старта раунда */
+@keyframes blinkInfoRules {
+    0% { border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.03); color: rgba(255, 255, 255, 0.4); transform: scale(1); }
+    50% { border-color: var(--gold); background: rgba(229, 193, 88, 0.25); color: var(--gold); transform: scale(1.08); }
+    100% { border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.03); color: rgba(255, 255, 255, 0.4); transform: scale(1); }
+}
