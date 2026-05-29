@@ -342,11 +342,41 @@ const forbiddenWords = [
 , "miljoonittain", "millainen", "milloin", "milloinka", "milloinkaan", "milloinkin", "millänsäkään", "millään", "milläänkään", "miltei", "mimmoinen"
 , "minne", "minnekin", "minnekä", "minnekään", "minnepäin", "minunlaiseni", "minuuteittain", "minä", "missä"
 , "missäkin", "missäpäin", "missään", "mistä", "mistäkin", "mistäpäin", "mistään", "misu", "miten", "mitenkin", "mitenkuten", "mitenkä", "mitenkään", "miten päin", "mittain", "mitä"
+, "moikaa"
+, "mongoli", "mongolidi", "mongolidinen", "mongolismi", "mongoloidi"
+, "monimielinen", "monimielisesti", "monimielisyys", "monioireinen", "moniongelmainen"
+, "monisynnyttäjä", "monivammainen", "monottaa", "monstrumi"
+, "morfiini", "morfinismi", "morfinisti"
+, "morkkis", "mortaliteetti", "muassa"
+, "muiluttaa", "muiluttaja", "muilutus", "muistinmenetys"
+, "muistokirjoitus", "muistolehto", "muistopuhe", "muistotilaisuus", "mukaa", "mukaan luettuna", "mukaan lukien", "mukkelis makkelis"
+, "mulatti", "mulkku", "mullin mallin", "multippeliskleroosi", "muna", "munanjohdin", "munarakkula", "munasarja", "munasarjasyöpä", "munasolu", "munata"
+, "munatorvi", "munuainen", "munuaisallas", "munuaisensiirto", "munuaiskeränen", "munuaiskivi", "munuaiskivitauti", "munuaiskoje", "munuaistauti", "munuaistulehdus", "muodosteilla"
+, "muotokuvanpaljastus", "muotokuvanpaljastustilaisuus"
+, "murha", "murhaaja", "murha-ase", "murhaava", "murhaavasti", "murhajuttu", "murhamies", "murhanhimo", "murhanhimoinen", "murhapaikka", "murhapolttaja", "murhapoltto", "murhata", "murhauttaa", "murhayritys", "murheissaan", "murhemielelle", "murhemielellä"
+, "murskaksi", "murskana"
+, "musiikkiopinnot", "mustalainen", "mustalaiselämä", "mustalaiskieli", "mustalaiskulttuuri", "mustalaisleiri", "mustalaismies", "mustalaismusiikki", "mustalaisnainen", "mustalaisorkesteri", "mustalaispriimas", "mustalaispuku"
+, "mustaleski", "mustamies", "mustankipeys", "mustankipeä", "mustasukkainen", "mustasukkaisesti", "mustasukkaisuus", "mustasukkaisuusharha", "mustenee", "mutakuono"
+, "mutrulla", "mutrullaan", "mutrulle", "mutrulleen", "mutrussa", "mutruun", "muualla", "muualle", "muualta", "muuanne", "muukalaispelko", "muukalaisviha", "muulloin", "muumiotauti", "muun muassa"
+, "muutoin", "mynkään", "myooma"
+, "myrkkystruuma", "myrkytyskuolema", "myrkytysmurha"
+, "myyräkuume", "myöhemmin", "myöhemmäksi", "myöhemmäs", "myöhempään", "myöhäiseen", "myöhäisintään", "myöhälle", "myöhällä", "myöhässä", "myöhään"
+, "myös", "myöskin", "myöskään", "myöten", "myötä", "myötäkarvaan", "myötäpäivään", "myötäsukaan", "myötäänsä", "mä"
+, "mälli", "männynversosyöpä", "mäntti", "mänttipää", "mäsis", "mäskäksi"
+, "mäskänä", "mätimuna", "mätämuna", "mätänemiskaasu", "mätänemisprosessi", "mätänemistila", "mätäpaise", "määrä-"
+, "möhömaha", "möhömahainen", "mömmö", "mönkään", "naamahermohalvaus"
+, "naara", "naaraspontti", "naatti", "nahkamuna", "nahkan-"
+, "nahkapää", "naida", "naikkonen", "naimisiin", "naimisissa", "nainti"
+, "naistentauti", "naistentautilääkäri", "naistentautiopillinen", "naistentautioppi", "naku", "nakupelle", "nakuranta", "nalkissa", "nalkkiin", "nakutyttö"
+, "namusetä", "nano-", "napatyrä"
+, "narkata", "narkkari", "narkkaus", "narkkis", "narkomaani", "narkomania", "narttu", "natsi", "natsilainen"
+, "natsismi", "natsitervehdys", "naturismi", "naturisti", "naurusuin"
+, "ne", "neekeri", "neekeriorja", "neekeriorjuus", "nekrologi", "nekroosi", "nekroottinen", "nekrotisoitua", "nekru", "neli-", "nelinkertaisesti"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 43000
+//seuraava alaken 46000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -381,7 +411,7 @@ const parseWords = (text, maxLines = Infinity) => {
 // При вызовах fetch передаем лимит для kaikkisanat.txt:
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
-    .then(d => allWords = parseWords(d, 43000)) // Строка 43000 и далее не попадут в игру
+    .then(d => allWords = parseWords(d, 46000)) // Строка 43000 и далее не попадут в игру
     .catch(e => console.log("kaikkisanat.txt failed:", e));
 
 fetch('words/yleisetsanat.txt')
