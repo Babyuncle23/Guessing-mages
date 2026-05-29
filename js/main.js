@@ -214,7 +214,26 @@ const initGameDisplay = () => {
     roundControls.style.display = "none";   // Прячем кнопки правильно/неправильно
     wordList.style.display = "none";        // Прячем список слов
     spellContainer.style.display = "none";  // Прячем магию
+
+    // Очищаем и скрываем блок темы при первом старте игры
+    if (document.getElementById("themeDisplay")) document.getElementById("themeDisplay").textContent = "";
+    if (document.getElementById("img")) document.getElementById("img").style.display = "none";
 };
 
 // Запустите её при старте
 initGameDisplay();
+
+const targetThemeBlock = document.getElementById('themeBlock');
+if (targetThemeBlock) {
+    targetThemeBlock.addEventListener('click', () => {
+        // Если на плашке горит золотая подсказка рисования — открываем холст
+        const hasDrawingHint = document.getElementById('themeDrawingHint');
+        if (!hasDrawingHint) return;
+
+        // Если раунд еще не начался или слова скрыты — клик игнорируется
+        if (!generatedWordsList || generatedWordsList.length === 0 || wordList.style.display === "none") return;
+        
+        if (typeof playClickSound === 'function') playClickSound();
+        if (typeof window.openDrawingModal === 'function') window.openDrawingModal();
+    });
+}

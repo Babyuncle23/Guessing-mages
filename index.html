@@ -178,111 +178,95 @@
                 
 <div style="display: flex; flex-direction: column; gap: 18px; text-align: left;">
     
-    <!-- Pantomiimi (Suositeltu oletus: 3) -->
+    <!-- Pantomiimi -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Pantomiimi</span>
+        <small class="theme-desc-container" data-theme="pantomiimi" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-pantomiimi" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-pantomiimi" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-pantomiimi" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">3</span>
         </div>
     </div>
 
-    <!-- Piirtäminen (Suositeltu oletus: 2) -->
+    <!-- Piirtäminen -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Piirtäminen</span>
+        <small class="theme-desc-container" data-theme="piirtäminen" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-piirtäminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen" style="flex-grow: 1; height: 6px;">
+            <input class="theme-weight-slider" id="theme-weight-piirtaminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-piirtäminen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
         </div>
     </div>
 
-    <!-- Espanja (Matalan kynnyksen suositus: 0 - Pois päältä) -->
+    <!-- Espanja -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Espanja</span>
-        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
-            Käännä sana suoraan espanjaksi, käytä espanjalaisia lauseita tai selitä käsite espanjan kielellä.
-        </small>
+        <small class="theme-desc-container" data-theme="espanja" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-espanja" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-espanja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
         </div>
     </div>
 
-    <!-- Ilman verbejä (Suositeltu oletus: 1) -->
+    <!-- Ilman verbejä -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman verbejä</span>
-        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
-            Tekemistä kuvaavat sanat on kielletty. Keskity kuvailemaan asioiden ulkonäköä, värejä, kokoa ja sijaintia.
-        </small>
+        <small class="theme-desc-container" data-theme="ilman verbejä" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-ilman-verbeja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
         </div>
     </div>
 
-    <!-- Ilman substantiiveja (Matalan kynnyksen suositus: 0 - Pois päältä) -->
+    <!-- Ilman substantiiveja -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman substantiiveja</span>
-        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
-            Esineiden ja asioiden nimet on kielletty. Keskity kuvailemaan pelkkää toimintaa – mitä asialla tehdään.
-        </small>
+        <small class="theme-desc-container" data-theme="ilman substantiiveja" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-ilman-substantiiveja" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-ilman-substantiiveja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
         </div>
     </div>
 
-    <!-- Vastakohdan kautta (Suositeltu oletus: 2) -->
+    <!-- Vastakohdan kautta -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Vastakohdan kautta</span>
+        <small class="theme-desc-container" data-theme="vastakohdan kautta" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-vastakohdan-kautta" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-vastakohdan-kautta" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
         </div>
     </div>
 
-    <!-- Elokuva (Suositeltu oletus: 2) -->
+    <!-- Elokuva -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Elokuva</span>
-        <small style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">
-            Sido sana johonkin elokuvaan, jonka arvaaja tietää.
-        </small>
+        <small class="theme-desc-container" data-theme="elokuva" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-elokuva" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
         </div>
     </div>
 
-     <!-- Kaksi ehtoa (Matalan kynnyksen suositus: 0 - Pois päältä) -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Kaksi ehtoa</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Kahden muun ehdon satunnainen yhdistelmä</small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-kaksi-ehtoa" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-kaksi-ehtoa" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-kaksi-ehtoa" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
-        </div>
-    </div>
-
-    <!-- Perusvaihtoehto (Suositeltu oletus: 4 - Korkein todennäköisyys) -->
+    <!-- Perusvaihtoehto -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Perusvaihtoehto</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Vastustaja valitsee arvattavan sanan numeron listalta</small>
+        <small class="theme-desc-container" data-theme="perusvaihtoehto" style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="4" data-value-id="themeWeightValue-perusvaihtoehto" style="flex-grow: 1; height: 6px;">
             <span id="themeWeightValue-perusvaihtoehto" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">4</span>
         </div>
     </div>
 
-    <!-- Vapaavalintainen (Suositeltu oletus: 1) -->
+    <!-- Vapaavalintainen -->
     <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
         <span style="font-weight: 700; color: #fff; font-size: 15px;">Vapaavalintainen</span>
-        <small style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;">Keksi sana kokonaan itse omassa mielessäsi</small>
+        <small class="theme-desc-container" data-theme="vapaavalintainen" style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
         <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-vapaavalintainen" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-vapaavalintainen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
+            <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen" style="flex-grow: 1; height: 6px;">
+            <span id="themeWeightValue-vapaavalintainen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
         </div>
     </div>
-
 </div>
             </div>
         </div> <!-- Закрываем settingsTab -->
@@ -399,6 +383,29 @@
     </div>
 </div>
 
+<!-- ПОЛНОЭКРАННЫЙ МОДУЛЬ ДЛЯ РИСОВАНИЯ (ОТКРЫВАЕТСЯ ПОВЕРХ ВСЕГО) -->
+<div id="drawingModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 12, 28, 0.98); z-index: 9999; flex-direction: column; padding: 15px; box-sizing: border-box; justify-content: space-between;">
+    
+    <!-- Заголовок с подсказкой -->
+    <div style="text-align: center; margin-bottom: 5px; flex-shrink: 0;">
+        <h3 style="color: var(--gold); margin: 0 0 4px 0; font-family: 'Cinzel', serif; font-size: 1.1rem;">🎨 PIIRTÄMISALUSTA</h3>
+        <small style="color: var(--text-muted); font-size: 12px; font-style: italic;">Ei paperia lähistöllä? Piirrä tähän!</small>
+    </div>
+
+    <!-- ИСПРАВЛЕНО: Холст теперь занимает строгие 65% высоты экрана и не выталкивает кнопки вниз -->
+    <canvas id="drawingModalCanvas" style="background: rgba(255, 255, 255, 0.06); border: 2px dashed var(--gold); border-radius: 16px; touch-action: none; width: 100%; height: 65vh; box-sizing: border-box; flex-shrink: 0;"></canvas>
+    
+    <!-- Кнопки управления внизу (Они теперь железно зафиксированы на экране) -->
+    <div style="display: flex; gap: 15px; width: 100%; justify-content: center; margin-top: 10px; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 10px);">
+        <button id="btnClearModalCanvas" type="button" style="background: rgba(255,255,255,0.1); border: 1px solid var(--soft-border); color: #fff; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; flex-grow: 1; max-width: 180px;">
+            🗑️ Tyhjennä
+        </button>
+        <button id="btnCloseModalCanvas" type="button" style="background: linear-gradient(135deg, #c0392b, #e74c3c); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; font-weight: bold; flex-grow: 1; max-width: 180px;">
+            ❌ Sulje piirros
+        </button>
+    </div>
+</div>
+
 <script src="js\utils.js"></script>
 <script src="js\audio.js"></script>
 <script src="js\themes.js"></script>
@@ -408,6 +415,7 @@
 <script src="js\players.js"></script>
 <script src="js\spells.js"></script>
 <script src="js\rounds.js"></script>
+<script src="js\drawing.js"></script> 
 <script src="js\main.js"></script>
 
 <script>

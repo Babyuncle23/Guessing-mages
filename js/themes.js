@@ -1,6 +1,6 @@
 //Pelin teemat, niiden kuvat ja niihin liittyvät uniikit äänitiedostot.
 const themes = [
-    "pantomiimi", "piirtäminen", "espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "kaksi ehtoa", "elokuva", "perusvaihtoehto", "vapaavalintainen"
+    "pantomiimi", "piirtäminen", "espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "elokuva", "perusvaihtoehto", "vapaavalintainen"
 ];
 
 const themeWeights = {
@@ -10,7 +10,6 @@ const themeWeights = {
     "ilman verbejä": 1,
     "ilman substantiiveja": 1,
     "vastakohdan kautta": 1,
-    "kaksi ehtoa": 1,
     "elokuva": 1,
     "perusvaihtoehto": 1,
     "vapaavalintainen": 1
@@ -23,7 +22,6 @@ const themeImages = {
     "ilman verbejä": "🚫🔁",
     "ilman substantiiveja": "🚫📦",
     "vastakohdan kautta": "↔️",
-    "kaksi ehtoa": "2️⃣",
     "elokuva": "🎬",
     "perusvaihtoehto": "❓",
     "vapaavalintainen": "✳️"
@@ -36,7 +34,6 @@ const themeSounds = {
     "ilman verbejä": "",
     "ilman substantiiveja": "",
     "vastakohdan kautta": "",
-    "kaksi ehtoa": "sounds/Bruh_Sound_Effect.ogg",
     "elokuva": "sounds/Wilhelm_Scream_1.ogg",
     "perusvaihtoehto": "",
     "vapaavalintainen": ""
@@ -45,3 +42,14 @@ const themeSounds = {
 const NON_VERBAL_THEMES = ["pantomiimi", "piirtäminen"];
 const VERBAL_THEMES = ["espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "elokuva"];
 
+const themeDescriptions = {
+    "pantomiimi": "🎭 Pantomiimi: Sanojen puhuminen ja äänteiden päästäminen on täysin kielletty. Käytä vain kehon kieltä, ilmeitä ja eleitä kuvaillaksesi sanaa.",
+    "piirtäminen": "🖌️ Piirtäminen: Selitä sana piirtämällä se alustalle. Et saa puhua, kirjoittaa kirjaimia, numeroita tai käyttää eleitä.",
+    "espanja": "Käännä sana suoraan espanjaksi, käytä espanjalaisia lauseita tai selitä käsite espanjan kielellä.",
+    "ilman verbejä": "Tekemistä kuvaavat sanat on kielletty. Keskity kuvailemaan asioiden ulkonäköä, värejä, kokoa ja sijaintia.",
+    "ilman substantiiveja": "Esineiden ja asioiden nimet on kielletty. Keskity kuvailemaan pelkkää toimintaa – mitä asialla tehdään.",
+    "vastakohdan kautta": "↔️ Vastakohdan kautta: Sinun täytyy selittää sana kuvailemalla sen täydellistä vastakohtaa tai kieltämällä vastakohta.",
+    "elokuva": "Sido sana johonkin elokuvaan, jonka arvaaja tietää.",
+    "perusvaihtoehto": "Vastustaja valitsee arvattavan sanan numeron listalta listaa katsomatta. Sinun täytyy selittää suullisesti juuri se sana.",
+    "vapaavalintainen": "Keksi sana kokonaan itse omassa mielessäsi"
+};
