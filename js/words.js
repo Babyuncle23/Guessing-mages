@@ -372,6 +372,15 @@ const forbiddenWords = [
 , "narkata", "narkkari", "narkkaus", "narkkis", "narkomaani", "narkomania", "narttu", "natsi", "natsilainen"
 , "natsismi", "natsitervehdys", "naturismi", "naturisti", "naurusuin"
 , "ne", "neekeri", "neekeriorja", "neekeriorjuus", "nekrologi", "nekroosi", "nekroottinen", "nekrotisoitua", "nekru", "neli-", "nelinkertaisesti"
+,"känni"
+, "neitseellinen"
+, "neitseellisesti"
+, "neitseellisyys"
+, "neitsyt"
+, "neitsytkammio"
+, "neitsytmatka"
+, "neitsytpuhe"
+, "neitsyys"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
