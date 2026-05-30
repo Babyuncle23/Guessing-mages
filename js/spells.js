@@ -179,7 +179,7 @@ const renderSpellButtonsAfterWords = () => {
                 "Valitse yksi sana ja selitä se toiselle pelaajalle.";
 
             ruleInstruction.style.display = "block";
-            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat ovat vaihdettu — Puolitettu palkinto (+0.5p)</span>` + baseInstruction;
+            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat ovat vaihdettu — Puolitettu palkinto (+50p)</span>` + baseInstruction;
         };
         
     } else {
