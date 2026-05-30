@@ -122,7 +122,7 @@ const renderSpellButtonsAfterWords = () => {
             const vahvistus = confirm(
                 "VAROITUS:\n\n" +
                 "Oletko aktivoimassa Sanametamorfoosin?\n" +
-                "Jos onnistut selityksessä, saat tästä vuorosta vain +0.5 pistettä.\n\n" +
+                "Jos onnistut selityksessä, saat tästä vuorosta 50 pistettä 100 pisteen sijaan.\n\n" +
                 "Haluatko jatkaa?"
             );
 
