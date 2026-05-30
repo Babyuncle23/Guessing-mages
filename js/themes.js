@@ -39,9 +39,6 @@ const themeSounds = {
     "vapaavalintainen": ""
 };
 
-const NON_VERBAL_THEMES = ["pantomiimi", "piirtäminen"];
-const VERBAL_THEMES = ["espanja", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "elokuva"];
-
 const themeDescriptions = {
     "pantomiimi": "🎭 Pantomiimi: Sanojen puhuminen ja äänteiden päästäminen on täysin kielletty. Käytä vain kehon kieltä, ilmeitä ja eleitä kuvaillaksesi sanaa.",
     "piirtäminen": "🖌️ Piirtäminen: Selitä sana piirtämällä se alustalle. Et saa puhua, kirjoittaa kirjaimia, numeroita tai käyttää eleitä.",

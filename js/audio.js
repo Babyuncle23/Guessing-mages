@@ -10,8 +10,7 @@ const sounds = {
     morph: new Audio("sounds/universfield-horror-liquid-splash-352472.mp3"),
     curse: new Audio("sounds/yodguard-dark-spell-chant-3-533018.mp3"),
     success: new Audio("sounds/universfield-game-level-complete-143022.mp3"),
-    fail: new Audio("sounds/freesound_community-fart-83471.mp3"),
-    diceRollSound: new Audio("sounds/u_qpfzpydtro-dice-142528.mp3"),
+    fail: new Audio("sounds/soundshelfstudio-ui-loading-end-fail-522858.mp3"),
     gameWin: new Audio("sounds/puyopuyomegafan1234-winner-game-sound-404167.mp3")
 };
 

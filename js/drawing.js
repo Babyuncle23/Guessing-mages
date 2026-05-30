@@ -74,28 +74,50 @@
         };
     };
 
+    // === НАЧАЛО ИСПРАВЛЕННОГО БЛОКА РИСОВАНИЯ ===
     const startDrawing = (e) => {
         isDrawing = true;
         const coords = getCoords(e);
         lastX = coords.x;
         lastY = coords.y;
+
+        // Инициализируем начало пути без рисования лишних арков/кругов, 
+        // которые дробили линию на мобильных устройствах
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
     };
 
-    const draw = (e) => {
+
+ const draw = (e) => {
         if (!isDrawing) return;
         if (e.cancelable) e.preventDefault(); 
         
         const coords = getCoords(e);
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(coords.x, coords.y);
+        
+        // Вычисляем среднюю точку между предыдущей и текущей координатой
+        const midX = (lastX + coords.x) / 2;
+        const midY = (lastY + coords.y) / 2;
+        
+        // Рисуем идеальный сглаженный изгиб к средней точке
+        ctx.quadraticCurveTo(lastX, lastY, midX, midY);
         ctx.stroke();
         
+        // Начинаем новый под-путь из средней точки, чтобы линия не прерывалась
+        ctx.beginPath();
+        ctx.moveTo(midX, midY);
+        
+        // Сохраняем текущие координаты как базовые для следующего шага движения
         lastX = coords.x;
         lastY = coords.y;
     };
 
-    const stopDrawing = () => { isDrawing = false; };
+
+    const stopDrawing = () => { 
+        if (isDrawing) {
+            ctx.closePath(); // Корректно завершаем векторный путь в памяти
+            isDrawing = false; 
+        }
+    };
 
     window.openDrawingModal = () => {
         overlay = document.getElementById('drawingModalOverlay');

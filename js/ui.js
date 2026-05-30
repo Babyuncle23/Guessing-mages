@@ -24,7 +24,7 @@ const closeSpellHelpModal = document.getElementById("closeSpellHelpModal");
 
 const spellDescriptions = {
     Korttitulva: "🐺 Korttitulva: Laajentaa sanalistaasi kahdella lisäsanalla. Antaa enemmän valinnanvaraa, jos selityksen ehto tuntuu vaikealta.",
-    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin. Rajoitus: Tästä kierroksesta voi ansaitset 50 pistettä 100 pisteen sijaan.",
+    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin. Rajoitus: Tästä kierroksesta ansaitset 50 pistettä 100 pisteen sijaan.",
     Korttinälkä: "📉 Korttinälkä: Iskee vastustajan seuraavaan vuoroon. Kutistaa hänen sanalistansa kahdella sanalla, mikä vähentää hänen valinnanvaraansa.",
     Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa osan hänen sanoistaan todennäköisesti oudoimilla sanoilla, joita on vaikeampi selittää.",
     Kasvupurkaus: "🌱 Kasvupurkaus: Jos vastustaja arvaa sanasi oikein, saat heti perään ylimääräisen bonusvuoron! Bonusvuoron onnistumisesta saa 50 pistettä."
@@ -116,28 +116,46 @@ const updateTurnDisplay = () => {
     if (activeModifiers.extendToEight) {
         debuffContainer.innerHTML += `<div class="debuff-badge buff" title="Korttitulva aktiivisena">🌟</div>`;
     }
+
+    // Вызываем функцию обновления текста, так как она теперь объявлена снаружи
+    updateGuessedButtonsText();
+}; // <-- ЗДЕСЬ функция updateTurnDisplay успешно закрылась
+
+// ОТДЕЛЬНАЯ САМОСТОЯТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ ОЧКОВ НА КНОПКАХ
+const updateGuessedButtonsText = () => {
+    const mainGuessedBtn = document.getElementById('btnGuessed');
+    const modalGuessedBtn = document.getElementById('btnModalGuessed');
+    
+    // Проверяем, урезана ли награда из-за магии или доп. хода
+    const isHalfScore = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn) || 
+                        (typeof isExtraTurnRound !== 'undefined' && isExtraTurnRound);
+    
+    const targetText = isHalfScore ? "Arvattu oikein (+50p)" : "Arvattu oikein (+100p)";
+    
+    if (mainGuessedBtn) mainGuessedBtn.textContent = targetText;
+    if (modalGuessedBtn) modalGuessedBtn.textContent = targetText;
 };
 
 const renderOlList = () => {
     wordList.style.display = "block";
     wordList.innerHTML = generatedWordsList.map((w, index) => {
-        // Слово получает бонус, только если его текст совпадает с выбранным в switchToWords
         let isRare = false;
         if (typeof currentBonusWordText !== 'undefined' && currentBonusWordText !== "" && w === currentBonusWordText) {
             isRare = true;
         }
 
-        // Защита Метаморфозы: если она использована, принудительно гасим плашку
         if (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn === true) {
             isRare = false;
         }
 
-        // Генерируем золотой бейдж только для подтвержденного слова
         const bonusTag = isRare ? `<span class="gold-bonus-badge">+25p</span>` : '';
-
-        // Передаем data-rare как строку "true" или "false" для endRound
         return `<li data-index="${index}" data-rare="${isRare}"><strong>${index + 1}.</strong> ${w} ${bonusTag}</li>`;
     }).join('');
+
+    // ВОТ ЭТУ СТРОЧКУ ДОБАВЬТЕ СЮДА:
+    if (typeof updateGuessedButtonsText === 'function') {
+        updateGuessedButtonsText();
+    }
 };
 
 const clearWordsBeforeTurn = () => {

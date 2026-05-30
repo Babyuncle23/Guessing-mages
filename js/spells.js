@@ -119,20 +119,11 @@ const renderSpellButtonsAfterWords = () => {
         spellBtn1.disabled = false;
         
         spellBtn1.onclick = () => {
-            const vahvistus = confirm(
-                "VAROITUS:\n\n" +
-                "Oletko aktivoimassa Sanametamorfoosin?\n" +
-                "Jos onnistut selityksessä, saat tästä vuorosta 50 pistettä 100 pisteen sijaan.\n\n" +
-                "Haluatko jatkaa?"
-            );
-
-            if (!vahvistus) return;
 
             triggerSpellAnimation('curse');
 
             const cleanLetters = new Set();
             
-            // ИСПРАВЛЕНО: Фильтруем слова, исключая уже использованные в этой игре
             let commonCopy = commonWords
                 .map(w => capitalize(w))
                 .filter(w => !usedWordsInThisGame.includes(w));
@@ -142,7 +133,7 @@ const renderSpellButtonsAfterWords = () => {
                 let subAttempts = 0;
                 while (commonCopy.length > 0 && subAttempts < 100) {
                     const randIdx = Math.floor(Math.random() * commonCopy.length);
-                    const w = commonCopy[randIdx]; // Уже с большой буквы благодаря .map()
+                    const w = commonCopy[randIdx]; 
                     if (!cleanLetters.has(w.charAt(0).toLowerCase())) {
                         foundWord = w;
                         cleanLetters.add(w.charAt(0).toLowerCase());
@@ -160,7 +151,6 @@ const renderSpellButtonsAfterWords = () => {
                 return foundWord !== "" ? foundWord : "Taikasana";
             });
 
-            // ИСПРАВЛЕНО: Записываем новые трансформированные слова в глобальную историю игры
             generatedWordsList.forEach(w => {
                 if (w !== "Taikasana" && !usedWordsInThisGame.includes(w)) {
                     usedWordsInThisGame.push(w);
@@ -180,7 +170,10 @@ const renderSpellButtonsAfterWords = () => {
 
             ruleInstruction.style.display = "block";
             ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat ovat vaihdettu — Puolitettu palkinto (+50p)</span>` + baseInstruction;
-        };
+
+            // ВОТ ЭТА СТРОЧКА ДОБАВЛЕНА: она мгновенно переключит текст зеленой кнопки на (+50p)
+            if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
+        }; // <-- Конец обработчика клика по кнопке заклинания
         
     } else {
         spellContainer.style.display = "none";

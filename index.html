@@ -135,102 +135,307 @@
                 </select>
             </div>
 
-            <!-- MUKAUTUSVALINNAT -->
-                        <div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
-                <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Ehtojen valinta ja painotus</p>
-                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Määritä kunkin ehdon todennäköisyys. Jos ehdolle asetetaan arvoksi ”0”, se suljetaan pois satunnaisvalinnasta.</p>
-                
-<div style="display: flex; flex-direction: column; gap: 18px; text-align: left;">
+ <!-- MUKAUTUSVALINNAT -->
+<div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
+    <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Ehtojen valinta ja painotus</p>
+    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Määritä kunkin ehdon todennäköisyys. Voit kytkeä ehdon kokonaan pois päältä valintaruudusta.</p>
     
-    <!-- Pantomiimi -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Pantomiimi</span>
-        <small class="theme-desc-container" data-theme="pantomiimi" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-pantomiimi" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-pantomiimi" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-pantomiimi" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">3</span>
-        </div>
-    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+        
+<style>
+    /* Главный контейнер строки темы — теперь это вертикальный флекс-бокс */
+    .setting-row-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important; /* Отступ между первым этажом и слайдером */
+        padding: 14px 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
 
-    <!-- Piirtäminen -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Piirtäminen</span>
-        <small class="theme-desc-container" data-theme="piirtäminen" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-piirtaminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-piirtäminen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
-        </div>
-    </div>
+    /* ВЕРХНИЙ ЭТАЖ: Строка, которая распределяет элементы по краям */
+    .setting-row-header { 
+        display: flex !important; 
+        flex-direction: row !important;
+        align-items: center !important; 
+        justify-content: space-between !important; 
+        width: 100% !important; 
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Блок чекбокса и названия (прижат влево) */
+    .setting-title-block { 
+        display: flex !important; 
+        flex-direction: row !important;
+        align-items: center !important; 
+        gap: 12px !important; 
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Чекбокс */
+    .theme-toggle-checkbox { 
+        width: 18px !important; 
+        height: 18px !important; 
+        min-width: 18px !important;
+        max-width: 18px !important;
+        cursor: pointer !important; 
+        accent-color: var(--gold) !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
+    }
+    
+    /* Название темы */
+    .theme-label-text { 
+        font-weight: 700 !important; 
+        color: #fff !important; 
+        font-size: 15px !important; 
+        cursor: pointer !important;
+        line-height: 1.3 !important; /* Чуть увеличили для красивого переноса строк */
+        margin: 0 !important;
+        padding: 0 !important;
+        
+        /* ИСПРАВЛЕНИЕ: разрешаем тексту переноситься, если экран слишком узкий */
+        white-space: normal !important; 
+        word-break: break-word !important; 
+        flex-grow: 1 !important; /* Текст заберет все свободное место слева */
+    }
 
-    <!-- Espanja -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Espanja</span>
-        <small class="theme-desc-container" data-theme="espanja" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-espanja" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-espanja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
-        </div>
-    </div>
+    /* Блок справки и цифры (прижат вправо на одной линии) */
+    .right-controls-group {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 12px !important; 
+        margin: 0 0 0 10px !important; /* Минимальный отступ слева, чтобы текст не прилипал к кнопкам */
+        padding: 0 !important;
+        
+        /* ИСПРАВЛЕНИЕ: этот блок монолитен, его нельзя сжимать или выдавливать за экран */
+        flex-shrink: 0 !important; 
+    }
+    
+    /* Круглая кнопка знака вопроса */
+    .theme-setting-help { 
+        display: flex !important; 
+        align-items: center !important; 
+        justify-content: center !important; 
+        width: 26px !important; 
+        height: 26px !important; 
+        min-width: 26px !important; 
+        max-width: 26px !important;
+        border-radius: 50% !important; 
+        border: 1px solid rgba(255,255,255,0.18) !important; 
+        background: rgba(255,255,255,0.04) !important; 
+        color: var(--text-muted) !important; 
+        font-size: 12px !important; 
+        font-weight: bold !important; 
+        cursor: pointer !important; 
+        user-select: none !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .theme-setting-help:hover { 
+        color: var(--gold) !important; 
+        border-color: var(--gold) !important; 
+        background: rgba(229, 193, 88, 0.08) !important;
+    }
 
-    <!-- Ilman verbejä -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman verbejä</span>
-        <small class="theme-desc-container" data-theme="ilman verbejä" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-ilman-verbeja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
-        </div>
-    </div>
+    /* Цифра веса */
+    .theme-weight-counter {
+        min-width: 14px !important; 
+        text-align: right !important; 
+        font-weight: bold !important; 
+        color: var(--gold) !important; 
+        font-size: 15px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* НИЖНИЙ ЭТАЖ: Контейнер слайдера занимает всю ширину под текстом */
+    .slider-control-wrapper { 
+        display: flex !important; 
+        width: 100% !important; 
+        transition: opacity 0.2s ease !important; 
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Ползунок растягивается на 100% ширины */
+    .theme-weight-slider {
+        width: 100% !important;
+        height: 6px !important;
+        margin: 0 !important; 
+        padding: 0 !important;
+        cursor: pointer !important;
+        display: block !important;
+    }
 
-    <!-- Ilman substantiiveja -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Ilman substantiiveja</span>
-        <small class="theme-desc-container" data-theme="ilman substantiiveja" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-ilman-substantiiveja" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-ilman-substantiiveja" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">0</span>
+    /* Если тема отключена, плавно приглушаем слайдер и цифру */
+    .slider-control-wrapper.disabled .theme-weight-slider { opacity: 0.12 !important; pointer-events: none !important; }
+    .slider-control-wrapper.disabled + .right-controls-group .theme-weight-counter,
+    .slider-control-wrapper.disabled .theme-weight-counter { opacity: 0.25 !important; }
+</style>
+        <!-- Pantomiimi -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <!-- 1 этаж -->
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-pantomiimi" class="theme-toggle-checkbox" checked data-theme-id="pantomiimi" data-default="3">
+                    <label for="toggle-pantomiimi" class="theme-label-text">Pantomiimi</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="pantomiimi">?</div>
+                    <span id="themeWeightValue-pantomiimi" class="theme-weight-counter">3</span>
+                </div>
+            </div>
+            <!-- 2 этаж -->
+            <div class="slider-control-wrapper" id="wrapper-pantomiimi">
+                <input class="theme-weight-slider" id="theme-weight-pantomiimi" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-pantomiimi">
+            </div>
         </div>
-    </div>
 
-    <!-- Vastakohdan kautta -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Vastakohdan kautta</span>
-        <small class="theme-desc-container" data-theme="vastakohdan kautta" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-vastakohdan-kautta" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-vastakohdan-kautta" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">2</span>
+        <!-- Piirtäminen -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-piirtaminen" class="theme-toggle-checkbox" checked data-theme-id="piirtaminen" data-default="2">
+                    <label for="toggle-piirtaminen" class="theme-label-text">Piirtäminen</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="piirtäminen">?</div>
+                    <span id="themeWeightValue-piirtäminen" class="theme-weight-counter">2</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-piirtaminen">
+                <input class="theme-weight-slider" id="theme-weight-piirtaminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen">
+            </div>
         </div>
-    </div>
 
-    <!-- Elokuva -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Elokuva</span>
-        <small class="theme-desc-container" data-theme="elokuva" style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-elokuva" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+        <!-- Espanja -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-espanja" class="theme-toggle-checkbox" data-theme-id="espanja" data-default="1">
+                    <label for="toggle-espanja" class="theme-label-text">Espanja</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="espanja">?</div>
+                    <span id="themeWeightValue-espanja" class="theme-weight-counter">0</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper disabled" id="wrapper-espanja">
+                <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-espanja">
+            </div>
         </div>
-    </div>
 
-    <!-- Perusvaihtoehto -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Perusvaihtoehto</span>
-        <small class="theme-desc-container" data-theme="perusvaihtoehto" style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="4" data-value-id="themeWeightValue-perusvaihtoehto" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-perusvaihtoehto" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">4</span>
+        <!-- Ilman verbejä -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-ilman-verbeja" class="theme-toggle-checkbox" checked data-theme-id="ilman-verbeja" data-default="1">
+                    <label for="toggle-ilman-verbeja" class="theme-label-text">Ilman verbejä</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="ilman verbejä">?</div>
+                    <span id="themeWeightValue-ilman-verbeja" class="theme-weight-counter">1</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-ilman-verbeja">
+                <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja">
+            </div>
         </div>
-    </div>
 
-    <!-- Vapaavalintainen -->
-    <div style="display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
-        <span style="font-weight: 700; color: #fff; font-size: 15px;">Vapaavalintainen</span>
-        <small class="theme-desc-container" data-theme="vapaavalintainen" style="font-size: 12px; color: var(--text-muted); margin-bottom: 2px; line-height: 1.3;"></small>
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen" style="flex-grow: 1; height: 6px;">
-            <span id="themeWeightValue-vapaavalintainen" style="min-width: 20px; text-align: right; font-weight: bold; color: var(--gold); font-size: 15px;">1</span>
+        <!-- Ilman substantiiveja -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-ilman-substantiiveja" class="theme-toggle-checkbox" data-theme-id="ilman-substantiiveja" data-default="1">
+                    <label for="toggle-ilman-substantiiveja" class="theme-label-text">Ilman substantiiveja</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="ilman substantiiveja">?</div>
+                    <span id="themeWeightValue-ilman-substantiiveja" class="theme-weight-counter">0</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper disabled" id="wrapper-ilman-substantiiveja">
+                <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-ilman-substantiiveja">
+            </div>
         </div>
-    </div>
+
+        <!-- Vastakohdan kautta -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-vastakohdan-kautta" class="theme-toggle-checkbox" checked data-theme-id="vastakohdan-kautta" data-default="2">
+                    <label for="toggle-vastakohdan-kautta" class="theme-label-text">Vastakohdan kautta</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="vastakohdan kautta">?</div>
+                    <span id="themeWeightValue-vastakohdan-kautta" class="theme-weight-counter">2</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-vastakohdan-kautta">
+                <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-vastakohdan-kautta">
+            </div>
+        </div>
+
+        <!-- Elokuva -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-elokuva" class="theme-toggle-checkbox" checked data-theme-id="elokuva" data-default="1">
+                    <label for="toggle-elokuva" class="theme-label-text">Elokuva</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="elokuva">?</div>
+                    <span id="themeWeightValue-elokuva" class="theme-weight-counter">1</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-elokuva">
+                <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva">
+            </div>
+        </div>
+
+        <!-- Perusvaihtoehto -->
+        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-perusvaihtoehto" class="theme-toggle-checkbox" checked data-theme-id="perusvaihtoehto" data-default="4">
+                    <label for="toggle-perusvaihtoehto" class="theme-label-text">Perusvaihtoehto</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="perusvaihtoehto">?</div>
+                    <span id="themeWeightValue-perusvaihtoehto" class="theme-weight-counter">4</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-perusvaihtoehto">
+                <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="4" data-value-id="themeWeightValue-perusvaihtoehto">
+            </div>
+        </div>
+
+        <!-- Vapaavalintainen -->
+        <div class="setting-row-container" style="border-bottom: none; padding-bottom: 0;">
+            <div class="setting-row-header">
+                <div class="setting-title-block">
+                    <input type="checkbox" id="toggle-vapaavalintainen" class="theme-toggle-checkbox" checked data-theme-id="vapaavalintainen" data-default="1">
+                    <label for="toggle-vapaavalintainen" class="theme-label-text">Vapaavalintainen</label>
+                </div>
+                <div class="right-controls-group">
+                    <div class="theme-setting-help" data-theme-key="vapaavalintainen">?</div>
+                    <span id="themeWeightValue-vapaavalintainen" class="theme-weight-counter">1</span>
+                </div>
+            </div>
+            <div class="slider-control-wrapper" id="wrapper-vapaavalintainen">
+                <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen">
+            </div>
+        </div>
 </div>
             </div>
         </div> <!-- Закрываем settingsTab -->

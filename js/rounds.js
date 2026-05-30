@@ -27,49 +27,95 @@ const getThemeWeightsFromUI = () => {
     return weights;
 };
 
-const pickWeightedRandom = (pool) => {
-    if (!pool || pool.length === 0) return null;
-    return pool[Math.floor(Math.random() * pool.length)];
-};
-
-const getWeightedVerbalPool = (weights) => buildWeightedThemePool(weights, VERBAL_THEMES);
-
-const getRandomWeightedVerbalTheme = (weights, forbidden = []) => {
-    // Проверяем, есть ли что-то живое среди строго вербальных тем
-    const verbalPool = getWeightedVerbalPool(weights).filter(theme => !forbidden.includes(theme));
-    if (verbalPool.length > 0) return pickWeightedRandom(verbalPool);
-    
-    // АВАРИЙНЫЙ РЕЖИМ: Если вербальные темы отключены в 0, 
-    // ищем вообще любые темы, включенные пользователем (вес > 0)
-    const activeThemes = themes.filter(theme => (weights[theme] > 0) && !forbidden.includes(theme));
-    if (activeThemes.length > 0) {
-        return activeThemes[Math.floor(Math.random() * activeThemes.length)];
-    }
-    
-    // Если вообще все ползунки в игре скручены в 0
-    const fallback = VERBAL_THEMES.filter(theme => !forbidden.includes(theme));
-    return fallback[Math.floor(Math.random() * fallback.length)];
-};
-
 const initializeThemeWeightSliders = () => {
+    // 1. Инициализация ползунков и динамическое обновление цифр веса
     const sliders = document.querySelectorAll('.theme-weight-slider');
     sliders.forEach(slider => {
         const valueId = slider.dataset.valueId;
         const valueDisplay = document.getElementById(valueId);
         if (!valueDisplay) return;
+        
         valueDisplay.textContent = slider.value;
+        
         slider.addEventListener('input', () => {
             valueDisplay.textContent = slider.value;
+            
+            // Если игрок вручную увёл ползунок в 0 — выключаем тумблер. Если > 0 — включаем.
+            const rowWrapper = slider.closest('.slider-control-wrapper');
+            if (rowWrapper) {
+                const themeId = rowWrapper.id.replace('wrapper-', '');
+                const checkbox = document.getElementById(`toggle-${themeId}`);
+                if (checkbox) {
+                    if (parseInt(slider.value, 10) === 0) {
+                        checkbox.checked = false;
+                        rowWrapper.classList.add('disabled');
+                    } else {
+                        checkbox.checked = true;
+                        rowWrapper.classList.remove('disabled');
+                    }
+                }
+            }
         });
     });
 
-    // --- UUSI LOGIIKKA: Haetaan kuvaukset suoraan JS-objektista HTML-asetuksiin ---
-    const descContainers = document.querySelectorAll('.theme-desc-container');
-    descContainers.forEach(container => {
-        const themeKey = container.dataset.theme;
-        if (typeof themeDescriptions !== 'undefined' && themeDescriptions[themeKey]) {
-            container.textContent = themeDescriptions[themeKey];
-        }
+    // 2. Логика работы умных тумблеров (включение/выключение одним кликом)
+    const checkboxes = document.querySelectorAll('.theme-toggle-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            
+            const themeId = checkbox.dataset.themeId;
+            const defaultValue = parseInt(checkbox.dataset.default, 10);
+            
+            const slider = document.getElementById(`theme-weight-${themeId}`);
+            const wrapper = document.getElementById(`wrapper-${themeId}`);
+            
+            // Корректно сопоставляем ID текстового поля (защита для финской 'ä')
+            let displayThemeId = themeId;
+            if (themeId === 'piirtaminen') displayThemeId = 'piirtäminen';
+            const valueDisplay = document.getElementById(`themeWeightValue-${displayThemeId}`);
+
+            if (!slider || !wrapper) return;
+
+            if (checkbox.checked) {
+                // Возвращаем дефолтное значение из HTML, а если оно было 0 — ставим минимум (1)
+                const targetValue = defaultValue > 0 ? defaultValue : 1;
+                slider.value = targetValue;
+                if (valueDisplay) valueDisplay.textContent = targetValue;
+                wrapper.classList.remove('disabled');
+            } else {
+                // Сбрасываем в ноль и визуально приглушаем строку
+                slider.value = 0;
+                if (valueDisplay) valueDisplay.textContent = 0;
+                wrapper.classList.add('disabled');
+            }
+        });
+    });
+
+    // 3. Вызов справок условий "?" внутри вкладок настроек через игровое модальное окно
+    const helpButtons = document.querySelectorAll('.theme-setting-help');
+    helpButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof playClickSound === 'function') playClickSound();
+
+            const themeKey = btn.dataset.themeKey;
+            const modal = document.getElementById('spellHelpModal');
+            const modalBody = document.getElementById('spellHelpModalBody');
+
+            if (modal && modalBody && typeof themeDescriptions !== 'undefined' && themeDescriptions[themeKey]) {
+                modalBody.innerHTML = `
+                    <div class="spell-info-title" style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 12px; font-size: 1.1rem; text-align: center;">
+                        <strong>${themeKey.toUpperCase()}</strong>
+                    </div>
+                    <p style="line-height: 1.6; font-size: 14.5px; color: #fff; text-align: left; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin: 0;">
+                        ${themeDescriptions[themeKey]}
+                    </p>
+                `;
+                modal.style.display = "flex";
+                document.body.classList.add("spell-help-modal-open");
+            }
+        });
     });
 };
 
@@ -122,6 +168,7 @@ const randomizeTheme = () => {
     selectedWordIndex = -1;
     const p = gamePlayers[currentPlayerIndex];
     isMetamorphosisUsedThisTurn = false;
+    if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
 
 
     btn.disabled = true;
@@ -137,8 +184,6 @@ const randomizeTheme = () => {
     themeImage.style.display = "none";
     spellContainer.style.display = "none";
     currentActiveTheme = "";
-    activeCondition1 = "";
-    activeCondition2 = "";
 
     drumAnim.style.display = "block";
     playAudio(sounds.drum, 3);
@@ -344,22 +389,49 @@ const switchToWords = () => {
     isWordListHidden = false;
     renderSpellButtonsAfterWords();
 
-    // === ИСПРАВЛЕННЫЙ БЛОК В КОНЦЕ switchToWords ===
+    // ВЫВОД КОМПАКТНЫХ ПОДСКАЗОК ДЛЯ ИГРОКОВ
+if (ruleInstruction) {
+        ruleInstruction.style.display = "block";
+        ruleInstruction.style.marginTop = "10px";
+        ruleInstruction.style.marginBottom = "10px";
+
+        // 1. TARKISTETAAN ENSIN ONKO KYSEESSÄ YRTTITARHURIN BONUSVUORO
+        if (typeof isExtraTurnRound !== 'undefined' && isExtraTurnRound) {
+            ruleInstruction.innerHTML = `
+                <div style="color: #e74c3c; font-weight: bold; text-align: center; margin-bottom: 10px; font-size: 13.5px; line-height: 1.4;">
+                    🌱 BONUSVUORO: Kasvupurkaus aktiivinen — Puolitettu palkinto (+50p)
+                </div>
+                <div style="font-size: 13px; color: #fff; font-weight: bold; text-align: center; line-height: 1.4;">
+                    ☝️ Selittäjä: Valitse <span style="color: var(--gold);">yksi mikä tahansa</span> sana listalta ja kuvaile se!<br>
+                    <span style="color: var(--text-muted); font-weight: normal; font-size: 11.5px;">Paina sanaa lukitaksesi sen ennen kuin aloitat.</span>
+                </div>`;
+        } 
+        // 2. JOS EI OLE BONUSVUORO, TOIMITAAN NORMAALISTI EHTOJEN MUKAAN
+        else if (currentActiveTheme === "perusvaihtoehto") {
+            ruleInstruction.innerHTML = `
+                <div style="font-size: 13px; color: var(--gold); font-weight: bold; text-align: center; line-height: 1.4;">
+                    👉 Arvaaja: Valitse numero 1–${generatedWordsList.length} listaa katsomatta!<br>
+                    <span style="color: var(--text-muted); font-weight: normal; font-size: 11.5px;">Selittäjä kuvailee vain tämän numeron sanan.</span>
+                </div>`;
+        } else {
+            ruleInstruction.innerHTML = `
+                <div style="font-size: 13px; color: #fff; font-weight: bold; text-align: center; line-height: 1.4;">
+                    ☝️ Selittäjä: Valitse <span style="color: var(--gold);">yksi mikä tahansa</span> sana listalta ja kuvaile se!<br>
+                    <span style="color: var(--text-muted); font-weight: normal; font-size: 11.5px;">Paina sanaa lukitaksesi sen ennen kuin aloitat.</span>
+                </div>`;
+        }
+    }
+
     const liveThemeBlock = document.getElementById('themeBlock');
     if (liveThemeBlock) {
-        // Чистим старые элементы, чтобы они не размножались при кликах
         const oldHint = document.getElementById('themeDrawingHint');
         if (oldHint) oldHint.remove();
 
-        // Проверяем, активна ли тема рисования
-        const isDrawingActive = currentActiveTheme.includes("piirtäminen") || 
-                                activeCondition1 === "piirtäminen" || 
-                                activeCondition2 === "piirtäminen";
+        const isDrawingActive = currentActiveTheme.includes("piirtäminen");
 
         if (isDrawingActive) {
             liveThemeBlock.style.cursor = "pointer";
 
-            // ВОЗВРАЩАЕМ ЗОЛОТУЮ НАДПИСЬ НА ЭКРАН (Текст правил сверху мы НЕ трогаем, чтобы не было дублирования)
             const hintSpan = document.createElement('small');
             hintSpan.id = "themeDrawingHint";
             hintSpan.style.cssText = "display:block; color: var(--gold); font-size:11px; margin-top:5px; font-weight: bold; animation: pulse 2s infinite;";
@@ -367,13 +439,13 @@ const switchToWords = () => {
             liveThemeBlock.appendChild(hintSpan);
         }
 
-        // Универсальная логика создания аккуратной круглой иконки «i»
         const existingBtn = document.getElementById('themeInfoHelpBtn');
         if (!existingBtn) {
             renderThemeRulesHelpButton();
         }
     }
 }; 
+// === КОНЕЦ ОБНОВЛЕННОГО ФИНАЛА switchToWords ===
 
 const toggleWordVisibility = () => {
     if (wordList.children.length === 0) {
@@ -528,4 +600,3 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     isMetamorphosisUsedThisTurn = false;
     document.getElementById("gameContainer").classList.remove("words-active");
 };
-

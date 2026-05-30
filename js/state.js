@@ -9,8 +9,6 @@ let pendingCurses = {
 };
 let generatedWordsList = [];
 let currentActiveTheme = "";
-let activeCondition1 = "";
-let activeCondition2 = "";
 let isWordListHidden = true;
 let isMetamorphosisUsedThisTurn = false; 
 let isExtraTurnRound = false;

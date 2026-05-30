@@ -381,11 +381,45 @@ const forbiddenWords = [
 , "neitsytmatka"
 , "neitsytpuhe"
 , "neitsyys"
+, "aunus"
+, "au pair -tyttö"
+, "neliraajahalvaus", "nelson"
+, "nestehukka", "nestor"
+, "neuralgia", "neuralginen", "neurasteenikko", "neurasteeninen", "neurastenia", "neuriitti", "neurokirurgi", "neurokirurgia", "neurolingvistiikka", "neurologi", "neurologia", "neurologinen", "neuroni", "neuroosi", "neurootikko", "neuroottinen", "neuroottistua", "neuroottisuus", "neurotisoitua", "neutronipommi"
+, "neuvotteilla", "neuvottelupäivät", "neuvotteluteitse", "neuvottelutietä", "nidoksittain", "nielemisvaikeus", "nielurisatulehdus", "nielutulehdus", "niin ikään", "niinku", "niin kuin", "niin kutsuttu", "niin päin", "niin sanottu", "niin sanotusti"
+, "nikkeliallergia", "nikkeliallergikko", "nikkelimyrkytys", "nikotiinimyrkytys", "nikotinisti", "nilelle", "nilellä", "nilkki"
+, "nimiäiset", "nipin napin", "nippa nappa", "nipuittain"
+, "nirpalla", "nirpallaan", "nirpassa", "nirri", "nisti", "niukin naukin"
+, "niveljäykistymä", "nivelkipu", "nivelreuma", "nivelrikko", "nivelsairaus", "nivelsärky", "niveltauti", "niveltulehdus", "nivuset", "nivustyrä", "nojaan", "nojalla", "nojallaan", "nojalleen", "nojassa", "noin päin", "nokakkain", "nokatusten", "nokikkain", "nokittain", "nokitusten"
+, "nokkosihottuma", "nokkoskuume", "nokkosrokko", "noloissaan"
+, "normaaliolot", "norsutauti"
+, "nudismi", "nudisti", "nudistileiri", "nudistiranta"
+, "nukuksiin", "nukuksissa"
+, "nuokuksiin", "nuokuksissa", "nuoremmakseen", "nuoremmuuttaan"
+, "nureissaan", "nurkilla", "nurkille"
+, "nussia", "nuuduksissa", "nykyiselleen", "nykyisellään", "nykyisin", "nykyjään", "nykyolot"
+, "nymfetti", "nymfomaani", "nymfomaaninen", "nymfomania", "nyreissään", "nyrpeissään", "nyttemmin"
+, "nähdäkseen", "nähtäviin", "nähtäville", "nähtävillä", "nähtävissä", "näkymättömiin", "näkymättömissä", "näkyviin", "näkyville", "näkyvillä", "näkyviltä", "näkyvissä", "näkyvistä"
+, "näköjään", "näkösälle", "näkösällä", "näkösältä", "nälissään", "nälkäkuolema", "nänni", "nänninpiha"
+, "närästää", "näytille", "näytillä", "näytteille", "näytteillä"
+, "näännyksiin", "näännyksissä", "obduktio", "ohari"
+, "oheen", "ohella", "ohessa", "ohesta", "ohitse", "ohitusleikkaus"
+, "ohrapirtelö", "ohutneulabiopsia", "ohutneulanäyte", "oidipuskompleksi"
+, "oidipaalinen"
+, "oikeaan", "oikealla", "oikealle", "oikealta", "oikeassa"
+, "oikeusteitse", "oikoisenaan", "oikopäätä", "oikoteitse"
+, "ojolla", "ojollaan", "ojolle", "ojolleen", "ojoon", "ojossa", "oksasakset"
+, "olakkain", "olevinaan", "oltavat"
+, "oluthumala"
+, "olutjuoppo"
+, "olutkapakka"
+, "omenalohko", "omenanlohko", "omenanviipale", "omenavarkaisiin", "omenavarkaissa", "omenavarkaista", "omenaviipale", "omia", "omiaan", "omiansa", "omillaan", "omilleen"
+, "onania", "onanoida"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 46000
+//seuraava alaken 49000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -423,7 +457,7 @@ let rareWordsSet = new Set();
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
     .then(d => {
-        allWords = parseWords(d, 46000);
+        allWords = parseWords(d, 49000);
         // Luodaan valmis indeksi isoilla kirjaimilla salamannopeaa hakua varten
         rareWordsSet = new Set(allWords.map(w => capitalize(w)));
     })
