@@ -415,11 +415,51 @@ const forbiddenWords = [
 , "olutkapakka"
 , "omenalohko", "omenanlohko", "omenanviipale", "omenavarkaisiin", "omenavarkaissa", "omenavarkaista", "omenaviipale", "omia", "omiaan", "omiansa", "omillaan", "omilleen"
 , "onania", "onanoida"
+, "onnellisuuspilleri", "onteloammus", "ontelosyylä", "onttolaskimo", "oopiumi", "oopiumihumala", "oopiumiluola", "oopiuminpolttaja", "oopiumipiippu", "oopiumiunikko"
+, "open house", "open house -kutsut", "Opetushallitus"
+, "opiaatti", "opillisesti", "oppineesti"
+, "optimistisesti", "optisesti", "oraakkelimaisesti", "ordoviikki", "ordoviikkikausi", "ordoviikkinen"
+, "orgaanisesti", "orgasmi", "orgastinen", "orgiat", "orientalisti", "orientalistiikka", "orientti", "orjallisesti", "orjamaisesti", "orkku"
+, "osaaottavasti", "osakseen", "osaksi", "osapäivätoimisesti", "osin"
+, "osittain", "oskarinkokoinen", "ossi", "osso buco", "ostari", "osteomalasia", "osteoporoosi", "ostjakki"
+, "osuvasti", "otaksuttavasti", "otollisesti", "oudokseltaan", "oudosti", "out", "output", "outsider", "ouzo", "ovaario", "ovariaalinen", "ovelasti"
+, "paatoksellisesti"
+, "paavalinkukka", "pahanilkisesti", "pahankurisesti", "pahanlaatuinen", "pahanlaatuistua", "pahanlaatuisuus", "pahanlaisesti", "pahanpäiväisesti", "pahansuovasti", "pahantuulisesti", "pahasti", "paheellisesti", "pahemmin", "pahimmillaan", "pahimmilleen", "pahimmin", "pahimmoiksi", "pahimmoillaan", "pahimmoilleen", "pahiten", "pahitteeksi", "pahkaa"
+, "pahki", "pahoillaan", "pahoilleen", "pahoin", "pahoinpidellä", "pahoinpitelijä", "pahoinpitely", "pahuksesti", "paikalla", "paikallaan", "paikalle", "paikalleen", "paikallisesti", "paikalta", "paikaltaan"
+, "paikkakunnittain", "paikka paikoin", "paikkeilla", "paikkeille", "paikkeilta", "paikoillaan", "paikoilleen", "paikoiltaan", "paikoin", "paikoitellen", "paikoittain", "painavasti"
+, "paineenalainen", "painokkaasti"
+, "painuksiin", "painuksissa", "painuksista", "paisuksiin", "paisuksissa", "paitahihasillaan", "paitahihasilleen", "paitasillaan", "paitasilleen", "paitis", "paitsi", "paituli"
+, "pakahduksiin", "pakahduksissa", "pakahduksissaan", "pakanasti", "pakeilla", "pakeillaan", "pakeille", "pakeilleen", "pakeilta", "pakeiltaan", "pakettipommi"
+, "pakkoavioliitto", "pakkohoito", "pakkolasku", "pakkoloma", "pakkolomauttaa", "pakkolomautus", "pakkomielle", "pakkoneuroosi", "pakkoneurootikko", "pakkoneuroottinen", "pakkopaita", "pakkoruokinta", "pakkoteitse", "pakkotyöleiri", "pakkotyövanki", "pakoon"
+, "pakosalla", "pakosalle", "pakostakin", "pakottomasti", "paksulti", "paksusti", "palavissaan", "palelluksissa", "palelluksissaan", "paleltumisvamma", "paljaaltaan"
+, "paljasjaloin", "paljolta", "paljolti", "paljon", "palkattomasti", "palkkamurhaaja", "palkkasoturi"
+, "palliatiivinen", "pallinaama", "pallosilla", "pallosille", "palohaava"
+, "paloittain", "palopommi", "palorakkula", "palovamma", "paloviina", "palpaatio", "palpoida", "palpointi", "palstoittain"
+, "palvelijanhuone", "palvelukseenastumismääräys", "palvontamenot", "pamahdella", "pamahdus", "pamahtaa", "pamaus", "pamautella", "pamauttaa", "pamppu", "pamputtaa", "pamputus", "panama", "panamahattu", "panamasidos"
+, "panetella", "panettaa", "panettelija", "panettelu", "paniikkihäiriö", "paniikkikohtaus", "pankkirosvo", "pankkiryöstäjä", "pankkiryöstö", "panna", "pannajulistus", "pano", "panos", "panostaa", "panostaja", "panostus", "panssari", "panssariammus", "panssariase", "panssariauto", "panssarijoukot", "panssarijuna", "panssarikauhu", "panssarikranaatti"
+, "panssarilaiva", "panssarilasi", "panssariliivi", "panssariluoti", "panssarimiina", "panssarintorjunta", "panssarintorjunta-ase", "panssarintorjuntajoukkue", "panssarintorjuntakomppania", "panssarintorjuntaohjus", "panssarintorjuntatykki", "panssariovi", "panssarivaunu", "panttivankeus", "panttivanki", "paossa", "Papa-koe", "Papa-näyte"
+, "paperisota", "papintappaja", "papillooma", "papilloomavirus", "parabellum"
+, "parahdus", "parahtaa", "parakki", "parakkikylä", "parannuksentekijä", "parannussaarna", "paranoia", "paranoidi", "paranoidinen", "paranooikko", "paranooinen", "parantumaton", "parantumattomasti", "parantumattomuus", "parasiitti", "par avion", "parfait"
+, "pariisinperunat", "pariisitar", "parintuho", "parisuhdeväkivalta", "paritella", "parittaa", "parittaja", "paritteluelin", "paritus", "parjaaja", "parjata", "parjaus", "parka", "parkaista", "parkaisu", "Parkinsonin tauti", "parkinsonismi", "parkkisakko"
+, "parku", "parkua", "parkuna", "parlamenttivaalit", "partaalla", "partaalle", "partajeesus", "partaterä", "partaveitsi", "partisaani"
+, "party", "parvorokko", "parvovirus", "pascal", "paska", "paskainen", "paskamainen", "paskantaa", "paskantärkeä", "paskapuhe", "paskapää", "paskiainen", "passepartout", "passipoliisi", "passittaa", "passitus"
+, "pataljoona", "pataluhaksi", "Patenttihallitus", "patogeeninen", "patologi", "patologia", "patologinen", "patteristi", "patteristo"
+, "paukahdella", "paukahdus", "paukahtaa", "paukapää", "paukaus", "paukautella", "paukauttaa", "pauke", "paukkaa", "paukku", "paukkua", "paukkupanos", "paukkupatruuna", "paukkupommi", "paukutella", "paukuttaa", "paukuttelu", "paukutus", "pederasti", "pederastia", "pederastinen", "pediatri", "pediatria", "pedofiili", "pedofiilinen", "pedofilia", "peeaa", "peeveli", "peevelinmoinen", "peevelisti", "peffa", "peffamäki"
+, "pehva", "peijakas", "peijakkaanmoinen", "peijakkaasti", "peijooni", "peitejärjestö", "peitossa", "peitosta", "peittä", "peitta-aine", "peittaustoiminta", "pekka"
+, "pelastusarmeijalainen", "pelihelvetti", "pelihimo", "peliluola", "pelinarkomaani", "peliongelmainen", "pelivelka"
+, "pellinnaru", "pellinnuora", "peltoetana"
+, "pemppu", "penetraatio", "penetroida", "penikka", "penikkatauti", "penis", "penisilliini", "penisilliinihoito", "penisilliinikuuri", "penisilliiniruiske", "peniskateus", "pennalismi"
+, "pentele", "penteleesti", "peppu", "per", "performaatio", "perhana", "perhananmoinen", "perhanasti", "perhehelvetti"
+, "perhetragedia", "perheväkivalta", "perhospihvi"
+, "perimyssota", "perivihollinen", "perjantaipullo", "perkele", "perkeleellinen", "perkeleenmoinen", "perkeleesti", "perkule"
+, "pernarutto", "pernisioosi", "pernisioosinen", "pernisiöösi", "persaukinen", "persaukset", "perse", "perseennuolija", "perskat", "perskänni", "persläpi", "persnetto", "persukset", "persuukset"
+, "perunantaimi", "perunarutto", "perunasyöpä"
+, "perussairaus", "perustauti", "perversio", "perversiteetti", "perverssi", "perverssiys", "pervo", "peräaukko"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 49000
+//seuraava alaken 53000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -457,7 +497,7 @@ let rareWordsSet = new Set();
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
     .then(d => {
-        allWords = parseWords(d, 49000);
+        allWords = parseWords(d, 53000);
         // Luodaan valmis indeksi isoilla kirjaimilla salamannopeaa hakua varten
         rareWordsSet = new Set(allWords.map(w => capitalize(w)));
     })
