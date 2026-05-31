@@ -455,11 +455,31 @@ const forbiddenWords = [
 , "pernarutto", "pernisioosi", "pernisioosinen", "pernisiöösi", "persaukinen", "persaukset", "perse", "perseennuolija", "perskat", "perskänni", "persläpi", "persnetto", "persukset", "persuukset"
 , "perunantaimi", "perunarutto", "perunasyöpä"
 , "perussairaus", "perustauti", "perversio", "perversiteetti", "perverssi", "perverssiys", "pervo", "peräaukko"
+, "peräisin", "perälle", "perällä", "perältä", "peräpuikko", "peräpukama", "peräpää", "peräruiske", "peräruisku", "perässä", "perässäpäin", "perästä", "perästäpäin", "peräsuoli", "peräsuolilämpö", "peräsuolipolyyppi", "peräsuolisyöpä", "perätila", "perätuuppari", "perään", "perääntymiskäsky", "perääntymistaistelu", "perääntymistie"
+, "pesimä-", "pessaari", "pesukinnas", "pesukonemaski", "pesämuna", "pesäkekovettumatauti"
+, "peta-", "petankaisti", "petikaveri", "petting", "peukaloruuvi", "pH", "pH-asteikko"
+, "pick-up", "picnic", "pidätetty", "pieksäntä", "pieksää", "pielikki"
+, "pieniä", "pieneläintunneli", "pienoiskivääri", "pienoispistooli", "pieraista", "piereksiä", "piereskellä", "pierettää", "pierrä", "pieru", "piestä", "pieti", "piffata"
+, "pihlajanmarjalikööri", "piihin", "piikittää", "piikitys", "piikkihuume", "piikkikorko", "piikkikorkoinen"
+, "piilokiveksisyys", "piilokives", "piiloseksi", "piilosilla", "piilotajuinen", "piilotajuisesti", "piilotajuisuus", "piilotajunta", "piina", "piinallinen", "piinallisesti", "piinallisuus", "piinapenkki", "piinata", "piinaviikko", "piipunperskat", "piipunperät"
+, "piirittäjä", "piirittää", "piiritys", "piiritysjoukot", "piiskaraha", "piiskaryyppy", "piiskata", "piiskaus", "piiskuri", "piissä", "pika-"
+, "pikaistuksissa", "pikaistuksissaan", "pikakalja", "pikakivääri", "pikapuoleen", "pikapuoliin", "pikapuolin", "pikasakko", "pikimmiltä", "pikimmiltään", "pikimmältä", "pikimmältään"
+, "pikkuhousut", "pikkuisen", "pikkulavantauti", "pikkulikka", "pikkupöksyt", "pikkurikollinen", "pikkurikollisuus", "pikkurikos", "pikkurokko", "pikkuryssä"
+, "pikkusikari", "pikkutakkisillaan", "pikkutarkasti", "pikkutuhma", "pikkuvanhasti", "pikkuviha", "pilaantua", "pilailla", "pilkahtaa", "pilkallaan", "pilkallisesti", "pilkata", "pilkistellä", "pilkistää", "pilkkiä", "pilkkoa"
+, "pilkkoutua", "pilkkukuume", "pilkoittaa", "pilkottaa", "pillastua", "pillerihumala", "pilleristi", "pillittäjä", "pillittää", "pillu", "piloillaan", "pilveillä", "pilvetä", "pilvistyä", "pimahtaa", "pimentyä", "pimentää", "pimetä", "pimeästi", "pimittää", "pimppi", "pimputtaa", "pimu"
+, "pingottaa", "pingottua", "pinkaista", "pinkoa", "pinkoittain", "pinnakkain", "pinnallisesti", "pinnallistaa", "pinnallistua", "pinnari", "pinnata", "pinnemmaksi", "pinnemmalla", "pinnemmalle", "pinnemmalta", "pinnemmassa", "pinnemmasta", "pinnempaa", "pinnempaan", "pinnempana", "pinnistellä", "pinnistyä", "pinnistää", "pinniä", "pinnoittaa", "pinota", "pintajengi", "pintakäsitellä"
+, "pintapuolisesti", "pintautua", "pinteeseen", "pinteessä", "pinteestä", "pinttyä", "pin-up-tyttö", "pipertää", "pipetoida", "pipi", "pippalot", "pippeli", "pippuroida", "pirahdella", "pirahtaa", "pirauttaa", "piripinnassa", "piripintaan", "piripintanaan", "piristyspilleri", "piristyä", "piristä", "piristäytyä", "piristää", "pirskahdella", "pirskahtaa", "pirskatti", "pirskauttaa", "pirskottaa"
+, "pirstaloitua", "pirstoa", "pirstoutua", "pirtu", "pirtukanisteri", "pirtupullo", "pirturesepti", "pirtutrokari", "piru", "piruilla", "pirulainen", "pirulauta", "pirullisesti", "pirunmoinen", "piruparka", "pirusti", "piruuksissaan", "piruuntua", "piruuttaan", "pisaroida", "pisi", "pisihätä", "pisiä", "piski", "pisoaari", "pissa", "pissahätä", "pissata", "pissattaa", "pissi", "pissittää", "pissiä", "pisteittää", "pisteliäästi", "pistellä"
+, "pisteyttää", "pistohaava", "pistouvata", "pistävä", "pistäytyä", "pistää", "pisu", "pitaali", "pitaalinen", "pitali", "pitalinen", "pitentyä", "pitentää", "pitkikset", "pitkistyä", "pitkittyä", "pitkittäin", "pitkittää", "pitkäaikaissairas", "pitkäjännitteisesti", "pitkäjänteisesti", "pitkäkseen", "pitkäkyntinen", "pitkälle"
+, "pitkälleen", "pitkällä", "pitkällään", "pitkämielisesti", "pitkänäköisyys", "pitkänään", "pitkäpiimäisesti", "pitkästi", "pitkästyttävästi", "pitkästyttää", "pitkästyä", "pitkäveteisesti", "pitkään"
+, "pitäen", "pitämä", "pitäytyä", "pitää", "piukasti", "piällysmies", "plaanata", "plagioida", "plankata", "plarata", "plaseerata", "plastiikkakirurgia", "plastisesti", "platinoida", "playback", "playboy", "playoff", "playoff-peli", "pliseerata"
+, "plombittaa", "plumpsahtaa", "plussata", "plörinä", "pneumaattisesti", "pneumonia", "pohdiskella", "pohjalaisittain", "pohjamaalata", "pohjanmaa", "pohjata"
+, "pohjattomasti", "pohjauttaa", "pohjautua", "pohjemmaksi", "pohjemmalla", "pohjemmalle", "pohjemmalta", "pohjempaa", "pohjempana", "pohjimmaksi", "pohjimmalla", "pohjimmalle", "pohjimmalta", "pohjimmaltaan", "pohjimmiltaan", "pohjimpaa", "pohjimpana", "pohjittaa", "pohjoisemmaksi", "pohjoisemmas", "pohjoisempaa", "pohjoisempana", "pohjoiskalotti", "Pohjois-Karjala", "Pohjois-Pohjanmaa", "Pohjois-Savo", "Pohjola", "pohjustaa", "pohtia", "poies", "poi'inta", "poi'ittaa", "poi'itus", "poijuttaa"
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 53000
+//seuraava alaken 55000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -497,7 +517,7 @@ let rareWordsSet = new Set();
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
     .then(d => {
-        allWords = parseWords(d, 53000);
+        allWords = parseWords(d, 55000);
         // Luodaan valmis indeksi isoilla kirjaimilla salamannopeaa hakua varten
         rareWordsSet = new Set(allWords.map(w => capitalize(w)));
     })
