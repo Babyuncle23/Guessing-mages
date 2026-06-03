@@ -564,11 +564,74 @@ const forbiddenWords = [
 , "ruoja", "ruokamyrkytys"
 , "ruorijuoppo", "ruorijuoppous", "ruoska", "ruoskanisku", "ruoskanjälki", "ruoskansivallus", "ruoskia", "ruotsalaisittain", "ruotsalaistaa", "ruotsintaa"
 , "rupeutua", "rupeutuma", "rupi", "rupikonna", "rupinen", "rupisammakko", "rusennus", "rusentaa", "rusentua", "rusikoida", "rusikointi", "ruskeakieli", "ruskeakielinen"
+, "rutiiniluonteisesti", "rutiinimaisesti", "rutto", "ruttoinen", "ruttotauti", "ruttotautinen", "ruttuun", "rutusakki", "rutussa", "ruuduittain", "ruumiillinen", "ruumiillisesti", "ruumiillistua", "ruumiillistuma", "ruumiillisuus", "ruumiinavaus", "ruumiinavauspöytäkirja", "ruumiinhaju", "ruumiinharjoitus", "ruumiinjäsen", "ruumiinkieli", "ruumiinkulttuuri", "ruumiinkuva", "ruumiinliikunta", "ruumiinlämpö", "ruumiinmukainen", "ruumiinmyötäinen", "ruumiinosa", "ruumiinpaino"
+, "ruumiinpesijä", "ruumiinpesu", "ruumiinpoltto", "ruumiinryöstäjä", "ruumiinryöstö", "ruumiinsiunaus", "ruumiintarkastus", "ruumiinvamma", "ruumiistapoistuminen", "ruumis", "ruumisarkku", "ruumisarkkuliike", "ruumisauto", "ruumishuone", "ruumiskellari", "ruumiskirstu", "ruumiskylmiö", "ruumismyrkky", "ruumissaatto", "ruumisvaatteet", "ruumisvaunut"
+, "ruvettua", "ryhmäase", "ryhmäseksi"
+, "rynkky", "rynnäkköhävittäjä", "rynnäkkökivääri", "rynnäkkökone", "rynnäkköpanssarivaunu", "rynnäkkötykki", "rynnäkkövaunu", "rypälepommi", "rypäleraskaus", "ryssä"
+, "rytmihäiriö", "ryypiskelijä", "ryypiskellä", "ryypiskely", "ryyppy", "ryyppykaveri", "ryyppykierre", "ryyppymies", "ryyppyreissu", "ryyppyseura", "ryyppyveikko", "ryyppäjäiset", "ryypyksiin", "ryypyksissä", "ryypytin", "ryypätä", "ryökäle", "ryöstömurha"
+, "rähinä", "rähinäremmi", "rähinöidä", "rähinöinti", "rähinöitsijä", "rähistä", "rähjä", "rähjäinen", "rähjätä", "räjähde", "räjähdellä", "räjähdys", "räjähdysaine", "räjähdysainelataus", "räjähdysonnettomuus", "räjähdyspanos", "räjähdysvaara", "räjähdysvaarallinen", "räjähtämispiste", "räjähtää", "räjäytin", "räjäyttää", "räjäytys", "räkäkänni", "räkälä", "räkänenä", "räkänenäinen", "räkänokka", "räkänokkainen"
+, "rällästää", "rällätä", "räplätä", "räpätäti"
+, "rättipää", "rääkki", "rääkkäys", "rääkkäytyä", "rääkkääjä", "rääkkääntyä", "rääkätä", "rääpiäiset", "rääppeet", "rääppiäiset", "rääpäle", "räävittömyys", "räävittömästi", "räävitön", "rääväsuinen", "rääväsuisesti", "rääväsuisuus", "rääväsuu"
+, "rökittää", "rökitys", "rökkiin", "rökkiinsä", "rötös", "rötösherra", "rötöstellä", "rötöstely", "rööki", "saakeli", "saakelinmoinen", "saakelisti", "saakuri", "saakuristi"
+, "saamari", "saamarinmoinen", "saamaristi", "saapasmaa", "saara", "saarrostushyökkäys", "saarrostustaistelu"
+, "saasta", "saastainen", "saastaisuus", "saastata", "saatana", "saatanallinen", "saatananmoinen", "saatananpalvoja", "saatananpalvonta", "saatanasti", "saattohoitaja", "saattohoito", "saattohuone", "saattokoti", "sabotaasi", "sabotaasiteko", "sabotaasitoiminta", "sabotoida", "sabotoija", "sabotointi", "sabotööri"
+, "sadismi", "sadisti", "sadistinen", "sadistisesti", "sadistisuus", "sadomasokismi", "sadomasokistinen", "saimaanhylje", "saimaannorppa"
+, "sairaala", "sairaala-apulainen", "sairaalafarmaseutti", "sairaalafyysikko", "sairaalahartaus", "sairaalahenkilökunta", "sairaalahenkilöstö", "sairaalahoito", "sairaalainfektio", "sairaalajäte", "sairaalakemisti", "sairaalalääkäri", "sairaalamaksu", "sairaalapaikka", "sairaalapappi", "sairaalapotilas", "sairaalapöpö", "sairaalarakennus", "sairaalaruoka", "sairaalasielunhoitaja", "sairaalasielunhoito", "sairaalateologi", "sairaalloinen", "sairaalloisesti", "sairaalloisuus", "sairaanhoidollinen", "sairaanhoitaja", "sairaanhoitajatar", "sairaanhoito", "sairaankuljetus", "sairaankuljetusauto", "sairaankuljetuslento", "sairaankuljetuslentokone", "sairaansija", "sairaanvoitelu", "sairaasti", "sairas", "sairasauto", "sairaseläke", "sairaskertomus", "sairaskohtaus", "sairaskäynti", "sairaslista", "sairasloma", "sairasosasto", "sairastaa", "sairastapaus", "sairastavuus", "sairastella", "sairastelu", "sairastua", "sairastuttaa", "sairastuvuus", "sairasvakuutus", "sairasvuode", "sairaus", "sairausaika", "sairauseläke", "sairauskertomus", "sairauskohtaus", "sairauskulut", "sairauskustannukset", "sairausloma", "sairauspoissaolo", "sairauspäivä", "sairauspäiväraha", "sairaustapaus", "sairaustila", "sairausvakuutus", "sairausvakuutuskortti", "sairausvakuutuskorvaus", "sairausvakuutusmaksu", "sairausvakuutustoimisto", "saju"
+, "sakemanni", "sakinhivutus", "šakki", "šakkikello", "šakkikerho", "šakkilauta", "šakkinappula", "šakkipeli", "šakkiruutuinen", "šakkitehtävä", "sakraalinen", "saksa", "saksalainen", "saksanhirvi", "saksan kieli", "saksankielinen"
+, "salahanke", "salaismenot", "salajuoni", "salajuoppo", "salajärjestö", "salakaato", "salakalastus", "salakatselu", "salakatsoja", "salakauppa", "salakihloihin", "salakihloissa", "salakuljettaa", "salakuljettaja", "salakuljetus", "salakuljetustavara", "salakuunnella", "salakuuntelija", "salakuuntelu", "salakyttä", "salaliitto", "salaliittolainen", "salamahyökkäys", "salamanisku", "salamasota", "salamatkustaja", "salametsästys", "salametsästäjä", "salamurha", "salamurhaaja", "salamenot", "salapolttaja", "salapolttimo", "salapoltto", "salassa", "salaseura"
+, "salavuoteus", "salmonella", "salmonellabakteeri", "salmonellaepidemia", "salmonelloosi", "samaanne"
+, "samanne"
+, "samettivallankumous", "samperi", "samperinmoinen", "samperisti"
+, "sanasokeus", "sanasota", "sanatorio", "sandinisti", "sanelupolitiikka", "sangria"
+, "sankarihauta", "sankarihautausmaa", "sankarikuolema", "sankarivainaja", "sankkeri", "sanktio", "sanktioida", "sanktiointi", "santarmi", "santarmiupseeri", "sapeli"
+, "sapelinkalistaja", "sapelinkalistelija", "sapelinkalistelu", "sappikivi", "sappikivikohtaus", "sappikivitauti", "sappirakko", "sappitie", "sapptiehyt", "sarjamurha", "sarjatuli", "sarkasmi"
+, "sarkofagi", "sarkooma", "sarveis-", "sarveiskalvo", "sarvimiina", "satakuntalainen", "satanismi", "satanisti", "satanistinen"
+, "satelliittivaltio", "satiainen", "satiiri", "satiirikko", "satotappio", "satovahinko", "satovahinkokorvaus", "satraappi", "satuttaa"
+, "satyyri", "saudi", "saunakalja", "sauvabakteeri", "savakko", "savakkomurteet"
+, "savipuoli", "savolainen", "savolaisittain", "savolaiskiila", "savolaismallinen", "savolaismurre", "savolaisuus", "savuammus", "savuke", "savukeaski", "savukekartonki", "savukekotelo", "savukepakkaus", "savukepaperi", "savukerasia", "savukkeenpolttaja", "savukkeenpätkä", "savukkeensytytin", "savukranaatti", "savumyrkytys", "savupommi"
+, "savuvahinko", "savuverho", "scherzo", "schäfer", "science fiction", "scifi", "scifi-elokuva", "scifi-romaani", "seborrea", "seborrooinen", "sedatiivi", "seemiläinen", "seerumi", "seerumihoito", "seerumiruiske", "seerumitauti", "seikkailupolitiikka", "šeikki", "seinemmäksi", "seinemmälle", "seinemmällä", "seinemmäs", "seinempänä"
+, "seinähullu", "seinälude", "seinätyksin", "seinätysten", "seireeni", "seis", "seisaalla", "seisaallaan", "seisaalle", "seisaalleen", "seisaalta", "seisaaltaan", "seisahduksissa", "seisauksiin", "seisauksissa", "seisoalla", "seisoallaan", "seisoalle"
+, "seisoalleen", "seisoalta", "seisoaltaan", "seisokki", "seisoksia", "seisomalta", "seisovilla", "seisovillaan", "seisoville", "seisovilleen", "seisovilta", "seisoviltaan", "seitsemisen", "seitsemisenkymmentä", "seivästys", "seivästää", "sekainfektio"
+, "sekakäyttäjä", "sekasikiö", "sekasorto", "sekasortoinen", "sekasortoisesti", "sekasortoisuus", "sekasotku", "sekavuustila", "sekkirikos", "sekoilija", "sekoilla", "sekoilu", "sekopäinen", "sekopää", "seksi", "seksiaddikti", "seksiaddiktio", "seksiasiat", "seksibaari", "seksibisnes", "seksielokuva", "seksielämä", "seksifilmi", "seksihurjastelija", "seksihurjastelu", "seksikauppa", "seksikielteinen", "seksikkyys", "seksikkäästi", "seksikokemus", "seksikumppani", "seksikäs"
+, "seksileffa", "seksilehti", "seksiobjekti", "seksiongelma", "seksipalvelu", "seksipartneri", "seksipitoinen", "seksipommi", "seksipuhelin", "seksiravintola", "seksismi", "seksisti", "seksistinen", "seksisymboli", "seksitauti", "seksiteollisuus", "seksiterapia", "seksiturismi", "seksituristi", "seksivalistus", "seksivideo", "seksiväline", "seksologi", "seksologia", "seksologinen", "seksuaalielämä", "seksuaalikasvatus", "seksuaalikielteinen", "seksuaalikäyttäytyminen", "seksuaalimurha", "seksuaalinen", "seksuaaliobjekti", "seksuaalipsykologia", "seksuaalirikos", "seksuaalisesti", "seksuaalistua", "seksuaalisuus", "seksuaaliterapia", "seksuaalivalistus", "seksuaalivietti", "seksualiteetti", "sektio"
+, "šelfi", "self-made man", "selibaatti", "selikkäin", "selin", "selinmakuu", "selittäin", "selitä", "selkis", "selkkaus", "selkoselälleen", "selkoselällään", "selkosen", "selkähäviö", "selkäin", "selkäkipu", "selkärankareuma", "selkäsairas", "selkäsairaus", "selkäsauna", "selkäsärky"
+, "selkävamma", "selkävammainen", "selkäydinpunktio", "selkäydinvamma", "selkäydinvammainen", "selstoffi", "selus", "selusta", "selustatuki", "selustayhteys", "selustin", "selville", "selvillä", "selvitystila", "selviämisasema", "selviämistila", "selväkielisesti"
+, "selvänäköisesti", "selväpiirteisesti", "selväsanaisesti", "selvästi", "selys", "seläke", "seläkkäin", "selälleen", "selällään", "selänne", "selänpää", "seläntakainen", "selätyksin", "selätysten", "semi", "semminkin", "semminkään", "sen", "senaikainen", "senaikuinen", "senhetkinen", "seniili", "seniiliys", "seniliteetti", "senior", "senkaltainen", "senkin", "senlaatuinen", "senluonteinen", "senniminen", "senpäiväinen", "sen sijaan", "sensitiivisesti", "senssipalsta", "senssipuhelin", "senssit", "sensuaalinen", "sensuaalisuus"
+, "sensuelli", "sensuroimaton", "sensuuri", "sen takia", "sentimentaalisesti", "sentraalisantra", "senttimetriaallot", "sen tähden", "sentään", "sen verran", "sen vuoksi", "sepalus", "separatismi", "separatisti", "separatistinen", "separatistisesti", "sepelvaltimotauti", "sepelvaltimotukos", "seppeleensitojaiset", "sepposen", "sepsis", "septinen", "serbi"
+, "serbialainen", "serbiamontenegrolainen", "serbokroaatti", "serbokroatian kieli", "seremoniallisesti", "sesonkiluonteisesti", "setelinväärennys", "setelinväärentäjä", "setämäisesti", "seuduilla", "seudulla", "seudullisesti", "seuraavasti"
+, "seurakuntapappi", "seuranhaluisesti", "seurapiiriskandaali"
+, "seutuvilla", "seutuville", "seutuvilta", "shop", "shopata", "shoppailla", "show", "sial", "sialma", "siamilainen", "sidekudoskasvain", "sidoksiin", "sidoksissa", "siedettävästi", "siekailematta", "siekailemattomasti", "siellä", "sielläpäin", "sieltä", "sieltäpäin", "sielukkaasti", "sielullisesti", "sielullis-ruumiillinen", "sielumessu"
+, "sielunmessu", "sielunvihollinen", "siemenjohdin", "siemenneste", "siemensolu", "siemensyöksy"
+, "sietämättömästi", "sievästi", "sightseeing", "sightseeingbussi", "sigmasuoli", "šiialainen", "šiialaisuus", "šiiamuslimi", "siideri", "siihen", "siihenastinen", "siinä"
+, "siirtokarjalainen", "siirtomaajoukot", "siirtomaasota", "siirtomaavalta", "siirtosuomalainen", "siis", "siististi"
+, "siitin", "siitoskyky", "siitoskykyinen", "siitoskyvytön", "siittiö", "siittiöpesäke", "siittää", "siitä", "siivolla", "siivosti", "siivottomasti", "sijaissynnyttäjä", "sijaissynnytys", "sijoilla", "sijoillaan", "sijoille", "sijoilleen", "sijoilta", "sijoiltaan"
+, "sijoiltaanmeno", "SI-järjestelmä", "sika-", "sikahumala", "sikailla", "sikailu", "sikainfluenssa", "sikamainen", "sikamaisesti", "sikamaisuus", "sika-nautajauheliha", "sikari", "sikarilaatikko", "sikarileikkuri", "sikarinpolttaja", "sikarinsavu", "sikariporras", "sikhi", "sikhiläisyys", "sikisi", "sikiää", "sikiökuolema", "sikiönlähdetys", "sikiövaurio", "sikkaraan", "sikkaralla", "sikkarallaan", "sikkaralle", "sikkaralleen", "sikkarassa", "sikkuraan", "sikkuralla", "sikkurallaan", "sikkuralle", "sikkuralleen", "sikkurassa", "siko-", "sikotauti"
+, "sikunaöljy", "silikonirinta", "silikoosi", "silitä", "silkkitie"
+, "sillanmurto", "sillanpääasema", "šillinki", "silmäklinikka", "silmäleikkaus", "silmälääkäri"
+, "silmänpainetauti", "silmäpeli", "silmäproteesi", "silmäsairaus", "silmätauti", "silmätulehdus", "silmävamma", "silpoa", "silpoutua", "silsa", "siluuri", "siluurikausi", "silvonta", "simahdus", "simahtaa", "simmarit", "simputtaa", "simputtaja", "simputus"
+, "simsetti", "sinappikaasu", "sinelmä", "singahdella", "singahduttaa", "singahtaa", "singlata", "singlaus", "sinibaretti", "sinihappo", "sinipunahallitus"
+, "sinimusta"
+, "sinko", "sinkoilla", "sinkojoukkue", "sinkoryhmä", "sinkoutua", "sinnemmä", "sinnemmäksi", "sinnemmäs", "sinnempänä", "sinnempää", "sinnepäin", "sinologi", "sinologia", "šinto", "šintolainen", "šintolaisuus", "sionismi", "sionisti", "sionistinen", "sioux"
+, "sipata", "siperianangervo", "siperianhernepensas", "siperianhusky", "siperianlehtikuusi", "sirahdella", "sirahdus", "sirahtaa", "sirpalekranaatti", "sirpalepommi", "sirpalesuoja", "sirpalevaikutus"
+, "sirrille", "sirrilleen", "sirrillä", "sirrillään", "sirrissä", "sirtaki", "sisemmä", "sisemmäksi", "sisemmälle", "sisemmällä", "sisemmältä", "sisemmäs", "sisempänä", "sisempää", "sisimmäksi", "sisimmälle", "sisimmällä", "sisimmältä", "sisimmäs", "sisimpänä", "sisimpää", "sisinnä", "sissihyökkäys", "sissijoukot", "sissikomppania", "sissiliike", "sissipartio", "sissisota", "sisterssiläinen", "sisterssiläismunkki", "sisterssiläissisar"
+, "sisuuntua", "sisä-", "sisäasiainministeri", "sisäasiainministeriö", "sisäasiat", "sisällissota"
+, "sisäministeri", "sisäministeriö", "sisäoppilaitos", "sisäpoliittinen", "sisäpoliittisesti", "sisäpolitiikka", "sisäsynnyttimet", "sisätaudit", "sisätautilääkäri", "sisätutkimus"
+, "sitcom", "sitkaan", "sitketä", "sitoumusbridge", "sitsi", "sitä", "siunauskappeli", "siunaustilaisuus", "sivari", "siveellisyysrikos", "siveettömyys"
+, "siveettömästi", "siveetön", "siveyspoliisi", "siveysvyö", "siviili-", "siviilikohde", "siviiliuhri", "siviilivastarinta", "siviiliväestö", "sivu-"
+, "sivulaiva", "sivustahyökkäys", "sivustasuoja", "sivustavarmistus", "sivu-uoma", "sivu-urakoitsija"
+, "sivuvaimo", "sivuääni", "SI-yksikkö", "skalpeerata", "skalpeeraus", "skalpelli", "skandaali", "skandaalijuttu", "skandaalilehti", "skandaalimainen", "skandaalinkäry", "skandaalinkäryinen", "skandalisoida", "skandaloida", "skandinaavi", "skandinaavinen", "skandinaaviska", "skandinavialainen", "skandinavismi", "skeida", "skientologi", "skientologia", "skimba", "skinhead", "skini", "skisma", "skitsi", "skitso", "skitsofreeni", "skitsofreenikko", "skitsofreeninen", "skitsofreenisesti", "skitsofrenia", "skleroosi", "skolioosi", "skotlanninpaimenkoira", "skotlanninterrieri", "skotlantilainen", "skotooma", "skotti", "skottihame", "skottilainen", "skripta"
+, "skunkki", "slaavi", "slaavilainen", "slaavilaisuus", "slivovits", "slobo", "slovakialainen", "slovakki", "sloveeni", "slovenialainen", "slummi", "slummialue", "slummiutua", "snapsi", "snapsilasi", "sodanaikainen", "sodanjohto", "sodanjulistus", "sodanjumala", "sodanjumalatar", "sodanjälkeinen", "sodankäynti", "sodanlietsoja", "sodanuhka", "sodanvaara", "sodanvastainen", "sodomia"
+, "soidensuojelu", "soidensuojelualue", "soidinmenot"
+, "sokerihumala", "sokeritauti", "sokeritautinen", "sokeritautipotilas", "šokki", "sokkihoito", "sokkitila"
+, "sokko-", "solariumi", "solttu", "solttupoika", "solumyrkky", "solunsalpaaja", "solunsalpaajahoito", "soluttautua", "solutuho"
+, "solvata", "solvaus", "solvauskirjoitus", "somaattinen", "somali", "somalialainen", "somatisaatio", "somatisoida", "somatisointi", "sondeerata", "sondi", "soolohyökkäys", "soopa"
+, "soppajono", "sopujuoksu", "sopupeli"
+
 ];
 
 const forbiddenSet = new Set(forbiddenWords.filter(Boolean).map(w => w.toLowerCase()));
 
-//seuraava alaken 63900
+//seuraava alaken 70000
 let allWords = [];
 let commonWords = [];
 let usedWordsInThisGame = [];
@@ -606,7 +669,7 @@ let rareWordsSet = new Set();
 fetch('words/kaikkisanat.txt')
     .then(res => res.text())
     .then(d => {
-        allWords = parseWords(d, 63900);
+        allWords = parseWords(d, 70000);
         // Luodaan valmis indeksi isoilla kirjaimilla salamannopeaa hakua varten
         rareWordsSet = new Set(allWords.map(w => capitalize(w)));
     })
