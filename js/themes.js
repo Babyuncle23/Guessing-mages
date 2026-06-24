@@ -34,18 +34,18 @@ const themeImages = {
 };
 
 const themeSounds = {
-    "pantomiimi": "",
+    "pantomiimi": "sounds/freesound_community-sssh-47855.mp3",
     "piirtäminen": "sounds/Unknown_Crayon_Drawing_Sound.ogg",
-    "espanja": "",
-    "englanniksi": "",
-    "ilman verbejä": "",
-    "ilman substantiiveja": "",
-    "vastakohdan kautta": "",
+    "espanja": "sounds/freesound_community-spanish-lick-ii-acoustic-ab-split-stereo-pair-oktava-108241.mp3",
+    "englanniksi": "sounds/scottishperson-sound-effect-the-chimes-of-big-ben-01-203986.mp3",
+    "ilman verbejä": "sounds/eritnhut1992-buzzer-or-wrong-answer-20582.mp3",
+    "ilman substantiiveja": "sounds/eritnhut1992-buzzer-or-wrong-answer-20582.mp3",
+    "vastakohdan kautta": "sounds/son_duquotidient-rembobinage-cassette-audio-391096.mp3",
     "elokuva": "sounds/Wilhelm_Scream_1.ogg",
-    "perusvaihtoehto": "",
-    "vapaavalintainen": "",
+    "perusvaihtoehto": "sounds/creativesoumen-clearing-throat-female-393243.mp3",
+    "vapaavalintainen": "sounds/freesound_community-ding-idea-40142.mp3",
     "näkymätön muste": "sounds/Unknown_Crayon_Drawing_Sound.ogg", 
-    "vain emojit": ""
+    "vain emojit": "sounds/retro_timmy-phone-typing-333292.mp3"
 };
 
 const themeDescriptions = {

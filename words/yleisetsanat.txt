@@ -5,6 +5,7 @@ Aamuvuoro
 Aarre
 Aarrearkku
 Aasi
+Aavikko
 Adoptio
 Ahdistus
 Ahven
@@ -43,10 +44,15 @@ Avaimenperä
 Avain
 Avainnippu
 Avaruuspuku
+Avaruusolio
 Avioliitto
 Askelma
 Asukas
 Astronautti
+Aivastaa
+Aikakone
+Avaruusalus
+Avaruus
 Baletti
 Banaani
 Basso
@@ -107,6 +113,8 @@ Geometria
 Gourmet
 Gorilla
 Grillimakkara
+Grilli
+Grillata
 Haarukka
 Haava
 Hai
@@ -123,6 +131,7 @@ Hampurilainen
 Hanhi
 Hanska
 Harakka
+Hakkeri
 Haravoiminen
 Harja
 Harjoitteleminen
@@ -253,6 +262,7 @@ Jäälautta
 Jääpala
 Jääpuikko
 Jäätelötikku
+Jäätyä
 Jekku
 Jossitella
 Jumalanpalvelus
@@ -344,6 +354,7 @@ Kettu
 Kevyt
 Kevät
 Kevätaurinko
+Kiehua
 Kihlajaiset
 Kiinni
 Kiipeily
@@ -366,9 +377,13 @@ Kirsikkapuu
 Kirvesmies
 Kissa
 Kissanpentu
+Kitara
+Kitarasoolo
 Kitaransoitto
+Kielto
 Kiuas
 Kiukku
+Kiulu
 Kivennäisvesi
 Kivi
 Koe
@@ -377,6 +392,7 @@ Koira
 Koiranpentu
 Koivu
 Kokki
+Kokko
 Kolikko
 Kondiittori
 Konsertti
@@ -401,11 +417,13 @@ Koulu
 Koulukirja
 Koulureppu
 Kova
+Kompastua
 Kramppi
 Krokotiili
 Kuilu
 Kuiskaaminen
 Kuitti
+Kuningas
 Kuiva
 Kukka
 Kukkakaali
@@ -419,6 +437,7 @@ Kultaseppä
 Kultti
 Kulttijohtaja
 Kumi
+Kurkistaa
 Kumisaapas
 Kumppani
 Kuoro
@@ -442,6 +461,7 @@ Kylä
 Kynnys
 Kynsiviila
 Kynä
+Kyykätä
 Kypärä
 Kysymys
 Käpy
@@ -465,7 +485,8 @@ Kosto
 Kuhnia
 Kuisti 
 Kuluttaja
-Kummitusjuna
+Kummitus
+Kummitustalo
 Kunnostautua
 Kuorsaaminen
 Kursiivi
@@ -483,6 +504,7 @@ Laituri
 Laiva
 Lakanaa
 Laki
+Laiton
 Lakritsi
 Lammas
 Lamppu
@@ -546,6 +568,7 @@ Lohi
 Lohikeitto
 Lohikäärme
 Lokki
+Loma
 Loma-asunto
 Lompakko
 Lossi
@@ -575,6 +598,7 @@ Lämpömittari
 Lätäkkö
 Lääke
 Lääkäri
+Löyly
 Löylykiulu
 Löylymittari
 Löytäminen
@@ -974,6 +998,7 @@ Samba
 Sammakko
 Sammal
 Sanomalehti
+Sandaalit
 Sarjakuva
 Satama
 Sateenkaari
@@ -1072,6 +1097,7 @@ Spiraali
 Sukuvika
 Suunnaton
 Sähly
+Säikähtää
 Taapero
 Tabletti
 Tablettitietokone
@@ -1079,6 +1105,7 @@ Taco
 Taikasauva
 Taikuri
 Taito
+Taikajuoma
 Takki
 Taksikuski
 Tallenne
@@ -1097,6 +1124,7 @@ Tauko
 Tavallinen
 Tee
 Teepussi
+Tekoäly
 Teini
 Teleskooppi
 Televisio
@@ -1110,6 +1138,8 @@ Terveysasema
 Terveyskeskus
 Terävä
 Tie
+Tikka
+Tikkataulu
 Tiedosto
 Tiedote
 Tietokone
@@ -1232,6 +1262,7 @@ Veljenpoika
 Vene
 Venytteleminen
 Verho
+Veri
 Verkko
 Verkkosivu
 Vesiputous
@@ -1248,6 +1279,7 @@ Vihollinen
 Vihreä
 Viidakko
 Viikinki
+Viivain
 Viikonloppu
 Viimeinen
 Viinirypäle
@@ -1260,6 +1292,7 @@ Virkailija
 Virkkaaminen
 Virtahepo
 Vispilä
+Vihta
 Vitamiini
 Viulu
 Voikukka
@@ -1269,6 +1302,7 @@ Vyö
 Väri
 Väsymys
 Väsynyt
+Väsenkätinen
 Vaakuna
 Varaslähtö
 Vastaaja
@@ -1282,6 +1316,7 @@ Yksinäisyys
 Yleinen
 Yliopisto
 Yllätys
+Yksisarvinen
 Yrittäjä
 Yskä
 Yskänlääke
@@ -1295,3 +1330,4 @@ Zombi
 Älykäs
 Ääni
 Äänikirja
+Älypuhelin

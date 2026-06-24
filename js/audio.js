@@ -37,3 +37,48 @@ const playAudio = (audioObject, startTime = 0) => {
 const playClickSound = () => {
     playAudio(sounds.click);
 };
+
+// --- УМНЫЙ ПЛЕЕР ДЛЯ ЗВУКОВ ТЕМ (с затиханием и таймерами) ---
+window.playThemeEffect = (audioUrl) => {
+    if (!audioUrl) return;
+
+    const effect = new Audio(audioUrl);
+    let maxVolume = 1.0;
+    let startTime = 0; // в секундах
+
+    // Условие 1: Сделать buzzer в два раза тише и начать на 0.5 сек раньше
+    if (audioUrl.includes("eritnhut1992-buzzer-or-wrong-answer-20582")) {
+        maxVolume = 0.5;
+        startTime = 0.5;
+    } 
+    // Условие 2: Сделать ding начать на 0.5 сек раньше
+    else if (audioUrl.includes("freesound_community-ding-idea-40142")) {
+        startTime = 0.5;
+    }
+
+    effect.volume = maxVolume;
+
+    // Запускаем звук и мгновенно перематываем его, если задан startTime
+    effect.play().then(() => {
+        if (startTime > 0) effect.currentTime = startTime;
+    }).catch(err => console.log("Audio play error:", err));
+
+    // Условие 3 & 4: Лимит 3 секунд и плавное затихание (fade-out)
+    const maxDuration = 3000;  // 3 секунд максимум
+    const fadeDuration = 1000; // Последние 1 секунды звук будет затихать
+
+    setTimeout(() => {
+        const steps = 20; // Количество шагов затихания
+        const volumeStep = maxVolume / steps;
+
+        const fadeInterval = setInterval(() => {
+            if (effect.volume > volumeStep) {
+                effect.volume -= volumeStep;
+            } else {
+                effect.volume = 0; // Полная тишина
+                effect.pause();    // Останавливаем файл
+                clearInterval(fadeInterval);
+            }
+        }, fadeDuration / steps);
+    }, maxDuration - fadeDuration);
+};

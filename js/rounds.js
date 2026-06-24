@@ -291,10 +291,13 @@ const randomizeTheme = () => {
                 themeImage.style.display = "block"; 
             }
 
-            // Воспроизводим уникальный звук темы (например, Unknown_Crayon_Drawing_Sound.ogg для рисования)
-            const soundUrl = themeSounds[randomTheme];
-            if (soundUrl) playAudio(new Audio(soundUrl));
-            // === КОНЕЦ ТОЧЕЧНОЙ ЗАМЕНЫ ===
+// Воспроизводим уникальный звук темы с помощью умного плеера
+const soundUrl = themeSounds[randomTheme];
+if (soundUrl) {
+    if (typeof window.playThemeEffect === 'function') {
+        window.playThemeEffect(soundUrl);
+    }
+}
 
             // Ajetaan painikkeen luonti heti arvonnan jälkeen kaikille teemoille
             renderThemeRulesHelpButton();
@@ -637,11 +640,11 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
             "Peli päättyi tasan!" : `Voittaja on ${sortedPlayers[0].name}!`;
         const scoreSummary = gamePlayers.map(pl => `${pl.name}: ${pl.score}p`).join('\n');
         
-        // 3. Даем звуку победы красиво проиграться, прежде чем заморозить страницу алертом
+// 3. Выводим результаты почти мгновенно, но даем браузеру отрисовать последний кадр
         setTimeout(() => {
             alert(`Peli ohi!\n${winnerText}\n\nLopulliset pisteet:\n${scoreSummary}`);
             location.reload();
-        }, 2000); // 2000 миллисекунд (2 секунды) задержки
+        }, 50);
         
         return;
     }
