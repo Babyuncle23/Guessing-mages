@@ -209,9 +209,12 @@ const emojiInput = document.getElementById('emojiInputArea');
 window.openEmojiModal = () => {
     if (!emojiOverlay || !emojiInput) return;
     
-    // Piilotetaan sanalista, jottei arvaaja näe sitä vahingossa
-    const wList = document.getElementById('wordList');
-    if (wList) wList.style.display = 'none';
+// Piilotetaan sanalista turvallisesti, aivan kuten piirtoalustassa
+if (typeof wordList !== 'undefined' && typeof btnDisplayWords !== 'undefined') {
+    wordList.classList.add("hidden-words");
+    btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle)";
+    isWordListHidden = true;
+}
 
     emojiInput.value = ""; 
     emojiOverlay.style.display = 'flex';
