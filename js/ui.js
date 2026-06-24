@@ -201,3 +201,36 @@ function toggleAccordion(button) {
         playClickSound();
     }
 }
+
+// --- EMOJI MODAL LOGIC ---
+const emojiOverlay = document.getElementById('emojiModalOverlay');
+const emojiInput = document.getElementById('emojiInputArea');
+
+window.openEmojiModal = () => {
+    if (!emojiOverlay || !emojiInput) return;
+    
+    // Piilotetaan sanalista, jottei arvaaja näe sitä vahingossa
+    const wList = document.getElementById('wordList');
+    if (wList) wList.style.display = 'none';
+
+    emojiInput.value = ""; 
+    emojiOverlay.style.display = 'flex';
+    setTimeout(() => emojiInput.focus(), 100); // Fokus viiveellä mobiililaitteille
+};
+
+document.getElementById('btnCloseEmojiModalX')?.addEventListener('click', () => {
+    if (typeof playClickSound === 'function') playClickSound();
+    emojiOverlay.style.display = 'none';
+});
+
+document.getElementById('btnEmojiGuessed')?.addEventListener('click', () => {
+    if (typeof playClickSound === 'function') playClickSound();
+    emojiOverlay.style.display = 'none';
+    document.getElementById('btnGuessed')?.click(); 
+});
+
+document.getElementById('btnEmojiGiveUp')?.addEventListener('click', () => {
+    if (typeof playClickSound === 'function') playClickSound();
+    emojiOverlay.style.display = 'none';
+    document.getElementById('btnGiveUp')?.click(); 
+});

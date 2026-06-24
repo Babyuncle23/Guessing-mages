@@ -75,14 +75,19 @@
     };
 
     // === НАЧАЛО ИСПРАВЛЕННОГО БЛОКА РИСОВАНИЯ ===
-    const startDrawing = (e) => {
+const startDrawing = (e) => {
         isDrawing = true;
         const coords = getCoords(e);
         lastX = coords.x;
         lastY = coords.y;
 
-        // Инициализируем начало пути без рисования лишних арков/кругов, 
-        // которые дробили линию на мобильных устройствах
+        // Рисуем точку прямо в момент касания/клика
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(lastX, lastY); // Линия нулевой длины
+        ctx.stroke();             // Отрисовываем её (получится круг благодаря lineCap = 'round')
+
+        // Сразу начинаем новый путь на случай, если пользователь поведёт линию дальше
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
     };
@@ -141,9 +146,38 @@
         }
 
         ctx = canvas.getContext('2d');
-        
         resizeCanvas();
         setTimeout(resizeCanvas, 50);
+
+// --- UUSI: Näkymättömän musteen taika ---
+        if (window.inkFadeInterval) clearInterval(window.inkFadeInterval); 
+
+        if (typeof currentActiveTheme !== 'undefined' && currentActiveTheme === "näkymätön muste") {
+            window.inkFadeInterval = setInterval(() => {
+                if (!ctx || !canvas || currentTool === "erase") return; 
+                
+                const w = canvas.width;
+                const h = canvas.height;
+                if (w === 0 || h === 0) return;
+
+                // Получаем сырые данные всех пикселей на холсте
+                const imgData = ctx.getImageData(0, 0, w, h);
+                const data = imgData.data;
+                
+                // Проходимся по альфа-каналу (каждое 4-е значение в массиве RGBA)
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] > 0) {
+                        // Физически вычитаем 8 единиц прозрачности из 255. 
+                        // Это заставит линию полностью испариться примерно за 2 секунды.
+                        data[i] = Math.max(0, data[i] - 8); 
+                    }
+                }
+                
+                // Возвращаем пиксели обратно на холст (это игнорирует любые баги наложения)
+                ctx.putImageData(imgData, 0, 0);
+                
+            }, 60); 
+        }
     };
 
     window.clearGameCanvas = () => {
@@ -199,6 +233,7 @@
         if (closeBtnX) {
             closeBtnX.addEventListener('click', () => {
                 if (typeof playClickSound === 'function') playClickSound();
+                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
                 if (overlay) overlay.style.display = 'none';
             });
         }
@@ -207,6 +242,7 @@
         if (modalGuessed) {
             modalGuessed.addEventListener('click', () => {
                 if (typeof playClickSound === 'function') playClickSound();
+                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
                 if (overlay) overlay.style.display = 'none';
                 const mainGuessedBtn = document.getElementById('btnGuessed');
                 if (mainGuessedBtn) mainGuessedBtn.click();
@@ -217,6 +253,7 @@
         if (modalGiveUp) {
             modalGiveUp.addEventListener('click', () => {
                 if (typeof playClickSound === 'function') playClickSound();
+                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
                 if (overlay) overlay.style.display = 'none';
                 const mainGiveUpBtn = document.getElementById('btnGiveUp');
                 if (mainGiveUpBtn) mainGiveUpBtn.click();

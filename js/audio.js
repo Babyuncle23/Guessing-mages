@@ -14,7 +14,7 @@ const sounds = {
     gameWin: new Audio("sounds/puyopuyomegafan1234-winner-game-sound-404167.mp3")
 };
 
-sounds.drum.volume = 0.65;
+sounds.drum.volume = 0.3;
 
 // Esiladataan kaikki äänitiedostot
 Object.values(sounds).forEach(audio => {

@@ -27,8 +27,11 @@ const getThemeWeightsFromUI = () => {
     return weights;
 };
 
+// Глобальный объект для хранения памяти ползунков
+let savedThemeWeights = {};
+
 const initializeThemeWeightSliders = () => {
-    // 1. Инициализация ползунков и динамическое обновление цифр веса
+    // 1. Инициализация ползунков и динамическое обновление
     const sliders = document.querySelectorAll('.theme-weight-slider');
     sliders.forEach(slider => {
         const valueId = slider.dataset.valueId;
@@ -40,7 +43,6 @@ const initializeThemeWeightSliders = () => {
         slider.addEventListener('input', () => {
             valueDisplay.textContent = slider.value;
             
-            // Если игрок вручную увёл ползунок в 0 — выключаем тумблер. Если > 0 — включаем.
             const rowWrapper = slider.closest('.slider-control-wrapper');
             if (rowWrapper) {
                 const themeId = rowWrapper.id.replace('wrapper-', '');
@@ -49,17 +51,24 @@ const initializeThemeWeightSliders = () => {
                     if (parseInt(slider.value, 10) === 0) {
                         checkbox.checked = false;
                         rowWrapper.classList.add('disabled');
+                        
+                        // Если игрок выключил что-то вручную — отключаем Мастер-галочку
+                        const master = document.getElementById('toggle-all-themes');
+                        if (master) master.checked = false;
                     } else {
                         checkbox.checked = true;
                         rowWrapper.classList.remove('disabled');
+                        
+                        // ОБНОВЛЯЕМ ПАМЯТЬ: Запоминаем текущее значение, пока оно больше нуля
+                        savedThemeWeights[themeId] = parseInt(slider.value, 10);
                     }
                 }
             }
         });
     });
 
-    // 2. Логика работы умных тумблеров (включение/выключение одним кликом)
-    const checkboxes = document.querySelectorAll('.theme-toggle-checkbox');
+    // 2. Логика индивидуальных тумблеров с ПАМЯТЬЮ
+    const checkboxes = document.querySelectorAll('.theme-toggle-checkbox:not(#toggle-all-themes)');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             if (typeof playClickSound === 'function') playClickSound();
@@ -70,7 +79,6 @@ const initializeThemeWeightSliders = () => {
             const slider = document.getElementById(`theme-weight-${themeId}`);
             const wrapper = document.getElementById(`wrapper-${themeId}`);
             
-            // Корректно сопоставляем ID текстового поля (защита для финской 'ä')
             let displayThemeId = themeId;
             if (themeId === 'piirtaminen') displayThemeId = 'piirtäminen';
             const valueDisplay = document.getElementById(`themeWeightValue-${displayThemeId}`);
@@ -78,21 +86,75 @@ const initializeThemeWeightSliders = () => {
             if (!slider || !wrapper) return;
 
             if (checkbox.checked) {
-                // Возвращаем дефолтное значение из HTML, а если оно было 0 — ставим минимум (1)
-                const targetValue = defaultValue > 0 ? defaultValue : 1;
+                // ВКЛЮЧЕНИЕ: Восстанавливаем из памяти, либо берем дефолтное значение
+                let targetValue = savedThemeWeights[themeId] || defaultValue;
+                if (targetValue === 0) targetValue = 1; // Защита: минимум 1
+                
                 slider.value = targetValue;
                 if (valueDisplay) valueDisplay.textContent = targetValue;
                 wrapper.classList.remove('disabled');
             } else {
-                // Сбрасываем в ноль и визуально приглушаем строку
+                // ВЫКЛЮЧЕНИЕ: Записываем позицию в память ПЕРЕД обнулением
+                savedThemeWeights[themeId] = parseInt(slider.value, 10);
+                
                 slider.value = 0;
                 if (valueDisplay) valueDisplay.textContent = 0;
                 wrapper.classList.add('disabled');
+                
+                // Отключаем Мастер-галочку
+                const master = document.getElementById('toggle-all-themes');
+                if (master) master.checked = false;
             }
         });
     });
 
-    // 3. Вызов справок условий "?" внутри вкладок настроек через игровое модальное окно
+    // 3. МАСТЕР-ВЫКЛЮЧАТЕЛЬ (Все разом)
+    const masterToggle = document.getElementById('toggle-all-themes');
+    if (masterToggle) {
+        masterToggle.addEventListener('change', (e) => {
+            if (typeof playClickSound === 'function') playClickSound();
+            const isChecked = e.target.checked;
+            
+            checkboxes.forEach(cb => {
+                const themeId = cb.dataset.themeId;
+                const slider = document.getElementById(`theme-weight-${themeId}`);
+                const wrapper = document.getElementById(`wrapper-${themeId}`);
+                
+                let displayThemeId = themeId;
+                if (themeId === 'piirtaminen') displayThemeId = 'piirtäminen';
+                const valueDisplay = document.getElementById(`themeWeightValue-${displayThemeId}`);
+
+                if (!slider || !wrapper) return;
+
+                if (isChecked) {
+                    // ВКЛЮЧИТЬ ВСЁ (только то, что было выключено)
+                    if (!cb.checked) {
+                        const defaultVal = parseInt(cb.dataset.default, 10);
+                        // Подтягиваем из памяти или дефолт
+                        let targetVal = savedThemeWeights[themeId] ? savedThemeWeights[themeId] : (defaultVal > 0 ? defaultVal : 1);
+                        
+                        cb.checked = true;
+                        slider.value = targetVal;
+                        if (valueDisplay) valueDisplay.textContent = targetVal;
+                        wrapper.classList.remove('disabled');
+                    }
+                } else {
+                    // ВЫКЛЮЧИТЬ ВСЁ
+                    if (cb.checked) {
+                        // Сохраняем в память!
+                        savedThemeWeights[themeId] = parseInt(slider.value, 10);
+                        
+                        cb.checked = false;
+                        slider.value = 0;
+                        if (valueDisplay) valueDisplay.textContent = 0;
+                        wrapper.classList.add('disabled');
+                    }
+                }
+            });
+        });
+    }
+
+    // 4. Справки условий "?" (оставляем старый код без изменений)
     const helpButtons = document.querySelectorAll('.theme-setting-help');
     helpButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -427,15 +489,22 @@ if (ruleInstruction) {
         const oldHint = document.getElementById('themeDrawingHint');
         if (oldHint) oldHint.remove();
 
-        const isDrawingActive = currentActiveTheme.includes("piirtäminen");
+const isDrawingActive = currentActiveTheme === "piirtäminen" || currentActiveTheme === "näkymätön muste";
+        const isEmojiActive = currentActiveTheme === "vain emojit";
 
         if (isDrawingActive) {
             liveThemeBlock.style.cursor = "pointer";
-
             const hintSpan = document.createElement('small');
             hintSpan.id = "themeDrawingHint";
             hintSpan.style.cssText = "display:block; color: var(--gold); font-size:11px; margin-top:5px; font-weight: bold; animation: pulse 2s infinite;";
             hintSpan.textContent = "➔ 🎨 Klikkaa tästä avataksesi piirtoalustan!";
+            liveThemeBlock.appendChild(hintSpan);
+        } else if (isEmojiActive) {
+            liveThemeBlock.style.cursor = "pointer";
+            const hintSpan = document.createElement('small');
+            hintSpan.id = "themeDrawingHint";
+            hintSpan.style.cssText = "display:block; color: var(--gold); font-size:11px; margin-top:5px; font-weight: bold; animation: pulse 2s infinite;";
+            hintSpan.textContent = "➔ 📱 Klikkaa tästä avataksesi emoji-taulun!";
             liveThemeBlock.appendChild(hintSpan);
         }
 

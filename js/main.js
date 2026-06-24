@@ -188,14 +188,17 @@ initGameDisplay();
 const targetThemeBlock = document.getElementById('themeBlock');
 if (targetThemeBlock) {
     targetThemeBlock.addEventListener('click', () => {
-        // Если на плашке горит золотая подсказка рисования — открываем холст
         const hasDrawingHint = document.getElementById('themeDrawingHint');
         if (!hasDrawingHint) return;
 
-        // Если раунд еще не начался или слова скрыты — клик игнорируется
         if (!generatedWordsList || generatedWordsList.length === 0 || wordList.style.display === "none") return;
         
         if (typeof playClickSound === 'function') playClickSound();
-        if (typeof window.openDrawingModal === 'function') window.openDrawingModal();
+        
+        if (currentActiveTheme === "vain emojit") {
+            if (typeof window.openEmojiModal === 'function') window.openEmojiModal();
+        } else {
+            if (typeof window.openDrawingModal === 'function') window.openDrawingModal();
+        }
     });
 }
