@@ -40,10 +40,10 @@ const themeSounds = {
     "englanniksi": "sounds/english.mp3",
     "ilman verbejä": "sounds/buzzerNoVerbs.mp3",
     "ilman substantiiveja": "sounds/buzzerNoNouns.mp3",
-    "vastakohdan kautta": "sounds/rewind.mp3",
+    "vastakohdan kautta": "",
     "elokuva": "sounds/scream.ogg",
     "perusvaihtoehto": "sounds/throat.mp3",
-    "vapaavalintainen": "sounds/ding.mp3",
+    "vapaavalintainen": "",
     "näkymätön muste": "sounds/drawingGhost.ogg", 
     "vain emojit": "sounds/typing.mp3"
 };
