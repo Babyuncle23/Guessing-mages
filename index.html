@@ -137,362 +137,212 @@
             </div>
 
  <!-- MUKAUTUSVALINNAT -->
-<div style="margin-bottom: 25px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--soft-border);">
-    <p style="font-weight: bold; color: var(--gold); margin-bottom: 12px; font-size: 15px;">Ehtojen valinta ja painotus</p>
-    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 15px;">Määritä kunkin ehdon todennäköisyys. Voit kytkeä ehdon kokonaan pois päältä valintaruudusta.</p>
-    <div class="setting-row-container" style="border-bottom: 2px solid var(--gold); padding-bottom: 12px; margin-bottom: 10px;">
-        <div class="setting-row-header">
-            <div class="setting-title-block">
-                <input type="checkbox" id="toggle-all-themes" class="theme-toggle-checkbox" checked>
-                <label for="toggle-all-themes" class="theme-label-text" style="color: var(--gold);">Kytke kaikki päälle / pois</label>
+<div style="margin-bottom: 20px;">
+    
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">📜 Klassikot</span>
+        </div>
+        <div class="category-stepper" onclick="event.stopPropagation()">
+            <button type="button" class="category-stepper-btn minus">−</button>
+            <button type="button" class="category-stepper-btn plus">+</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <div class="theme-card" id="card-perusvaihtoehto">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">❓</span>
+                    <span class="theme-card-name">Perusvaihtoehto</span>
+                    <span class="theme-setting-help" data-theme-key="perusvaihtoehto">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="perusvaihtoehto">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-perusvaihtoehto" value="3" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="perusvaihtoehto">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-vapaavalintainen">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">✳️</span>
+                    <span class="theme-card-name">Vapaavalintainen</span>
+                    <span class="theme-setting-help" data-theme-key="vapaavalintainen">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vapaavalintainen">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vapaavalintainen" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vapaavalintainen">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-pantomiimi">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🎭</span>
+                    <span class="theme-card-name">Pantomiimi</span>
+                    <span class="theme-setting-help" data-theme-key="pantomiimi">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="pantomiimi">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-pantomiimi" value="2" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="pantomiimi">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-piirtaminen">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🖌️</span>
+                    <span class="theme-card-name">Piirtäminen</span>
+                    <span class="theme-setting-help" data-theme-key="piirtäminen">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="piirtaminen">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-piirtaminen" value="2" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="piirtaminen">+</button>
+                </div>
             </div>
         </div>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
-        
-<style>
-    /* Главный контейнер строки темы — теперь это вертикальный флекс-бокс */
-    .setting-row-container {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px !important; /* Отступ между первым этажом и слайдером */
-        padding: 14px 0 !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
 
-    /* ВЕРХНИЙ ЭТАЖ: Строка, которая распределяет элементы по краям */
-    .setting-row-header { 
-        display: flex !important; 
-        flex-direction: row !important;
-        align-items: center !important; 
-        justify-content: space-between !important; 
-        width: 100% !important; 
-        margin: 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* Блок чекбокса и названия (прижат влево) */
-    .setting-title-block { 
-        display: flex !important; 
-        flex-direction: row !important;
-        align-items: center !important; 
-        gap: 12px !important; 
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* Чекбокс */
-    .theme-toggle-checkbox { 
-        width: 18px !important; 
-        height: 18px !important; 
-        min-width: 18px !important;
-        max-width: 18px !important;
-        cursor: pointer !important; 
-        accent-color: var(--gold) !important; 
-        margin: 0 !important; 
-        padding: 0 !important;
-    }
-    
-    /* Название темы */
-    .theme-label-text { 
-        font-weight: 700 !important; 
-        color: #fff !important; 
-        font-size: 15px !important; 
-        cursor: pointer !important;
-        line-height: 1.3 !important; /* Чуть увеличили для красивого переноса строк */
-        margin: 0 !important;
-        padding: 0 !important;
-        
-        /* ИСПРАВЛЕНИЕ: разрешаем тексту переноситься, если экран слишком узкий */
-        white-space: normal !important; 
-        word-break: break-word !important; 
-        flex-grow: 1 !important; /* Текст заберет все свободное место слева */
-    }
-
-    /* Блок справки и цифры (прижат вправо на одной линии) */
-    .right-controls-group {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        gap: 12px !important; 
-        margin: 0 0 0 10px !important; /* Минимальный отступ слева, чтобы текст не прилипал к кнопкам */
-        padding: 0 !important;
-        
-        /* ИСПРАВЛЕНИЕ: этот блок монолитен, его нельзя сжимать или выдавливать за экран */
-        flex-shrink: 0 !important; 
-    }
-    
-    /* Круглая кнопка знака вопроса */
-    .theme-setting-help { 
-        display: flex !important; 
-        align-items: center !important; 
-        justify-content: center !important; 
-        width: 26px !important; 
-        height: 26px !important; 
-        min-width: 26px !important; 
-        max-width: 26px !important;
-        border-radius: 50% !important; 
-        border: 1px solid rgba(255,255,255,0.18) !important; 
-        background: rgba(255,255,255,0.04) !important; 
-        color: var(--text-muted) !important; 
-        font-size: 12px !important; 
-        font-weight: bold !important; 
-        cursor: pointer !important; 
-        user-select: none !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .theme-setting-help:hover { 
-        color: var(--gold) !important; 
-        border-color: var(--gold) !important; 
-        background: rgba(229, 193, 88, 0.08) !important;
-    }
-
-    /* Цифра веса */
-    .theme-weight-counter {
-        min-width: 14px !important; 
-        text-align: right !important; 
-        font-weight: bold !important; 
-        color: var(--gold) !important; 
-        font-size: 15px !important;
-        line-height: 1 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* НИЖНИЙ ЭТАЖ: Контейнер слайдера занимает всю ширину под текстом */
-    .slider-control-wrapper { 
-        display: flex !important; 
-        width: 100% !important; 
-        transition: opacity 0.2s ease !important; 
-        padding: 0 !important;
-        margin: 0 !important;
-        box-sizing: border-box !important;
-    }
-    
-    /* Ползунок растягивается на 100% ширины */
-    .theme-weight-slider {
-        width: 100% !important;
-        height: 6px !important;
-        margin: 0 !important; 
-        padding: 0 !important;
-        cursor: pointer !important;
-        display: block !important;
-    }
-
-    /* Если тема отключена, плавно приглушаем слайдер и цифру */
-    .slider-control-wrapper.disabled .theme-weight-slider { opacity: 0.12 !important; pointer-events: none !important; }
-    .slider-control-wrapper.disabled + .right-controls-group .theme-weight-counter,
-    .slider-control-wrapper.disabled .theme-weight-counter { opacity: 0.25 !important; }
-</style>
-        <!-- Pantomiimi -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <!-- 1 этаж -->
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-pantomiimi" class="theme-toggle-checkbox" checked data-theme-id="pantomiimi" data-default="3">
-                    <label for="toggle-pantomiimi" class="theme-label-text">Pantomiimi</label>
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">👻 Erikoisuudet</span>
+        </div>
+        <div class="category-stepper" onclick="event.stopPropagation()">
+            <button type="button" class="category-stepper-btn minus">−</button>
+            <button type="button" class="category-stepper-btn plus">+</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <div class="theme-card" id="card-nakymaton-muste">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">👻</span>
+                    <span class="theme-card-name">Näkymätön muste</span>
+                    <span class="theme-setting-help" data-theme-key="näkymätön muste">Säännöt (?)</span>
                 </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="pantomiimi">?</div>
-                    <span id="themeWeightValue-pantomiimi" class="theme-weight-counter">3</span>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="nakymaton-muste">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-nakymaton-muste" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="nakymaton-muste">+</button>
                 </div>
             </div>
-            <!-- 2 этаж -->
-            <div class="slider-control-wrapper" id="wrapper-pantomiimi">
-                <input class="theme-weight-slider" id="theme-weight-pantomiimi" type="range" min="0" max="10" value="3" data-value-id="themeWeightValue-pantomiimi">
+            <div class="theme-card" id="card-vain-emojit">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">📱</span>
+                    <span class="theme-card-name">Vain emojit</span>
+                    <span class="theme-setting-help" data-theme-key="vain emojit">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vain-emojit">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vain-emojit" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vain-emojit">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-elokuva">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🎬</span>
+                    <span class="theme-card-name">Elokuva</span>
+                    <span class="theme-setting-help" data-theme-key="elokuva">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="elokuva">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-elokuva" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="elokuva">+</button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Piirtäminen -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-piirtaminen" class="theme-toggle-checkbox" checked data-theme-id="piirtaminen" data-default="2">
-                    <label for="toggle-piirtaminen" class="theme-label-text">Piirtäminen</label>
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">🌍 Kielelliset</span>
+        </div>
+        <div class="category-stepper" onclick="event.stopPropagation()">
+            <button type="button" class="category-stepper-btn minus">−</button>
+            <button type="button" class="category-stepper-btn plus">+</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <div class="theme-card" id="card-espanja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🇪🇸</span>
+                    <span class="theme-card-name">Espanja</span>
+                    <span class="theme-setting-help" data-theme-key="espanja">Säännöt (?)</span>
                 </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="piirtäminen">?</div>
-                    <span id="themeWeightValue-piirtäminen" class="theme-weight-counter">2</span>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="espanja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-espanja" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="espanja">+</button>
                 </div>
             </div>
-            <div class="slider-control-wrapper" id="wrapper-piirtaminen">
-                <input class="theme-weight-slider" id="theme-weight-piirtaminen" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-piirtäminen">
+            <div class="theme-card" id="card-englanniksi">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🇬🇧</span>
+                    <span class="theme-card-name">Englanniksi</span>
+                    <span class="theme-setting-help" data-theme-key="englanniksi">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="englanniksi">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-englanniksi" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="englanniksi">+</button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Espanja -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-espanja" class="theme-toggle-checkbox" data-theme-id="espanja" data-default="1">
-                    <label for="toggle-espanja" class="theme-label-text">Espanja</label>
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">🚫 Rajoitukset</span>
+        </div>
+        <div class="category-stepper" onclick="event.stopPropagation()">
+            <button type="button" class="category-stepper-btn minus">−</button>
+            <button type="button" class="category-stepper-btn plus">+</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <div class="theme-card" id="card-ilman-verbeja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🚫🔁</span>
+                    <span class="theme-card-name">Ilman verbejä</span>
+                    <span class="theme-setting-help" data-theme-key="ilman verbejä">Säännöt (?)</span>
                 </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="espanja">?</div>
-                    <span id="themeWeightValue-espanja" class="theme-weight-counter">0</span>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="ilman-verbeja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-ilman-verbeja" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="ilman-verbeja">+</button>
                 </div>
             </div>
-            <div class="slider-control-wrapper disabled" id="wrapper-espanja">
-                <input class="theme-weight-slider" id="theme-weight-espanja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-espanja">
+            <div class="theme-card" id="card-ilman-substantiiveja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🚫📦</span>
+                    <span class="theme-card-name">Ilman substantiiveja</span>
+                    <span class="theme-setting-help" data-theme-key="ilman substantiiveja">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="ilman-substantiiveja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-ilman-substantiiveja" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="ilman-substantiiveja">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-vastakohdan-kautta">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">↔️</span>
+                    <span class="theme-card-name">Vastakohdan kautta</span>
+                    <span class="theme-setting-help" data-theme-key="vastakohdan kautta">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vastakohdan-kautta">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vastakohdan-kautta" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vastakohdan-kautta">+</button>
+                </div>
             </div>
         </div>
-
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-englanniksi" class="theme-toggle-checkbox" checked data-theme-id="englanniksi" data-default="1">
-                    <label for="toggle-englanniksi" class="theme-label-text">Englanniksi</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="englanniksi">?</div>
-                    <span id="themeWeightValue-englanniksi" class="theme-weight-counter">1</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-englanniksi">
-                <input class="theme-weight-slider" id="theme-weight-englanniksi" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-englanniksi">
-            </div>
-        </div>
-
-        <!-- Ilman verbejä -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-ilman-verbeja" class="theme-toggle-checkbox" checked data-theme-id="ilman-verbeja" data-default="1">
-                    <label for="toggle-ilman-verbeja" class="theme-label-text">Ilman verbejä</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="ilman verbejä">?</div>
-                    <span id="themeWeightValue-ilman-verbeja" class="theme-weight-counter">1</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-ilman-verbeja">
-                <input class="theme-weight-slider" id="theme-weight-ilman-verbeja" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-ilman-verbeja">
-            </div>
-        </div>
-
-        <!-- Ilman substantiiveja -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-ilman-substantiiveja" class="theme-toggle-checkbox" data-theme-id="ilman-substantiiveja" data-default="1">
-                    <label for="toggle-ilman-substantiiveja" class="theme-label-text">Ilman substantiiveja</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="ilman substantiiveja">?</div>
-                    <span id="themeWeightValue-ilman-substantiiveja" class="theme-weight-counter">0</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper disabled" id="wrapper-ilman-substantiiveja">
-                <input class="theme-weight-slider" id="theme-weight-ilman-substantiiveja" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-ilman-substantiiveja">
-            </div>
-        </div>
-
-        <!-- Vastakohdan kautta -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-vastakohdan-kautta" class="theme-toggle-checkbox" checked data-theme-id="vastakohdan-kautta" data-default="2">
-                    <label for="toggle-vastakohdan-kautta" class="theme-label-text">Vastakohdan kautta</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="vastakohdan kautta">?</div>
-                    <span id="themeWeightValue-vastakohdan-kautta" class="theme-weight-counter">2</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-vastakohdan-kautta">
-                <input class="theme-weight-slider" id="theme-weight-vastakohdan-kautta" type="range" min="0" max="10" value="2" data-value-id="themeWeightValue-vastakohdan-kautta">
-            </div>
-        </div>
-
-        <!-- Elokuva -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-elokuva" class="theme-toggle-checkbox" checked data-theme-id="elokuva" data-default="1">
-                    <label for="toggle-elokuva" class="theme-label-text">Elokuva</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="elokuva">?</div>
-                    <span id="themeWeightValue-elokuva" class="theme-weight-counter">1</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-elokuva">
-                <input class="theme-weight-slider" id="theme-weight-elokuva" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-elokuva">
-            </div>
-        </div>
-
-        <!-- Perusvaihtoehto -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-perusvaihtoehto" class="theme-toggle-checkbox" checked data-theme-id="perusvaihtoehto" data-default="4">
-                    <label for="toggle-perusvaihtoehto" class="theme-label-text">Perusvaihtoehto</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="perusvaihtoehto">?</div>
-                    <span id="themeWeightValue-perusvaihtoehto" class="theme-weight-counter">4</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-perusvaihtoehto">
-                <input class="theme-weight-slider" id="theme-weight-perusvaihtoehto" type="range" min="0" max="10" value="4" data-value-id="themeWeightValue-perusvaihtoehto">
-            </div>
-        </div>
-
-        <!-- Vapaavalintainen -->
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-vapaavalintainen" class="theme-toggle-checkbox" checked data-theme-id="vapaavalintainen" data-default="1">
-                    <label for="toggle-vapaavalintainen" class="theme-label-text">Vapaavalintainen</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="vapaavalintainen">?</div>
-                    <span id="themeWeightValue-vapaavalintainen" class="theme-weight-counter">1</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-vapaavalintainen">
-                <input class="theme-weight-slider" id="theme-weight-vapaavalintainen" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vapaavalintainen">
-            </div>
-        </div>
-<div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-nakymaton-muste" class="theme-toggle-checkbox" data-theme-id="nakymaton-muste" data-default="1">
-                    <label for="toggle-nakymaton-muste" class="theme-label-text">Näkymätön muste</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="näkymätön muste">?</div>
-                    <span id="themeWeightValue-nakymaton-muste" class="theme-weight-counter">0</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper disabled" id="wrapper-nakymaton-muste">
-                <input class="theme-weight-slider" id="theme-weight-nakymaton-muste" type="range" min="0" max="10" value="0" data-value-id="themeWeightValue-nakymaton-muste">
-            </div>
-        </div>
-
-        <div class="setting-row-container" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="setting-row-header">
-                <div class="setting-title-block">
-                    <input type="checkbox" id="toggle-vain-emojit" class="theme-toggle-checkbox" checked data-theme-id="vain-emojit" data-default="1">
-                    <label for="toggle-vain-emojit" class="theme-label-text">Vain emojit</label>
-                </div>
-                <div class="right-controls-group">
-                    <div class="theme-setting-help" data-theme-key="vain emojit">?</div>
-                    <span id="themeWeightValue-vain-emojit" class="theme-weight-counter">1</span>
-                </div>
-            </div>
-            <div class="slider-control-wrapper" id="wrapper-vain-emojit">
-                <input class="theme-weight-slider" id="theme-weight-vain-emojit" type="range" min="0" max="10" value="1" data-value-id="themeWeightValue-vain-emojit">
-            </div>
-        </div>
+    </div>
 </div>
-            </div>
         </div> <!-- Закрываем settingsTab -->
 
     </div> <!-- Закрываем modal-content -->

@@ -1161,16 +1161,11 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 }
 
 /* Joustava pohja animaatiolle */
-.spell-rules .accordion-content {
+.accordion-content {
     max-height: 0;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(229, 193, 88, 0.2);
-    border-top: none;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    padding: 0 14px;
-    transition: max-height 0.25s ease-out, padding 0.25s ease-out;
+    transition: max-height 0.25s ease-out;
+    width: 100%;
     box-sizing: border-box;
 }
 
@@ -1469,4 +1464,223 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 .hidden-words li .gold-bonus-badge {
     opacity: 0 !important;
     visibility: hidden !important;
+}
+
+/* --- UUSI TEEMA-ASETUSTEN GRID JA KORTIT --- */
+.accordion-header {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--soft-border);
+    color: #fff;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    margin-top: 10px;
+    user-select: none;
+    transition: background 0.2s, border-color 0.2s;
+    /* Гарантируем, что шапка не вылезет за экран */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.accordion-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(229, 193, 88, 0.3);
+}
+
+.accordion-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.accordion-arrow {
+    font-size: 11px;
+    color: var(--gold);
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.accordion-header.active .accordion-arrow {
+    transform: rotate(90deg);
+}
+
+.accordion-title {
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Comfortaa', sans-serif;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease-out;
+    /* Убрали боковые отступы отсюда, чтобы избежать конфликтов ширины */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.category-stepper {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.category-stepper-btn {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.category-stepper-btn:active {
+    background: var(--gold);
+    color: #000;
+}
+
+.themes-grid {
+    display: grid;
+    /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: minmax(0, 1fr) запрещает карточкам распирать сетку за пределы экрана */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    /* 25px снизу гарантируют, что гильотина overflow:hidden никогда не коснётся рамок */
+    padding: 10px 4px 25px 4px; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Адаптивность для ПК */
+@media (min-width: 520px) {
+    .themes-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        padding: 10px 4px 25px 4px; 
+    }
+}
+
+.theme-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--soft-border);
+    border-radius: 14px;
+    /* Сузили боковые отступы внутри карточки, чтобы длинным словам хватило места */
+    padding: 12px 6px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    min-height: 145px; 
+    box-sizing: border-box;
+    transition: all 0.25s ease;
+}
+
+.theme-card.active-card {
+    border-color: var(--gold);
+    background: rgba(229, 193, 88, 0.06);
+}
+
+.theme-card.disabled-card {
+    opacity: 0.35;
+    filter: grayscale(90%);
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.theme-card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.theme-card-emoji {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.theme-card-name {
+    color: #fff;
+    font-size: 10.5px; /* Чуть уменьшили размер */
+    letter-spacing: -0.2px; /* Слегка уплотнили буквы */
+    font-weight: bold;
+    line-height: 1.3;
+    /* Комбинация для идеального переноса по слогам */
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto; 
+    width: 100%;
+}
+
+.theme-setting-help {
+    margin-top: 5px;
+    color: var(--text-muted);
+    font-size: 9.5px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.stepper-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 20px;
+    padding: 3px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.stepper-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.stepper-btn:active {
+    background: var(--gold);
+    color: #000;
+}
+
+.theme-weight-input {
+    width: 32px;
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.theme-weight-input::-webkit-outer-spin-button,
+.theme-weight-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
 }
