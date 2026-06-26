@@ -11,6 +11,13 @@ const calculateSpells = (rounds, basePercent, diceRoll) => {
 
 const renderSpellButtonsBeforeWords = () => {
     const p = gamePlayers[currentPlayerIndex];
+
+    // UUSI TARKISTUS: Jos pelaajalla ei ole taikahahmoa, piilotetaan koko säiliö välittömästi!
+    if (!["Muodonmuuttaja", "Kirouksenlangettaja", "Yrttitarhuri"].includes(p.name)) {
+        spellContainer.style.display = "none";
+        return;
+    }
+
     spellContainer.style.display = "flex";
     
     // Alustetaan rivit ja painikkeet aina piiloon puhtaasti ilman inline-häiriöitä

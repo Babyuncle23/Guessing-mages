@@ -32,7 +32,14 @@ const getThemeWeightsFromUI = () => {
 const initializeThemeWeightSteppers = () => {
     const stepperCards = document.querySelectorAll('.theme-card');
 
-    // 1. Привязка индивидуальных карточек
+    // 1. Tallenna oletusarvot sivuun resetointia varten
+    const inputs = document.querySelectorAll('.theme-weight-input');
+    inputs.forEach(input => {
+        input.dataset.defaultValue = input.value;
+        input.dataset.savedValue = input.value;
+    });
+
+    // 2. Yksittäisten teemakorttien logiikka (+ ja -)
     stepperCards.forEach(card => {
         const minusBtn = card.querySelector('.stepper-btn.minus');
         const plusBtn = card.querySelector('.stepper-btn.plus');
@@ -52,6 +59,28 @@ const initializeThemeWeightSteppers = () => {
             } else {
                 card.classList.remove('disabled-card');
                 card.classList.add('active-card');
+            }
+
+            // Tarkista kategorian tila automaattisesti! 
+            // Jos yksikään teema kategoriassa on > 0, kategoria kytkeytyy visuaalisesti päälle.
+            const accordion = card.closest('.accordion-content');
+            if (accordion) {
+                const header = accordion.previousElementSibling;
+                const toggleBtn = header.querySelector('.category-toggle-btn');
+                if (toggleBtn) {
+                    const allInputs = Array.from(accordion.querySelectorAll('.theme-weight-input'));
+                    const anyActive = allInputs.some(inp => parseInt(inp.value, 10) > 0);
+                    
+                    if (anyActive && !toggleBtn.classList.contains('active')) {
+                        toggleBtn.classList.add('active');
+                        toggleBtn.textContent = 'Päällä';
+                        header.classList.remove('disabled-category');
+                    } else if (!anyActive && toggleBtn.classList.contains('active')) {
+                        toggleBtn.classList.remove('active');
+                        toggleBtn.textContent = 'Pois';
+                        header.classList.add('disabled-category');
+                    }
+                }
             }
         };
 
@@ -82,42 +111,78 @@ const initializeThemeWeightSteppers = () => {
         updateCardState();
     });
 
-    // 2. НОВОЕ: Групповое управление категориями (Плюс / Минус на шапках)
+    // 3. Kategorioiden Päällä/Pois -kytkimet
     const categoryHeaders = document.querySelectorAll('.accordion-header');
     categoryHeaders.forEach(header => {
-        const minusBtn = header.querySelector('.category-stepper-btn.minus');
-        const plusBtn = header.querySelector('.category-stepper-btn.plus');
+        const toggleBtn = header.querySelector('.category-toggle-btn');
         const content = header.nextElementSibling;
         
-        if (!minusBtn || !plusBtn || !content) return;
+        if (!toggleBtn || !content) return;
 
-        minusBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Estää haitarin sulkeutumisen kytkintä painettaessa
             if (typeof playClickSound === 'function') playClickSound();
-            const inputs = content.querySelectorAll('.theme-weight-input');
-            inputs.forEach(input => {
-                let val = parseInt(input.value, 10) || 0;
-                if (val > 0) {
-                    input.value = val - 1;
-                    // Программно пинаем событие input, чтобы карточка мгновенно обновила цвета
+            
+            const isActive = toggleBtn.classList.contains('active');
+            const catInputs = content.querySelectorAll('.theme-weight-input');
+            
+            if (isActive) {
+                // Kytke kategoria POIS
+                toggleBtn.classList.remove('active');
+                toggleBtn.textContent = 'Pois';
+                header.classList.add('disabled-category');
+                
+                catInputs.forEach(input => {
+                    input.dataset.savedValue = input.value; // Tallenna nykyinen asetus muistiin
+                    input.value = 0;
+                    input.dispatchEvent(new Event('input')); // Päivittää kortin värin harmaaksi
+                });
+            } else {
+                // Kytke kategoria PÄÄLLE
+                toggleBtn.classList.add('active');
+                toggleBtn.textContent = 'Päällä';
+                header.classList.remove('disabled-category');
+                
+                catInputs.forEach(input => {
+                    let valToRestore = parseInt(input.dataset.savedValue, 10);
+                    // Jos tallennettu arvo oli 0, palautetaan turvallisuuden vuoksi oletus (jotta jokin menee päälle)
+                    if (isNaN(valToRestore) || valToRestore === 0) {
+                        valToRestore = parseInt(input.dataset.defaultValue, 10) || 1;
+                    }
+                    input.value = valToRestore;
                     input.dispatchEvent(new Event('input'));
-                }
-            });
-        });
-
-        plusBtn.addEventListener('click', () => {
-            if (typeof playClickSound === 'function') playClickSound();
-            const inputs = content.querySelectorAll('.theme-weight-input');
-            inputs.forEach(input => {
-                let val = parseInt(input.value, 10) || 0;
-                if (val < 99) {
-                    input.value = val + 1;
-                    input.dispatchEvent(new Event('input'));
-                }
-            });
+                });
+            }
         });
     });
 
-    // 3. Обработка окна справки правил "Säännöt (?)"
+    // 4. Globaalit Master-painikkeet: Nollaa ja Palauta oletukset
+    const btnZeroAll = document.getElementById('btnZeroAll');
+    const btnResetDefault = document.getElementById('btnResetDefault');
+
+    if (btnZeroAll) {
+        btnZeroAll.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            document.querySelectorAll('.theme-weight-input').forEach(input => {
+                input.dataset.savedValue = input.value; 
+                input.value = 0;
+                input.dispatchEvent(new Event('input'));
+            });
+        });
+    }
+
+    if (btnResetDefault) {
+        btnResetDefault.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            document.querySelectorAll('.theme-weight-input').forEach(input => {
+                input.value = input.dataset.defaultValue || 1;
+                input.dataset.savedValue = input.value;
+                input.dispatchEvent(new Event('input'));
+            });
+        });
+    }
+
+    // 5. Säännöt (?) painikkeiden logiikka pysyy ennallaan
     const helpButtons = document.querySelectorAll('.theme-setting-help');
     helpButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -144,6 +209,7 @@ const initializeThemeWeightSteppers = () => {
     });
 };
 
+// Varmistetaan, että kuuntelija on yhä paikallaan
 window.addEventListener('DOMContentLoaded', initializeThemeWeightSteppers);
 
 // Вспомогательная функция для рендера красивой пульсирующей кнопки правил темы

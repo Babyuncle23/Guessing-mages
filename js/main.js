@@ -2,62 +2,74 @@
 document.getElementById('startGameBtn').addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     
-    // Считываем количество раундов из настроек
     totalTurns = parseInt(document.getElementById('roundSelect').value) || 10;
     gamePlayers = [];
 
-    // Базовые коэффициенты баланса заклинаний (остаются прежними)
     const BASE_VALUES = { flood: 0.2, metamorphosis: 0.25, curse: 0.18, regrowth: 0.18 };
-    
-    // ФИКСИРОВАННЫЙ БАЛАНС: вместо кубика передаем среднее стабильное значение 3.5 (округлим до 3)
     const balancedRoll = 3; 
 
-    // Создаем объекты игроков напрямую на основе выбранных в setupOrder харонов
-    setupOrder.forEach((name) => {
-        if (name === "Muodonmuuttaja") {
-            gamePlayers.push({
-                name: "Muodonmuuttaja",
-                img: charImages["Muodonmuuttaja"],
-                score: 0,
-                spells: { 
-                    metamorphosis: calculateSpells(totalTurns, BASE_VALUES.metamorphosis, balancedRoll),
-                    flood: calculateSpells(totalTurns, BASE_VALUES.flood, balancedRoll)
-                }
-            });
-        } else if (name === "Kirouksenlangettaja") {
-            gamePlayers.push({
-                name: "Kirouksenlangettaja",
-                img: charImages["Kirouksenlangettaja"],
-                score: 0,
-                spells: { 
-                    hunger: calculateSpells(totalTurns, BASE_VALUES.curse, balancedRoll),
-                    chaos: calculateSpells(totalTurns, BASE_VALUES.flood, balancedRoll)
-                }
-            });
-        } else if (name === "Yrttitarhuri") {
-            gamePlayers.push({
-                name: "Yrttitarhuri",
-                img: charImages["Yrttitarhuri"],
-                score: 0,
-                spells: { 
-                    regrowth: calculateSpells(totalTurns, BASE_VALUES.regrowth, balancedRoll)
-                },
-                extraTurnGranted: false
-            });
-        }
-    });
+    const magicToggle = document.getElementById('magicToggle');
+    const isMagicMode = magicToggle && magicToggle.checked;
 
-    // Очищаем историю слов для новой игры
+    if (isMagicMode) {
+        // LUODAAN TAIKAHAHMOT
+        setupOrder.forEach((name) => {
+            if (name === "Muodonmuuttaja") {
+                gamePlayers.push({
+                    name: "Muodonmuuttaja",
+                    img: charImages["Muodonmuuttaja"],
+                    score: 0,
+                    spells: { 
+                        metamorphosis: calculateSpells(totalTurns, BASE_VALUES.metamorphosis, balancedRoll),
+                        flood: calculateSpells(totalTurns, BASE_VALUES.flood, balancedRoll)
+                    }
+                });
+            } else if (name === "Kirouksenlangettaja") {
+                gamePlayers.push({
+                    name: "Kirouksenlangettaja",
+                    img: charImages["Kirouksenlangettaja"],
+                    score: 0,
+                    spells: { 
+                        hunger: calculateSpells(totalTurns, BASE_VALUES.curse, balancedRoll),
+                        chaos: calculateSpells(totalTurns, BASE_VALUES.flood, balancedRoll)
+                    }
+                });
+            } else if (name === "Yrttitarhuri") {
+                gamePlayers.push({
+                    name: "Yrttitarhuri",
+                    img: charImages["Yrttitarhuri"],
+                    score: 0,
+                    spells: { 
+                        regrowth: calculateSpells(totalTurns, BASE_VALUES.regrowth, balancedRoll)
+                    },
+                    extraTurnGranted: false
+                });
+            }
+        });
+    } else {
+        // LUODAAN PERUSPELAAJAT ILMAN TAIKUUTTA
+        gamePlayers.push({
+            name: "Pelaaja 1",
+            img: "👤",
+            score: 0,
+            spells: {}
+        });
+        gamePlayers.push({
+            name: "Pelaaja 2",
+            img: "👥",
+            score: 0,
+            spells: {}
+        });
+    }
+
     if (typeof usedWordsInThisGame !== 'undefined') {
         usedWordsInThisGame = [];
     }
 
-    // Закрываем модалку настроек/персонажей и сразу открываем игровое поле
     document.getElementById('characterModal').style.display = 'none';
     document.getElementById('playerTurn').style.display = 'flex';
     roundControls.style.display = 'none';
     
-    // Обновляем UI под первый ход
     updateTurnDisplay();
 });
 

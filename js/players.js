@@ -11,7 +11,10 @@ let gamePlayers = [];
 document.querySelectorAll('.char-card').forEach(card => {
     card.addEventListener('click', () => {
         const name = card.dataset.char;
-        playClickSound();
+        if (typeof playClickSound === 'function') playClickSound();
+
+        const magicToggle = document.getElementById('magicToggle');
+        const isMagicMode = magicToggle && magicToggle.checked;
 
         if (setupOrder.includes(name)) {
             setupOrder = setupOrder.filter(item => item !== name);
@@ -25,9 +28,11 @@ document.querySelectorAll('.char-card').forEach(card => {
                 }
             });
 
-            // Если убрали выделение и осталось меньше 2 персонажей — пишем крупно:
-            document.getElementById('startGameBtn').disabled = true;
-            document.getElementById('startGameBtn').textContent = "VALITKAA 2 HAHMOA"; 
+            if (isMagicMode) {
+                document.getElementById('startGameBtn').disabled = true;
+                document.getElementById('startGameBtn').textContent = "VALITKAA 2 HAHMOA"; 
+                document.getElementById('startGameBtn').style.background = "#5b21b6";
+            }
             return;
         }
 
@@ -36,11 +41,43 @@ document.querySelectorAll('.char-card').forEach(card => {
             if (setupOrder.length === 1) card.classList.add('selected-first');
             if (setupOrder.length === 2) card.classList.add('selected-second');
 
-            // Только когда выбрано ровно 2 персонажа, текст меняется на запуск игры:
-            if (setupOrder.length === 2) {
+            if (setupOrder.length === 2 && isMagicMode) {
                 document.getElementById('startGameBtn').disabled = false;
-                document.getElementById('startGameBtn').textContent = "ALOITA PELI"; 
+                document.getElementById('startGameBtn').textContent = "ALOITA TAIKAPELI"; 
+                document.getElementById('startGameBtn').style.background = "#5b21b6";
             }
         }
     });
+});
+
+// UUSI: Taikatilan kytkimen logiikka
+window.addEventListener('DOMContentLoaded', () => {
+    const magicToggle = document.getElementById('magicToggle');
+    const charBlock = document.getElementById('characterSelectionBlock');
+    const startBtn = document.getElementById('startGameBtn');
+
+    if (magicToggle && charBlock && startBtn) {
+        magicToggle.addEventListener('change', (e) => {
+            if (typeof playClickSound === 'function') playClickSound();
+            
+            if (e.target.checked) {
+                charBlock.style.display = 'block';
+                // Tarkistetaan onko jo valittu 2 hahmoa
+                if (setupOrder.length === 2) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = "ALOITA TAIKAPELI";
+                    startBtn.style.background = "#5b21b6"; 
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.textContent = "VALITKAA 2 HAHMOA";
+                    startBtn.style.background = "#5b21b6";
+                }
+            } else {
+                charBlock.style.display = 'none';
+                startBtn.disabled = false;
+                startBtn.textContent = "ALOITA PERUSPELI";
+                startBtn.style.background = "#27ae60"; // Vihreä peruspeliin
+            }
+        });
+    }
 });
