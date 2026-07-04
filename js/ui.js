@@ -147,12 +147,12 @@ const renderOlList = () => {
         if (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn === true) {
             isRare = false;
         }
-
-        const bonusTag = isRare ? `<span class="gold-bonus-badge">+25p</span>` : '';
+// ОБНОВЛЕНО: Текст стал четкой инструкцией
+        const bonusTag = isRare ? `<span class="gold-bonus-badge">✨ +25p (Paina tätä, jos selitit!)</span>` : '';
+        
         return `<li data-index="${index}" data-rare="${isRare}"><strong>${index + 1}.</strong> ${w} ${bonusTag}</li>`;
     }).join('');
 
-    // ВОТ ЭТУ СТРОЧКУ ДОБАВЬТЕ СЮДА:
     if (typeof updateGuessedButtonsText === 'function') {
         updateGuessedButtonsText();
     }

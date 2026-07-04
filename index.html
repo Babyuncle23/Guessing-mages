@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ark-sanum</title>
+    <link rel="stylesheet" href="styles.css">
+    <link id="favicon" rel="icon" type="image/png" href="" />
+</head>
+<body>
+
+
+    <!-- ALKU- JA ASETUSMODAALI -->
+<div id="characterModal" class="modal-overlay">
+    <div class="modal-content" style="max-height: 85vh; width: 90%; max-width: 650px; overflow-y: auto;">
+        
+        <div class="modal-age-badge">12+</div>
+
+        <!-- ПАНЕЛЬ НАВИГАЦИИ (Класс изменен на modal-navigation для соответствия вашему CSS) -->
+        <div class="modal-navigation">
+            <button class="tab-button active" onclick="openTab(event, 'gameTab')">Peli</button>
+            <button class="tab-button" onclick="openTab(event, 'settingsTab')">Asetukset</button>
+        </div>
+
+        <!-- НАЧАЛО ВКЛАДКИ «ИГРА» -->
+        <div id="gameTab" class="tab-content active">
+            <h2>🧙‍♂️ Ark-sanum</h2>
+
+            <!-- RULES -->
+
+<div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
+    
+    <p style="margin-bottom: 12px; line-height: 1.5; font-size: 14px;">
+        Ark-sanum on sanaselityspeli, jossa taikuus muuttaa sääntöjä kesken pelin.
+    </p>
+
+    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin-bottom: 15px;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.4;">
+            <strong>Peli kahden kesken:</strong> Pelataan yhdellä puhelimella vuorotellen. Selittäjä kuvailee sanaa satunnaisen ehdon mukaan ja toinen arvaa. Oikeasta vastauksesta selittäjä saa pisteen painamalla ”Arvattu oikein”. Pelissä on kilpailullinen elementti, mutta arvailu ja selittäminen perustuvat rehelliseen yhteistyöhön.
+        </p>
+    </div>
+
+    <p style="margin-bottom: 12px; font-size: 13.5px; line-height: 1.4;">
+        <strong>Milloin 0 pistettä?</strong> Napsauta ”Luovuta vuoro”, jos sääntöjä on rikottu tai kukaan pelaajista ei jaksa jatkaa kierrosta.
+    </p>
+
+    <!-- MULTIPLAYER ACCORDION -->
+    <div class="multiplayer-accordion">
+        <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            👥 Onko teitä 3 tai enemmän?
+        </button>
+        <div class="accordion-content">
+            <p style="margin-bottom: 12px; color: var(--gold); font-weight: bold; font-size: 13px;">
+                Isommalla porukalla peli jakautuu kahteen tiimiin:
+            </p>
+            
+            <div class="player-count-option" style="margin-bottom: 12px;">
+                <span class="count-badge">3 pelaajaa</span>
+                <p>Kaksi pelaajaa muodostaa tiimin ja pelaa yhdessä kolmatta vastaan.</p>
+            </div>
+
+            <div class="player-count-option">
+                <span class="count-badge">4+ pelaajaa</span>
+                <p>Jakaantukaa kahteen joukkueeseen. Vuorossa oleva selittäjä katsoo sanan yksin:</p>
+                <ul style="margin-left: 15px; margin-top: 5px; font-size: 12px; color: var(--text-muted); list-style: disc;">
+                    <li>Oma joukkue saa pisteen arvaamalla sanan oikein.</li>
+                    <li><strong>Vastustajat mukaan:</strong> Myös vastustajat saavat arvata. Jos he ehtivät ensin, oma tiimi jää ilman pisteitä.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <p style="margin-bottom: 15px; font-size: 13px; color: var(--text-muted); line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+        ⚙️ <strong>Asetukset:</strong> Pelin pituutta ja ehtoja voi muuttaa <strong>Asetukset</strong>-välilehdellä.
+    </p>
+</div>
+
+<!-- TAIKATILAN KYTKIN -->
+<div style="background: rgba(255,255,255,0.03); border: 1px solid var(--soft-border); border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%;">
+        <span style="font-weight: bold; font-size: 14px; color: var(--gold);">✨ Pelaa taikahahmoilla</span>
+        <input type="checkbox" id="magicToggle" style="transform: scale(1.3); cursor: pointer;">
+    </label>
+    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; margin-bottom: 0; line-height: 1.4;">
+        Kytke päälle, jos haluatte käyttää hahmoja ja loitsuja. Ilman tätä pelaatte tavallista peliä (Pelaaja 1 vs Pelaaja 2).
+    </p>
+</div>
+
+<!-- HAHMOVALINTAKORTIT (Piilotettu oletuksena) -->
+<div id="characterSelectionBlock" style="display: none;">
+    <h3 style="margin-bottom: 5px;">🧙‍♀️ Valitkaa hahmot</h3>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+        Valitkaa kaksi eri hahmoa. Ensimmäiseksi valittu aloittaa pelin!
+    </p>
+    
+    <div class="character-options" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+        <!-- Карточка 1: Muodonmuuttaja -->
+        <div class="char-card" data-char="Muodonmuuttaja" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
+            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">🐺</div>
+            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Muodonmuuttaja</p>
+                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Muokkaa sanaluetteloaan itselleen sopivammaksi</small>
+            </div>
+        </div>
+
+        <!-- Карточка 2: Kirouksenlangettaja -->
+        <div class="char-card" data-char="Kirouksenlangettaja" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
+            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">💀</div>
+            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Kirouksenlangettaja</p>
+                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Vaikeuttaa vastustajan peliä</small>
+            </div>
+        </div>
+
+        <!-- Карточка 3: Yrttitarhuri -->
+        <div class="char-card" data-char="Yrttitarhuri" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
+            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">🌿</div>
+            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
+                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Yrttitarhuri</p>
+                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Voi ansaita lisävuoroja</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ALOITUSPAINIKE (Oletuksena vihreä ja valmis peruspeliin) -->
+<div style="margin-bottom: 20px;">
+    <button id="startGameBtn" class="start-game-btn" style="background: #27ae60; color: #fff;">ALOITA PERUSPELI</button>
+</div>
+
+        </div> <!-- ЗАКРЫЛИ ВКЛАДКУ gameTab -->
+  <!-- НАЧАЛО ВКЛАДКИ «НАСТРОЙКИ» (id изменен на settingsTab для совместимости с JS) -->
+        <div id="settingsTab" class="tab-content">
+            <!-- SETTINGS -->
+            <h3>⚙️ Asetukset</h3>
+            <div style="margin-bottom: 20px;">
+                <label for="roundSelect" style="font-weight:bold; display:block; margin-bottom:8px;">Pelin pituus</label>
+                <select id="roundSelect" style="padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; font-family: 'Comfortaa'; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
+                    <option value="2">2 kierrosta (Demo)</option>
+                    <option value="5">5 kierrosta (Nopea matsi)</option>
+                    <option value="7" selected>7 kierrosta (Suositus)</option>
+                    <option value="10">10 kierrosta (Taktinen peli)</option>
+                    <option value="15">15 kierrosta</option>
+                    <option value="20">20 kierrosta (Maraton)</option>
+                </select>
+            </div>
+
+<!-- MUKAUTUSVALINNAT -->
+<div style="margin-bottom: 20px;">
+    
+    <!-- UUSI: Ohjeistus ja globaalit painikkeet -->
+    <div class="theme-settings-intro" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+            💡 <strong>Mitä nämä asetukset tekevät?</strong><br>
+            Asetuksilla päätät, kuinka usein tietyt selitysehdot (teemat) tulevat peliin. Mitä suurempi luku, sitä todennäköisemmin ehto arvotaan. Nolla (0) poistaa teeman kokonaan pelistä. Voit myös kytkeä kokonaisia kategorioita päälle tai pois.
+        </p>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" id="btnZeroAll" style="background: rgba(192, 57, 43, 0.2); border: 1px solid rgba(192, 57, 43, 0.5); color: #fc8181; font-size: 12px; padding: 8px; margin-top: 0; min-height: auto; flex: 1;">Nollaa kaikki</button>
+            <button type="button" id="btnResetDefault" style="background: rgba(39, 174, 96, 0.2); border: 1px solid rgba(39, 174, 96, 0.5); color: #82e0aa; font-size: 12px; padding: 8px; margin-top: 0; min-height: auto; flex: 1;">Palauta oletukset</button>
+        </div>
+    </div>
+
+<!-- KLASSIKOT -->
+    <!-- LISÄTTY: Luokka 'active' pitää nuolen oikeassa asennossa alussa -->
+    <div class="accordion-header active" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">📜 Klassikot</span>
+        </div>
+        <div class="category-toggle" onclick="event.stopPropagation()">
+            <button type="button" class="category-toggle-btn active">Päällä</button>
+        </div>
+    </div>
+    <!-- LISÄTTY: Luokka 'open' ja inline style max-height, jotta se on auki ladattaessa -->
+    <div class="accordion-content open" style="max-height: 1000px;">
+        <div class="themes-grid">
+            <!-- (Твои theme-card для Klassikot остаются без изменений, просто вставь их сюда) -->
+            <div class="theme-card" id="card-perusvaihtoehto">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">❓</span>
+                    <span class="theme-card-name">Perusvaihtoehto</span>
+                    <span class="theme-setting-help" data-theme-key="perusvaihtoehto">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="perusvaihtoehto">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-perusvaihtoehto" value="3" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="perusvaihtoehto">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-vapaavalintainen">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">✳️</span>
+                    <span class="theme-card-name">Vapaavalintainen</span>
+                    <span class="theme-setting-help" data-theme-key="vapaavalintainen">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vapaavalintainen">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vapaavalintainen" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vapaavalintainen">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-pantomiimi">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🎭</span>
+                    <span class="theme-card-name">Pantomiimi</span>
+                    <span class="theme-setting-help" data-theme-key="pantomiimi">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="pantomiimi">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-pantomiimi" value="2" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="pantomiimi">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-piirtaminen">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🖌️</span>
+                    <span class="theme-card-name">Piirtäminen</span>
+                    <span class="theme-setting-help" data-theme-key="piirtäminen">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="piirtaminen">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-piirtaminen" value="2" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="piirtaminen">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ERIKOISUUDET -->
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">👻 Erikoisuudet</span>
+        </div>
+        <div class="category-toggle" onclick="event.stopPropagation()">
+            <button type="button" class="category-toggle-btn active">Päällä</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <!-- (Твои theme-card для Erikoisuudet) -->
+            <div class="theme-card" id="card-nakymaton-muste">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">👻</span>
+                    <span class="theme-card-name">Näkymätön muste</span>
+                    <span class="theme-setting-help" data-theme-key="näkymätön muste">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="nakymaton-muste">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-nakymaton-muste" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="nakymaton-muste">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-vain-emojit">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">📱</span>
+                    <span class="theme-card-name">Vain emojit</span>
+                    <span class="theme-setting-help" data-theme-key="vain emojit">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vain-emojit">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vain-emojit" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vain-emojit">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-elokuva">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🎬</span>
+                    <span class="theme-card-name">Elokuva</span>
+                    <span class="theme-setting-help" data-theme-key="elokuva">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="elokuva">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-elokuva" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="elokuva">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KIELELLISET -->
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">🌍 Kielelliset</span>
+        </div>
+        <div class="category-toggle" onclick="event.stopPropagation()">
+            <button type="button" class="category-toggle-btn active">Päällä</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <!-- (Твои theme-card для Kielelliset) -->
+             <div class="theme-card" id="card-espanja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🇪🇸</span>
+                    <span class="theme-card-name">Espanja</span>
+                    <span class="theme-setting-help" data-theme-key="espanja">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="espanja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-espanja" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="espanja">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-englanniksi">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🇬🇧</span>
+                    <span class="theme-card-name">Englanniksi</span>
+                    <span class="theme-setting-help" data-theme-key="englanniksi">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="englanniksi">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-englanniksi" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="englanniksi">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RAJOITUKSET -->
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">🚫 Rajoitukset</span>
+        </div>
+        <div class="category-toggle" onclick="event.stopPropagation()">
+            <button type="button" class="category-toggle-btn active">Päällä</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div class="themes-grid">
+            <!-- (Твои theme-card для Rajoitukset) -->
+            <div class="theme-card" id="card-ilman-verbeja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🚫🔁</span>
+                    <span class="theme-card-name">Ilman verbejä</span>
+                    <span class="theme-setting-help" data-theme-key="ilman verbejä">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="ilman-verbeja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-ilman-verbeja" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="ilman-verbeja">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-ilman-substantiiveja">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">🚫📦</span>
+                    <span class="theme-card-name">Ilman substantiiveja</span>
+                    <span class="theme-setting-help" data-theme-key="ilman substantiiveja">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="ilman-substantiiveja">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-ilman-substantiiveja" value="0" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="ilman-substantiiveja">+</button>
+                </div>
+            </div>
+            <div class="theme-card" id="card-vastakohdan-kautta">
+                <div class="theme-card-info">
+                    <span class="theme-card-emoji">↔️</span>
+                    <span class="theme-card-name">Vastakohdan kautta</span>
+                    <span class="theme-setting-help" data-theme-key="vastakohdan kautta">Säännöt (?)</span>
+                </div>
+                <div class="stepper-controls">
+                    <button type="button" class="stepper-btn minus" data-theme="vastakohdan-kautta">−</button>
+                    <input type="number" class="theme-weight-input" id="theme-weight-vastakohdan-kautta" value="1" min="0" max="99">
+                    <button type="button" class="stepper-btn plus" data-theme="vastakohdan-kautta">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        </div> <!-- Закрываем settingsTab -->
+
+    </div> <!-- Закрываем modal-content -->
+</div> <!-- Закрываем modal-overlay -->
+
+
+<!-- VARSINAINEN PELIALUE -->
+<div class="container" id="gameContainer">
+    <div class="age-badge">12+</div>
+    <div id="playerTurn" class="player-turn-container" style="display: none;">
+        <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
+<div class="player-block">
+    <!-- Переносим имя ИГРОКА сюда, к волку -->
+    <div class="avatar-wrapper">
+        <div id="currentAvatar" class="current-avatar-emoji" style="font-size:40px; width:48px; text-align:center;"></div>
+        <div id="debuffIcons" class="debuff-icons"></div>
+        
+        <!-- ВОТ СЮДА ПЕРЕНЕСЛИ ИМЯ ИЗ БЛОКА НИЖЕ -->
+        <div id="currentName"></div> 
+    </div>
+    
+    <!-- Справа остаются только очки команд -->
+    <div>
+        <div id="scoreDisplay" class="score-display">Pisteet: 0 - 0</div>
+    </div>
+</div>
+    </div>
+
+    <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
+    <div id="themeBlock">
+        <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
+        <small class="zone-badge-title">Selityksen ehto</small>
+        <div id="themeDisplay" class="theme-text"></div>
+        <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
+    </div>
+
+    <div id="loader" class="drum-animation" style="display: none;"><span>Noniin...</span></div>
+
+    <div id="customWordBlock" style="display: none; margin: 15px 0;">
+        <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
+    </div>
+
+<div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
+    <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
+    <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
+    
+    <div class="spell-action-row" id="spellRow1">
+        <button id="spellBtn1" class="spell-btn"></button>
+        <!-- ЗАМЕНЕНО НА DIV -->
+        <div id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+    </div>
+    <div class="spell-action-row" id="spellRow2">
+        <button id="spellBtn2" class="spell-btn"></button>
+        <!-- ЗАМЕНЕНО НА DIV -->
+        <div id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+    </div>
+    <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
+</div>
+
+    <!-- SANALISTA JA OHJEET -->
+  <!-- SANALISTA JA OHJEET -->
+    <ol id="wordList" style="display: none;"></ol>
+
+    <div id="ruleInstruction" class="rule-instruction"></div>
+    <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
+
+    <!-- KEHITTÄJÄN TESTIVALIKKO 
+    <div id="devTestMenu" style="margin: 15px 0; padding: 12px; border: 1px dashed var(--soft-border); border-radius: 8px; background: rgba(0,0,0,0.4);">
+        <p style="font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 8px;">🧙‍♂️ KEHITTÄJÄN TESTIVALIKKO:</p>
+        <select id="devThemeSelect" style="padding: 6px 10px; border-radius: 6px; font-family: 'Comfortaa'; width: 100%; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
+            <option value="RANDOM">-- Normaali satunnainen arvonta --</option>
+            <option value="pantomiimi">Pantomiimi</option>
+            <option value="piirtäminen">Piirtäminen</option>
+            <option value="espanja">Espanja</option>
+            <option value="ilman verbejä">Ilman verbejä</option>
+            <option value="ilman substantiiveja">Ilman substantiiveja</option>
+            <option value="vastakohdan kautta">Vastakohdan kautta</option>
+            <option value="kaksi ehtoa">Kaksi ehtoa</option>
+            <option value="elokuva">Elokuva</option>
+            <option value="perusvaihtoehto">Perusvaihtoehto</option>
+            <option value="vapaavalintainen">Vapaavalintainen</option>
+        </select>
+    </div> -->
+
+    <button id="btn">Aloita kierros</button>
+
+    <!-- НИЖЕ ИДЕТ КОНТЕЙНЕР ДЛЯ ЗАКЛИНАНИЙ, КОТОРЫЙ У ТЕБЯ В HTML НАПИСАН ДАЛЬШЕ -->
+    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
+        <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
+        <div class="spell-action-row" id="spellRow1">
+            <button id="spellBtn1" class="spell-btn"></button>
+            <div id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+        </div>
+        <div class="spell-action-row" id="spellRow2">
+            <button id="spellBtn2" class="spell-btn"></button>
+            <div id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
+        </div>
+        <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
+    </div>
+
+    <!-- БЛОК КНОПОК ДЕЙСТВИЙ (Остается в самом низу HTML, чтобы JS не путался) -->
+<div id="roundControls" class="round-controls-block" style="display: none;">
+    <button id="btnGuessed" class="btn-success">Arvattu oikein (+100p)</button>
+    <button id="btnGiveUp" class="btn-danger">Luovutan vuoron / laiminlöin ehdon</button>
+</div>
+
+<!-- LOITSUJEN APUMODAALI -->
+<div id="spellHelpModal" class="spell-help-modal-overlay" style="display: none;">
+    <div class="spell-help-modal-content">
+        <button id="closeSpellHelpModal" class="spell-help-modal-close" aria-label="Sulje loitsuapu">✕</button>
+        <div id="spellHelpModalBody"></div>
+    </div>
+</div>
+
+<!-- МАКСИМАЛЬНО КОМПАКТНЫЙ И ОПТИМИЗИРОВАННЫЙ МОДУЛЬ РИСОВАНИЯ -->
+<div id="drawingModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0c1c; z-index: 9999; flex-direction: column; padding: 10px; box-sizing: border-box; justify-content: space-between; gap: 5px;">
+    
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ: Всё строго в одну компактную строку для экономии места -->
+    <div class="modal-header-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; margin-bottom: 2px; gap: 8px;">
+        
+        <!-- Инструменты сбалансированы по левому краю -->
+        <div class="modal-tools-row" style="display: flex; gap: 5px; align-items: center; flex-grow: 1;">
+            <button id="btnToolDraw" type="button" class="canvas-tool-btn active" style="background: var(--gold); color: #000; border: none; padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; min-width: 70px;">✏️ Kynä</button>
+            <button id="btnToolErase" type="button" class="canvas-tool-btn" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; min-width: 70px;">🧽 Kumi</button>
+            <button id="btnClearModalCanvas" type="button" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; font-family: 'Comfortaa';">🗑️ Tyhjennä</button>
+        </div>
+
+        <!-- Аккуратный круглый крестик закрытия на том же уровне -->
+        <button id="btnCloseModalCanvasX" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Comfortaa'; transition: all 0.2s;">✕</button>
+    </div>
+
+    <!-- ХОЛСТ: Высота увеличена до максимума (73% в вертикальном режиме!) -->
+    <canvas id="drawingModalCanvas" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(229, 193, 88, 0.25); border-radius: 16px; touch-action: none; width: 100%; height: 73vh; box-sizing: border-box; flex-shrink: 0; margin: 0;"></canvas>
+    
+    <!-- НИЖНИЕ КНОПКИ ОЧКОВ: Тонкие и компактные -->
+    <div class="modal-bottom-row" style="display: flex; gap: 10px; width: 100%; justify-content: center; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 2px);">
+        <button id="btnModalGuessed" type="button" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ✔️ Arvattu oikein
+        </button>
+        <button id="btnModalGiveUp" type="button" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ❌ Luovuta vuoro
+        </button>
+    </div>
+</div>
+<div id="emojiModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0c1c; z-index: 9999; flex-direction: column; padding: 10px; box-sizing: border-box; justify-content: space-between; gap: 5px;">
+    
+    <div class="modal-header-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; margin-bottom: 2px; gap: 8px;">
+        <div class="modal-tools-row" style="display: flex; gap: 5px; align-items: center; flex-grow: 1;">
+            <span style="color: var(--gold); font-family: 'Cinzel', serif; font-size: 16px; font-weight: bold;">📱 Vain Emojit</span>
+        </div>
+        <button id="btnCloseEmojiModalX" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Comfortaa'; transition: all 0.2s;">✕</button>
+    </div>
+
+    <textarea id="emojiInputArea" placeholder="Syötä emojit tähän..." style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(229, 193, 88, 0.25); border-radius: 16px; touch-action: manipulation; width: 100%; height: 73vh; box-sizing: border-box; flex-shrink: 0; margin: 0; color: white; font-size: 48px; padding: 15px; resize: none; text-align: center; outline: none;"></textarea>
+    
+    <div class="modal-bottom-row" style="display: flex; gap: 10px; width: 100%; justify-content: center; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 2px);">
+        <button id="btnEmojiGuessed" type="button" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ✔️ Arvattu oikein
+        </button>
+        <button id="btnEmojiGiveUp" type="button" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ❌ Luovuta vuoro
+        </button>
+    </div>
+</div>
+<script src="js\utils.js"></script>
+<script src="js\audio.js"></script>
+<script src="js\themes.js"></script>
+<script src="js\words.js"></script>
+<script src="js\state.js"></script>
+<script src="js\ui.js"></script>
+<script src="js\players.js"></script>
+<script src="js\spells.js"></script>
+<script src="js\rounds.js"></script>
+<script src="js\drawing.js"></script> 
+<script src="js\main.js"></script>
+
+
+<script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
