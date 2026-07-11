@@ -15,7 +15,7 @@ const themeWeights = {
     "perusvaihtoehto": 1,
     "vapaavalintainen": 1,
     "näkymätön muste": 0,
-    "vain emojit": 1
+    "vain emojit": 0  // Изменено с 1 на 0
 };
 
 const themeImages = {

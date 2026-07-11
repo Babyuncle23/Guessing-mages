@@ -128,6 +128,13 @@
     <button id="startGameBtn" class="start-game-btn" style="background: #27ae60; color: #fff;">ALOITA PERUSPELI</button>
 </div>
 
+<!-- НОВЫЙ БЛОК: QR-КОД И ПОДЕЛИТЬСЯ ИГРОЙ -->
+<div class="share-game-block" style="text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <p style="font-size: 14px; color: var(--gold); margin-bottom: 12px; font-weight: bold;">Piditkö pelistä? Jaa se ystävillesi!</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://babyuncle23.github.io/Guessing-mages/&bgcolor=0f0c1c&color=e5c158" alt="Pelin QR-koodi" style="border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 10px; width: 130px; height: 130px;">
+    <p style="font-size: 12px; color: var(--text-muted); word-break: break-all; margin: 0;">https://babyuncle23.github.io/Guessing-mages/</p>
+</div>
+
         </div> <!-- ЗАКРЫЛИ ВКЛАДКУ gameTab -->
   <!-- НАЧАЛО ВКЛАДКИ «НАСТРОЙКИ» (id изменен на settingsTab для совместимости с JS) -->
         <div id="settingsTab" class="tab-content">
@@ -251,7 +258,7 @@
                     <button type="button" class="stepper-btn plus" data-theme="nakymaton-muste">+</button>
                 </div>
             </div>
-            <div class="theme-card" id="card-vain-emojit">
+<div class="theme-card" id="card-vain-emojit">
                 <div class="theme-card-info">
                     <span class="theme-card-emoji">📱</span>
                     <span class="theme-card-name">Vain emojit</span>
@@ -259,7 +266,8 @@
                 </div>
                 <div class="stepper-controls">
                     <button type="button" class="stepper-btn minus" data-theme="vain-emojit">−</button>
-                    <input type="number" class="theme-weight-input" id="theme-weight-vain-emojit" value="1" min="0" max="99">
+                    <!-- Изменено value="1" на value="0" -->
+                    <input type="number" class="theme-weight-input" id="theme-weight-vain-emojit" value="0" min="0" max="99">
                     <button type="button" class="stepper-btn plus" data-theme="vain-emojit">+</button>
                 </div>
             </div>
