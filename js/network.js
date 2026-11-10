@@ -553,7 +553,7 @@
                 ngStatus('Sana valittu — selitys käynnissä. Arvatkaa!');
                 break;
             case 'SPELL_CAST': {
-                const flashType = { flood: 'morph', morph: 'morph', regrowth: 'druid', hunger: 'curse', chaos: 'curse' }[ev.spell] || 'morph';
+                const flashType = { flood: 'curse', morph: 'curse', regrowth: 'druid', hunger: 'morph', chaos: 'morph' }[ev.spell] || 'curse';
                 if (typeof triggerSpellAnimation === 'function') triggerSpellAnimation(flashType);
                 ngStatus('✨ Selittäjä loitsi taian!');
                 break;

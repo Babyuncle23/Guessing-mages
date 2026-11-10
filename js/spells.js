@@ -90,7 +90,7 @@ const renderSpellButtonsBeforeWords = () => {
         setSpellBtnContent(spellBtn1, "🃏 KORTTITULVA", p.spells.flood, "+2 lisäsanaa tälle kierrokselle");
         spellBtn1.disabled = p.spells.flood <= 0 || currentActiveTheme === "vapaavalintainen" || activeModifiers.extendToEight;
         spellBtn1.onclick = () => {
-            triggerSpellAnimation('morph'); // Бафф — фиолетовая вспышка
+            triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
             activeModifiers.extendToEight = true;
             isMetamorphosisUsedThisTurn = false;
             p.spells.flood--;
@@ -116,7 +116,7 @@ const renderSpellButtonsBeforeWords = () => {
         spellBtn1.disabled = p.spells.hunger <= 0 || pendingCurses.hunger !== -1;
         spellBtn1.onclick = () => {
             pickCurseTarget('hunger', () => {
-                triggerSpellAnimation('curse'); // Проклятие — красная вспышка
+                triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
                 p.spells.hunger--;
                 playAudio(sounds.curse);
                 if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('hunger');
@@ -127,7 +127,7 @@ const renderSpellButtonsBeforeWords = () => {
         spellBtn2.disabled = p.spells.chaos <= 0 || pendingCurses.chaos !== -1;
         spellBtn2.onclick = () => {
             pickCurseTarget('chaos', () => {
-                triggerSpellAnimation('curse'); // Проклятие — красная вспышка
+                triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
                 p.spells.chaos--;
                 playAudio(sounds.curse);
                 if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('chaos');
@@ -184,7 +184,7 @@ const renderSpellButtonsAfterWords = () => {
 
         spellBtn1.onclick = () => {
 
-            triggerSpellAnimation('morph'); // Бафф — фиолетовая вспышка
+            triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
 
             const cleanLetters = new Set();
 

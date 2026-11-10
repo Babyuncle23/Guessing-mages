@@ -182,7 +182,7 @@ const drawStroke = async (page, pts) => {
         await roll(page);
         check('spell btn Korttitulva', /KORTTITULVA/i.test(await page.evaluate(() => document.getElementById('spellBtn1').textContent)));
         await page.click('#spellBtn1'); await sleep(300);
-        check('Korttitulva flash = flash-morph', await page.evaluate(() => !!document.querySelector('.spell-flash-overlay.flash-morph')));
+        check('Korttitulva flash = flash-curse', await page.evaluate(() => !!document.querySelector('.spell-flash-overlay.flash-curse')));
         check('extendToEight applied', await page.evaluate(() => activeModifiers.extendToEight === true));
         const mbtnTxt = await page.evaluate(() => document.getElementById('btnDisplayWords').textContent);
         check('magic mode: "loitsut" in btn text', /loitsut/i.test(mbtnTxt), mbtnTxt);
@@ -194,7 +194,7 @@ const drawStroke = async (page, pts) => {
         await roll(page);
         check('spell btn Korttinälkä', /KORTTIN/i.test(await page.evaluate(() => document.getElementById('spellBtn1').textContent)));
         await page.click('#spellBtn1'); await sleep(300);
-        check('Korttinälkä flash = flash-curse', await page.evaluate(() => !!document.querySelector('.spell-flash-overlay.flash-curse')));
+        check('Korttinälkä flash = flash-morph', await page.evaluate(() => !!document.querySelector('.spell-flash-overlay.flash-morph')));
         check('pendingCurses.hunger targets P1', await page.evaluate(() => pendingCurses.hunger === 0));
         await page.close();
 
