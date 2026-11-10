@@ -18,6 +18,8 @@
         _handlers: {},
         _hb: null,
         _reconnectTimer: null,
+        _reconnectDelay: 2000,
+        _hadOpen: false,   // onko yhteys koskaan auennut (vs. palvelin vasta heräämässä)
         _wantRoom: false   // käyttäjä valitsi Useampi puhelin
     };
     window.Net = Net;
@@ -39,6 +41,13 @@
         return _serverBase;
     };
     const pageUrl = () => location.origin + location.pathname; // toimii myös GitHub Pagesin alipolussa
+
+    // Herätetään nukkuva free-tier-palvelin HTTP-pyynnöllä ennen WS-yhteyttä.
+    // no-cors: pyyntö menee perille vaikka vastausta ei voi lukea.
+    const warmServer = () => {
+        if (!_serverBase || _serverBase === location.origin) return;
+        try { fetch(_serverBase + '/healthz', { mode: 'no-cors', cache: 'no-store' }).catch(() => {}); } catch (e) {}
+    };
 
     const saveSession = () => {
         try {
@@ -75,13 +84,17 @@
 
     Net.connect = () => new Promise((resolve, reject) => {
         if (Net.ws && Net.ws.readyState === 1) return resolve();
+        setConnStatus('Yhdistetään palvelimeen…');
         detectServerBase().then((base) => {
+            warmServer();
             try {
                 Net.ws = new WebSocket(base.replace(/^http/, 'ws'));
             } catch (e) { return reject(e); }
 
         Net.ws.onopen = () => {
             Net.connected = true;
+            Net._hadOpen = true;
+            Net._reconnectDelay = 2000;
             setConnStatus('');
             // Automaattinen uudelleenliittyminen aiempaan huoneeseen
             const s = loadSession();
@@ -102,16 +115,24 @@
             Net.connected = false;
             clearInterval(Net._hb);
             if (Net._wantRoom) {
-                toast('⚠️ Yhteys katkesi — yhdistetään uudelleen…');
-                setConnStatus('Yhdistetään uudelleen…');
+                if (Net._hadOpen) {
+                    toast('⚠️ Yhteys katkesi — yhdistetään uudelleen…');
+                    setConnStatus('Yhdistetään uudelleen…');
+                } else {
+                    // Palvelin todennäköisesti herää free-tier-unesta — ei hätäistä virhettä
+                    setConnStatus('⏳ Herätetään palvelinta — ensimmäinen yhteys voi kestää ~30 s…');
+                }
                 clearTimeout(Net._reconnectTimer);
                 Net._reconnectTimer = setTimeout(() => {
                     Net.connect().catch(() => {});
-                }, 2000);
+                }, Net._reconnectDelay);
+                Net._reconnectDelay = Math.min(Net._reconnectDelay * 1.6, 15000);
             }
         };
         Net.ws.onerror = () => {
-            if (Net.ws.readyState !== 1) {
+            // Kovaa virhettä näytetään vain jos yhteys on jo ehtinyt aueta —
+            // muuten kyseessä on todennäköisesti heräävä free-tier-instanssi.
+            if (Net.ws.readyState !== 1 && Net._hadOpen) {
                 setConnStatus('Huonepalvelimeen (' + String(_serverBase || '').replace(/^https?:\/\//, '') + ') ei saada yhteyttä.');
             }
         };
@@ -620,6 +641,8 @@
     // ---------- DOM-kytkökset ----------
     document.addEventListener('DOMContentLoaded', () => {
         const urlRoom = new URLSearchParams(location.search).get('room');
+        // Palaava pelaaja / QR-linkki: herätetään palvelin heti sivunlatauksessa
+        if (urlRoom || loadSession()) detectServerBase().then(warmServer);
 
         $('netModeOne')?.addEventListener('click', () => {
             if (typeof playClickSound === 'function') playClickSound();
