@@ -264,3 +264,111 @@ RELAY-события (kind): `THEME_ROLLING`, `THEME`, `WORDS_OPEN` (тольк�
 | `t3-10-guesser-live-canvas.png` | Угадывающий: тот же домик лайвом на read-only canvas |
 | `t3-11-guesser-summary.png` | Summary-карточка: «Bataatti», Emma +очки, Leevi +50p |
 | `t3-12-explainer-summary.png` | Та же карточка на телефоне объясняющего |
+
+---
+
+## Task 4: Reconnect-resilience (megaplan-reconnect)
+
+Цель: затухание экрана / случайный выход / обрыв сети не ломают игру, а
+вышедший игрок имеет удобный путь назад. Подробности в
+`megaplan-reconnect.md`.
+
+### Архитектура
+- `server.js`: `ws.isAlive` heartbeat sweep (`ARK_HB_MS`, default 30 s) —
+  зомби-сокеты спящих устройств умирают вместо вечного «connected»;
+  grace `ARK_GRACE_MS` (default **90 s**) — `PLAYER_WAITING` →
+  `PLAYER_BACK` при возврате или `PLAYER_DISCONNECTED` → клиентский скип;
+  stale-guard `p.ws === ws` в `close`; `SESSION_TAKEN` при повторном
+  REJOIN; миграция хоста первому онлайн-игроку; `LEAVE_ROOM` помечает
+  `p.left` и обходит grace; `room.game` обновляется по `STATE_SYNC`.
+- `js/network.js`: сессия `arksanum-room-session` в sessionStorage
+  (per-tab приоритет) + localStorage (переживает закрытие браузера),
+  TTL 2 ч; auto-reconnect + `netWakeCheck` на
+  `visibilitychange`/`online`/`pageshow` + pong-watchdog; `_resumeIntent`
+  — auto-REJOIN только при reconnect или явном «Palaa peliin»;
+  `?room=ABCD` открывает join-форму (без auto-resume — защита от кражи
+  сессии shared localStorage), сессия другой комнаты затирается;
+  `netBuildState`-снапшот в `ROUND_END`/`TURN_SKIPPED` + heal-логика;
+  гарды `isFromExplainer`/`endedIndex` против двойного хода от
+  проснувшихся клиентов; `netSkipOneTurn` зеркалит `endRound` (extra-turn
+  Yrttitarhuri, teamCursors); `netEnsureExplainerAvailable` скипает
+  цепочку офлайн-игроков; `applyNetSnapshot` восстанавливает
+  roster/счёт/idx/phase — вернувшийся объясняющий без слов авто-скипает
+  свой ход (слова по сети не ходят).
+- `index.html`/`styles.css`: баннер `#netResumeBanner`
+  («♻️ Kesken oleva peli huoneessa ABCD — PALAA PELIIN») +
+  `#roomResumeLink`; `#netConnBadge` со статусом соединения;
+  `#btnLeaveInGame` (armed double-tap) и выходы в лобби/victory-модале.
+
+### Протокол
+Новое: EVENT-виды `PLAYER_WAITING`/`PLAYER_BACK`, сообщение
+`SESSION_TAKEN`, relay-виды `STATE_SYNC`/`TURN_SKIPPED`, `state` в
+`ROUND_END`, полный `state`-снапшот в `ROOM_STATE.game`.
+
+### Проверка
+- `audit/tool/verify6.js` — **44/44** (spawn server с
+  `ARK_GRACE_MS=4000 ARK_HB_MS=1000`): grace WAITING→BACK без скипа;
+  resume объясняющего в grace с сохранением слов; drop>grace→скип+
+  converged rejoin; reload объясняющего со словами→TURN_SKIPPED; reload
+  гостя→баннер→guesser-экран; stale `ROUND_END` дропается; миграция
+  хоста; `?room=` бьёт старую сессию; armed leave.
+- Node-ws smoke: heartbeat, SESSION_TAKEN, stale-close без ложного
+  DISCONNECTED, host migration.
+- Регрессия: verify **39/39**, verify2 **67/67**, verify3 **45/45**,
+  verify4 **21/21**, verify5 **36/36**.
+
+### Подводный камень тестирования
+Все вкладки одного puppeteer-браузера делят `localStorage` → страница с
+`?room=CODE` для комнаты из сохранённой сессии НЕ должна auto-resume
+(иначе крадёт playerId другой тестовой страницы). Поэтому `?room=`
+всегда открывает форму, а возврат — только через явный «Palaa peliin».
+
+### Ограничения
+- Grace/комнаты в памяти процесса: рестарт сервера всё теряет (как раньше).
+- Rejoin не восстанавливает штрихи/emoji — только фазу/счёт/ход.
+- Перезагрузившийся объясняющий в фазе открытых слов теряет ход —
+  секретные слова по сети не восстанавливаются.
+
+---
+
+## Task 5: Ääni kaikilla puhelimilla, host-oletus, huonekoodi pelissä, reclaim nimellä
+
+### Ääni
+- `js/audio.js`: `window.isSoundOn()` — käyttäjän valinta
+  `sessionStorage['arksanum-sound']` (per-välilehti! localStorage olisi
+  yhteinen saman selaimen välilehdille ja mykistys vuotaisi toiselle
+  pelaajalle — löydettiin verify7-testillä) ?? `window.soundDefaultOn()`
+  (`network.js`: `!Net.roomCode || Net.isHost` — vieras oletuksena
+  hiljainen). Gate `playAudio()` + `playThemeEffect()` — kaikki äänet.
+  Mute myös pysäyttää jo soivat (`sounds.*` + `themeEffectPool` pause+rewind).
+- `#soundToggleBtn` (index.html) — fixed oikea alanurkka, z 9600, 🔊/🔇,
+  näkyy kaikilla näytöillä; päivittyy `enterLobby`/`ROOM_STATE`/`ROSTER`/
+  `SESSION_TAKEN` -käsittelijöistä (`refreshSoundBtn`).
+- Rumpu kuuluu myös arvaajilla: `THEME_ROLLING` → `playAudio(sounds.drum)`
+  (network.js) — sama 2.5 s rytmi kuin selittäjällä.
+
+### Huonekoodi pelin aikana
+- `#roomCodeChip` (selittäjä, scoreDisplay-rivillä) + `#ngRoomCode`
+  (guesser-header) — näkyvät vain `body[data-net^="room-"]`, tap →
+  `navigator.clipboard.writeText(code)` + "kopioitu"-vahvistus.
+
+### Reclaim nimellä (server.js)
+- `attachPlayer(room, p, name)` — yhteinen REJOIN/claim-logiikka
+  (SESSION_TAKEN vanhalle socketille, grace-cancel, ROOM_STATE, ROSTER,
+  PLAYER_BACK).
+- `JOIN_ROOM` hakee samannimisen pelaajan (trim, case-insensitive):
+  disconnected → reclaim (sama playerId → pelitila ehye); connected +
+  peli käynnissä → SESSION_TAKEN-takeover; connected + aula → duplikaatti
+  sallittu (kaksi nimikaimaa); ei osumaa + peli → `STARTED` vihjeellä
+  "palaathan samalla nimellä"; ei osumaa + aula → normaali join.
+- Client: `ERROR NO_PLAYER` auto-REJOINista → fallback `JOIN_ROOM`
+  sessio-nimellä (`_reclaimTried`-lippu estää loopin); `ROOM_STATE`
+  -polku palauttaa pelin kuten ennenkin.
+
+### Проверка
+- `audit/tool/verify7.js` — **28/28**: äänen oletukset (host 🔊/vieras 🔇),
+  toggle+persist, rumpu molemmilla, mute-gate (mykistetty selittäjä ei
+  soita, arvaaja kuulee relayn), koodi-chipit, reclaim mid-game samalla
+  playerId:llä (roster ei kasva), reclaim aulassa, STARTED-vihje.
+- Регрессия: verify 39, verify2 67, verify3 45, verify4 21, verify5 36,
+  verify6 44 — kaikki vihreät (280 yhteensä).

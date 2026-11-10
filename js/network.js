@@ -20,7 +20,11 @@
         _reconnectTimer: null,
         _reconnectDelay: 2000,
         _hadOpen: false,   // onko yhteys koskaan auennut (vs. palvelin vasta heräämässä)
-        _wantRoom: false   // käyttäjä valitsi Useampi puhelin
+        _wantRoom: false,  // käyttäjä valitsi Useampi puhelin
+        _pongTimer: null,  // puoliksi kuolleen socketin vahti
+        _offlineSince: 0,  // katkon alkuaika (badge-tila)
+        _sessionTaken: false, // toinen laite/välilehti vei istunnon
+        _resumeIntent: false // auto-REJOIN vain kun käyttäjä painoi "Palaa peliin" (tai reconnect huoneessa)
     };
     window.Net = Net;
 
@@ -49,17 +53,31 @@
         try { fetch(_serverBase + '/healthz', { mode: 'no-cors', cache: 'no-store' }).catch(() => {}); } catch (e) {}
     };
 
+    const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // sama kuin huoneen idle-aika palvelimella
     const saveSession = () => {
         try {
-            sessionStorage.setItem(LS_KEY, JSON.stringify({
-                roomCode: Net.roomCode, playerId: Net.playerId, name: Net.myName
-            }));
+            const s = JSON.stringify({
+                roomCode: Net.roomCode, playerId: Net.playerId, name: Net.myName, savedAt: Date.now()
+            });
+            sessionStorage.setItem(LS_KEY, s);
+            // localStorage selviää selaimen/välileden sulkemisesta — pääpointti:
+            // "vahingossa suljin" -tilanteessa pelaaja pääsee takaisin peliin.
+            localStorage.setItem(LS_KEY, s);
         } catch (e) {}
     };
     const loadSession = () => {
-        try { return JSON.parse(sessionStorage.getItem(LS_KEY)) || null; } catch (e) { return null; }
+        try {
+            let raw = sessionStorage.getItem(LS_KEY);
+            if (!raw) raw = localStorage.getItem(LS_KEY);
+            const s = JSON.parse(raw || 'null');
+            if (!s || !s.roomCode || !s.playerId) return null;
+            if (s.savedAt && Date.now() - s.savedAt > SESSION_TTL_MS) { clearSession(); return null; }
+            return s;
+        } catch (e) { return null; }
     };
-    const clearSession = () => { try { sessionStorage.removeItem(LS_KEY); } catch (e) {} };
+    const clearSession = () => {
+        try { sessionStorage.removeItem(LS_KEY); localStorage.removeItem(LS_KEY); } catch (e) {}
+    };
 
     const toast = (msg, ms = 2500) => {
         let t = $('netReconnectToast');
@@ -79,6 +97,78 @@
         if (el) el.textContent = msg;
     };
 
+    // ---------- Yhteysindikaattori (näkyy myös pelin päällä) ----------
+    const connBadge = () => {
+        let b = $('netConnBadge');
+        if (!b) {
+            b = document.createElement('div');
+            b.id = 'netConnBadge';
+            b.style.display = 'none';
+            document.body.appendChild(b);
+        }
+        return b;
+    };
+    let _badgeState = 'ok'; // ok | warn | err | taken | back
+    const updateConnBadge = () => {
+        const b = connBadge();
+        const inRoom = !!(Net._wantRoom || Net.roomCode);
+        if (Net._sessionTaken) {
+            b.className = 'err';
+            b.innerHTML = `🔁 Huone avattiin toisella laitteella/välilehdellä <button type="button" id="netConnBadgeOk" class="ncb-btn">OK</button>`;
+            b.style.display = 'flex';
+            $('netConnBadgeOk')?.addEventListener('click', () => { b.style.display = 'none'; });
+            return;
+        }
+        if (!inRoom || Net.connected) {
+            if (_badgeState !== 'ok' && inRoom && Net.connected) {
+                // Lyhyt "palasi"-välähdys
+                b.className = 'ok';
+                b.textContent = '✅ Yhteys palautettu';
+                b.style.display = 'flex';
+                clearTimeout(b._h);
+                b._h = setTimeout(() => { b.style.display = 'none'; }, 2000);
+            } else {
+                b.style.display = 'none';
+            }
+            _badgeState = 'ok';
+            return;
+        }
+        const offlineFor = Net._offlineSince ? Date.now() - Net._offlineSince : 0;
+        if (offlineFor > 30000) {
+            _badgeState = 'err';
+            b.className = 'err';
+            b.innerHTML = `❌ Ei yhteyttä palvelimeen <button type="button" id="netConnRetry" class="ncb-btn">Yhdistä uudelleen</button>`;
+            $('netConnRetry')?.addEventListener('click', () => {
+                if (typeof playClickSound === 'function') playClickSound();
+                Net._reconnectDelay = 2000;
+                Net.connect().catch(() => updateConnBadge());
+            });
+        } else {
+            _badgeState = 'warn';
+            b.className = 'warn';
+            b.textContent = '⚠️ Yhteys katkesi — yhdistetään…';
+        }
+        b.style.display = 'flex';
+    };
+
+    // Näytön sammumisen jälkeinen herätys- ja elvytystarkistus:
+    // mobiililaitteet voivat tappaa socketin hiljaa ilman close-tapahtumaa.
+    const netWakeCheck = () => {
+        if (Net._sessionTaken) return;
+        if (!Net._wantRoom && !Net.roomCode) return;
+        if (!Net.ws || Net.ws.readyState !== 1) {
+            clearTimeout(Net._reconnectTimer);
+            Net.connect().catch(() => updateConnBadge());
+            return;
+        }
+        // Socket näyttää auki — varmistetaan pongin todisteella
+        clearTimeout(Net._pongTimer);
+        Net.send({ type: 'PING' });
+        Net._pongTimer = setTimeout(() => {
+            try { if (Net.ws) Net.ws.close(); } catch (e) {}
+        }, 5000);
+    };
+
     Net.on = (type, fn) => { (Net._handlers[type] = Net._handlers[type] || []).push(fn); };
     const emit = (m) => { (Net._handlers[m.type] || []).forEach(fn => fn(m)); };
 
@@ -95,15 +185,30 @@
             Net.connected = true;
             Net._hadOpen = true;
             Net._reconnectDelay = 2000;
+            Net._offlineSince = 0;
             setConnStatus('');
-            // Automaattinen uudelleenliittyminen aiempaan huoneeseen
+            updateConnBadge();
+            // Uudelleenliittyminen aiempaan huoneeseen — vain kun olimme jo
+            // huoneessa (reconnect) tai käyttäjä valitsi "Palaa peliin".
+            // Pelkän istunnon olemassaolo ei saa kaapata käyttäjää takaisin
+            // vanhaan huoneeseen, kun hän tahtoo tehdä uuden.
             const s = loadSession();
-            if (s && s.roomCode && s.playerId && Net._wantRoom) {
+            if (s && s.roomCode && s.playerId && Net._wantRoom && (Net.roomCode || Net._resumeIntent)) {
                 Net.send({ type: 'REJOIN', roomCode: s.roomCode, playerId: s.playerId, name: s.name });
             }
-            // Syke 25 s välein — pitää Renderin free-tien ja yhteyden hereillä
+            Net._resumeIntent = false;
+            // Syke 25 s välein — pitää Renderin free-tien ja yhteyden hereillä.
+            // Jokaisen pingin jälkeen vaaditaan pong 8 s sisällä, muuten socket on
+            // hiljaa kuollut (esim. laite nukkunut) ja suljetaan -> reconnect.
             clearInterval(Net._hb);
-            Net._hb = setInterval(() => Net.send({ type: 'PING' }), 25000);
+            const hbTick = () => {
+                Net.send({ type: 'PING' });
+                clearTimeout(Net._pongTimer);
+                Net._pongTimer = setTimeout(() => {
+                    try { if (Net.ws) Net.ws.close(); } catch (e) {}
+                }, 8000);
+            };
+            Net._hb = setInterval(hbTick, 25000);
             resolve();
         };
         Net.ws.onmessage = (e) => {
@@ -114,9 +219,11 @@
         Net.ws.onclose = () => {
             Net.connected = false;
             clearInterval(Net._hb);
+            clearTimeout(Net._pongTimer);
+            if (Net._sessionTaken) { updateConnBadge(); return; }
+            if (!Net._offlineSince) Net._offlineSince = Date.now();
             if (Net._wantRoom) {
                 if (Net._hadOpen) {
-                    toast('⚠️ Yhteys katkesi — yhdistetään uudelleen…');
                     setConnStatus('Yhdistetään uudelleen…');
                 } else {
                     // Palvelin todennäköisesti herää free-tier-unesta — ei hätäistä virhettä
@@ -124,10 +231,11 @@
                 }
                 clearTimeout(Net._reconnectTimer);
                 Net._reconnectTimer = setTimeout(() => {
-                    Net.connect().catch(() => {});
+                    Net.connect().catch(() => updateConnBadge());
                 }, Net._reconnectDelay);
                 Net._reconnectDelay = Math.min(Net._reconnectDelay * 1.6, 15000);
             }
+            updateConnBadge();
         };
         Net.ws.onerror = () => {
             // Kovaa virhettä näytetään vain jos yhteys on jo ehtinyt aueta —
@@ -284,6 +392,7 @@
         playerMode = cfg.mode;
         totalTurns = parseInt(cfg.rounds, 10) || 10;
         teamCursors = [0, 0];
+        _netPhase = 'idle';
         gamePlayers = buildRoomPlayers(cfg);
         currentRound = 1;
         turnsInCurrentRound = 0;
@@ -392,13 +501,14 @@
     };
 
     // ---------- Lähtevät pelitapahtumat (kutsutaan olemassa olevasta koodista) ----------
-    window.netRelayThemeRolling = () => { if (window.isRoomGame()) Net.relay({ kind: 'THEME_ROLLING' }); };
-    window.netRelayTheme = (theme) => { if (window.isRoomGame()) Net.relay({ kind: 'THEME', theme }); };
+    window.netRelayThemeRolling = () => { if (!window.isRoomGame()) return; _netPhase = 'rolling'; Net.relay({ kind: 'THEME_ROLLING', state: netBuildState() }); };
+    window.netRelayTheme = (theme) => { if (!window.isRoomGame()) return; _netPhase = 'theme'; Net.relay({ kind: 'THEME', theme, state: netBuildState() }); };
     window.netRelayWordsOpen = () => {
         if (!window.isRoomGame()) return;
-        Net.relay({ kind: 'WORDS_OPEN', count: generatedWordsList.length, timer: typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0 });
+        _netPhase = 'words';
+        Net.relay({ kind: 'WORDS_OPEN', count: generatedWordsList.length, timer: typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0, state: netBuildState() });
     };
-    window.netRelayWordLocked = () => { if (window.isRoomGame()) Net.relay({ kind: 'WORD_LOCKED' }); };
+    window.netRelayWordLocked = () => { if (!window.isRoomGame()) return; _netPhase = 'locked'; Net.relay({ kind: 'WORD_LOCKED', state: netBuildState() }); };
     window.netRelaySpellCast = (spell) => { if (window.isRoomGame()) Net.relay({ kind: 'SPELL_CAST', spell }); };
     window.netRelayCursePending = (key, target) => { if (window.isRoomGame()) Net.relay({ kind: 'CURSE_PENDING', key, target }); };
     window.netRelayDraw = (payload) => { if (window.isRoomGame()) Net.relay({ kind: 'DRAW', ...payload }); };
@@ -414,6 +524,7 @@
 
         if (playerMode === 4 && !isExtraTurnRound) teamCursors[endedIndex] = (teamCursors[endedIndex] || 0) + 1;
 
+        _netPhase = 'idle';
         const payload = {
             kind: 'ROUND_END',
             result: info.isGuessed ? 'guessed' : (info.stolenIndex >= 0 ? 'stolen' : 'giveup'),
@@ -428,13 +539,15 @@
             isExtraTurnRound,
             modifiers: { ...activeModifiers },
             gameOver: currentRound > totalTurns,
-            state: { currentRound, currentPlayerIndex, scores: gamePlayers.map(p => p.score) }
+            state: netBuildState()
         };
         Net.relay(payload);
 
         // Näytä yhteenveto myös selittäjällä
         showSummaryForResult(payload);
         netRefreshGuesserScreen();
+        // Selittäjän oma laitekin tarkistaa onko seuraava selittäjä paikalla
+        netEnsureExplainerAvailable();
     };
 
     const showSummaryForResult = (d) => {
@@ -464,8 +577,67 @@
         Object.assign(activeModifiers, d.modifiers);
         d.appliedCurses.forEach(k => { pendingCurses[k] = -1; });
         if (playerMode === 4 && !d.isExtraTurnRound) teamCursors[d.endedIndex] = (teamCursors[d.endedIndex] || 0) + 1;
+        _netPhase = 'idle';
 
-        // UI-siivous kuten endRoundin lopussa (ilman pisteenlaskua)
+        netCleanupTurnUI();
+        updateTurnDisplay();
+        showSummaryForResult(d);
+
+        if (d.gameOver) {
+            setTimeout(() => { if (typeof showVictoryModal === 'function') showVictoryModal(); }, 350);
+        } else {
+            netRefreshGuesserScreen();
+            netEnsureExplainerAvailable(); // seuraava selittäjä voi olla offline -> ketjuohitus
+        }
+    };
+
+    // Uusi peli huoneessa: vain isäntä voi käynnistää
+    window.netReplayRequest = () => {
+        if (Net.isHost && Net.game && Net.game.cfg) {
+            Net.send({ type: 'START_GAME', game: { started: true, cfg: Net.game.cfg } });
+        } else {
+            toast('⏳ Vain isäntä voi aloittaa uuden pelin.');
+            // Vieras palaa odottamaan — näytetään voittomodaali piilossa kunnes isäntä aloittaa
+        }
+    };
+
+    // ---------- Tilannekuva & vuoronohitus ----------
+    // Yhtenäinen "tilannekuva" joka kulkee relayjen mukana — palvelin säilöö
+    // viimeisimmän (m.event.state), joten myöhässä palaava/takana oleva
+    // puhelin osaa rakentaa itsensä ajan tasalle.
+    const turnSeq = () => currentRound * 1000 + turnsInCurrentRound;
+    const turnSig = () => `${currentRound}:${currentPlayerIndex}:${turnsInCurrentRound}:${isExtraTurnRound ? 1 : 0}`;
+    let _netPhase = 'idle'; // idle | rolling | theme | words | locked
+
+    const netBuildState = () => ({
+        round: currentRound, idx: currentPlayerIndex, turns: turnsInCurrentRound,
+        seq: turnSeq(), sig: turnSig(),
+        scores: gamePlayers.map(p => p.score),
+        modifiers: { ...activeModifiers },
+        curses: { ...pendingCurses },
+        extra: isExtraTurnRound,
+        cursors: [...teamCursors],
+        phase: _netPhase,
+        theme: currentActiveTheme || '',
+        wordsCount: generatedWordsList.length,
+        used: (typeof usedWordsInThisGame !== 'undefined') ? [...usedWordsInThisGame] : []
+    });
+    const netSyncState = () => { if (window.isRoomGame()) Net.relay({ kind: 'STATE_SYNC', state: netBuildState() }); };
+
+    const pidToPlayerIndex = (pid) => {
+        for (let i = 0; i < gamePlayers.length; i++) {
+            const pl = gamePlayers[i];
+            if (pl.pid === pid) return i;
+            if (pl.members && pl.members.includes(pid)) return i;
+        }
+        return -1;
+    };
+    const isFromExplainer = (m) => !!m.from && m.from === window.netGetExplainerPid();
+    const rosterEntry = (pid) => Net.players.find(p => p.id === pid);
+    const rosterName = (pid) => { const e = rosterEntry(pid); return e ? e.name : 'Pelaaja'; };
+
+    // Yhteinen UI-siivous vuoronvaihdossa (ei pisteenlaskua)
+    const netCleanupTurnUI = () => {
         window.stopTurnTimer();
         ngTimerStop();
         if (window.hidePeekWord) window.hidePeekWord();
@@ -490,7 +662,6 @@
         const nge = $('ngEmojiView'); if (nge) nge.style.display = 'none';
         if (window.netDrawStop) window.netDrawStop();
         $('ngThemeBlock').style.display = 'none';
-
         roundControls.style.display = 'none';
         btn.style.display = 'block';
         btn.disabled = false;
@@ -501,79 +672,235 @@
         activeCondition2 = '';
         isMetamorphosisUsedThisTurn = false;
         selectedWordIndex = -1;
-
-        updateTurnDisplay();
-        showSummaryForResult(d);
-
-        if (d.gameOver) {
-            setTimeout(() => { if (typeof showVictoryModal === 'function') showVictoryModal(); }, 350);
-        } else {
-            netRefreshGuesserScreen();
-        }
     };
 
-    // Uusi peli huoneessa: vain isäntä voi käynnistää
-    window.netReplayRequest = () => {
-        if (Net.isHost && Net.game && Net.game.cfg) {
-            Net.send({ type: 'START_GAME', game: { started: true, cfg: Net.game.cfg } });
-        } else {
-            toast('⏳ Vain isäntä voi aloittaa uuden pelin.');
-            // Vieras palaa odottamaan — näytetään voittomodaali piilossa kunnes isäntä aloittaa
-        }
-    };
-
-    // Vuoron ohitus jos selittäjä katosi verkosta
-    const netSkipTurn = () => {
-        turnsInCurrentRound++;
-        if (turnsInCurrentRound >= gamePlayers.length) { turnsInCurrentRound = 0; currentRound++; }
-        const nextIdx = (currentPlayerIndex + 1) % gamePlayers.length;
+    // Yhden vuoron siirtymä ilman pisteytystä — peilaa endRoundin siirtymää.
+    // announce=false: älä korvaa näkyvää tuloskorttia skip-viestillä.
+    const netSkipOneTurn = (announce = true) => {
+        activeModifiers.extendToEight = false;
+        activeModifiers.reduceToThree = false;
+        activeModifiers.chaosFourWords = false;
+        const endedIdx = currentPlayerIndex;
+        const nextIdx = (endedIdx + 1) % gamePlayers.length;
         if (pendingCurses.hunger === nextIdx) { activeModifiers.reduceToThree = true; pendingCurses.hunger = -1; }
         if (pendingCurses.chaos === nextIdx) { activeModifiers.chaosFourWords = true; pendingCurses.chaos = -1; }
-        if (playerMode === 4) teamCursors[currentPlayerIndex] = (teamCursors[currentPlayerIndex] || 0) + 1;
+        isExtraTurnRound = false;
+        turnsInCurrentRound++;
+        if (turnsInCurrentRound >= gamePlayers.length) { turnsInCurrentRound = 0; currentRound++; }
+        gamePlayers.forEach(pl => { if (pl.name === 'Yrttitarhuri') pl.extraTurnGranted = false; });
+        if (playerMode === 4) teamCursors[endedIdx] = (teamCursors[endedIdx] || 0) + 1;
         currentPlayerIndex = nextIdx;
+        _netPhase = 'idle';
+        netCleanupTurnUI();
+        updateTurnDisplay();
+        if (announce) window.netShowSummary('—', '⚠️ Selittäjän yhteys katkesi — vuoro ohitettiin.');
+    };
+
+    // Tiimimoodi: pyöräytä selittäjäkursori ensin online-jäseneen vasta sitten ohita vuoro
+    const netTryRotateTeamMember = () => {
+        const cur = gamePlayers[currentPlayerIndex];
+        if (!cur || !cur.members) return false;
+        const online = (m) => { const e = rosterEntry(m); return e && e.connected; };
+        if (!cur.members.some(online)) return false;
+        for (let i = 0; i < cur.members.length; i++) {
+            teamCursors[currentPlayerIndex] = (teamCursors[currentPlayerIndex] || 0) + 1;
+            if (online(cur.members[teamCursors[currentPlayerIndex] % cur.members.length])) return true;
+        }
+        return false;
+    };
+
+    // Aja peli ohi offline-selittäjien vuorojen — ketjuuntuu turvallisesti.
+    // Kattaa: selittäjä katosi, myöhemmän vuoron omistaja katosi aikaisemmin,
+    // huoneesta poistunut pelaaja (poissa rosterista kokonaan).
+    const netEnsureExplainerAvailable = () => {
+        if (!window.isRoomGame() || !gamePlayers.length) return;
+        let advanced = false, guard = 0;
+        // Jos tuloskortti on jo näkyvissä (juuri päättynyt vuoro), älä peitä sitä
+        const announce = $('turnSummaryCard')?.style.display !== 'flex';
+        while (currentRound <= totalTurns && guard++ < gamePlayers.length + 2) {
+            const e = rosterEntry(window.netGetExplainerPid());
+            if (e && e.connected) break;
+            if (playerMode === 4 && netTryRotateTeamMember()) { advanced = true; continue; }
+            netSkipOneTurn(announce);
+            advanced = true;
+        }
         if (currentRound > totalTurns) {
-            if (typeof showVictoryModal === 'function') showVictoryModal();
+            netCleanupTurnUI();
+            if (typeof showVictoryModal === 'function') setTimeout(showVictoryModal, 350);
+            advanced = true;
+        }
+        if (advanced) { netRefreshGuesserScreen(); netSyncState(); }
+    };
+
+    // Tilannekuvan soveltaminen (ROOM_STATE / STATE_SYNC)
+    const netApplyState = (st) => {
+        if (!st) return;
+        if (st.scores) st.scores.forEach((s, i) => { if (gamePlayers[i]) gamePlayers[i].score = s; });
+        if (typeof st.round === 'number') currentRound = st.round;
+        if (typeof st.idx === 'number') currentPlayerIndex = st.idx;
+        if (typeof st.turns === 'number') turnsInCurrentRound = st.turns;
+        if (st.modifiers) Object.assign(activeModifiers, st.modifiers);
+        if (st.curses) Object.assign(pendingCurses, st.curses);
+        isExtraTurnRound = !!st.extra;
+        if (Array.isArray(st.cursors)) st.cursors.forEach((c, i) => { teamCursors[i] = c; });
+        if (Array.isArray(st.used) && typeof usedWordsInThisGame !== 'undefined') {
+            usedWordsInThisGame.length = 0;
+            st.used.forEach(w => usedWordsInThisGame.push(w));
+        }
+        _netPhase = st.phase || 'idle';
+        if (st.theme) { currentActiveTheme = st.theme; activeCondition1 = st.theme; }
+        updateTurnDisplay();
+    };
+
+    // Renderöi näkymä tilan mukaiseksi: selittäjä näkee oman vuoronsa (tai
+    // sanalistansa jos sivu ei ehtinyt latautua uudelleen), arvaaja teeman.
+    const netRenderPhaseUI = () => {
+        const mine = window.netIsMyTurn();
+        if (mine) {
+            ngShow(false);
+            if (_netPhase === 'rolling' || _netPhase === 'idle') {
+                btn.style.display = _netPhase === 'idle' ? 'block' : 'none';
+                btn.disabled = false;
+                return;
+            }
+            if (currentActiveTheme && themeDisplay) {
+                themeDisplay.textContent = currentActiveTheme.toUpperCase();
+                const im = (typeof themeImages !== 'undefined') ? themeImages[currentActiveTheme] : null;
+                if (im) { themeImage.textContent = im; themeImage.style.display = 'block'; }
+            }
+            btn.style.display = 'none';
+            if (generatedWordsList.length && (_netPhase === 'words' || _netPhase === 'locked')) {
+                renderOlList();
+                wordList.style.display = 'block';
+                wordList.classList.remove('hidden-words');
+                isWordListHidden = false;
+                btnDisplayWords.style.display = 'block';
+                btnDisplayWords.textContent = '🙈 Piilota sanat';
+                roundControls.style.display = 'flex';
+            } else {
+                btnDisplayWords.style.display = 'block';
+            }
+        } else {
+            ngShow(true);
+            if (_netPhase === 'rolling') {
+                $('ngDrum').style.display = 'block';
+                $('ngThemeBlock').style.display = 'none';
+            } else if (_netPhase === 'theme' || _netPhase === 'words' || _netPhase === 'locked') {
+                if (currentActiveTheme) ngApplyTheme(currentActiveTheme);
+                ngStatus(_netPhase === 'theme' ? 'Selittäjä valmistautuu…' : 'Selittäjä katsoo sanoja — arvatkaa!');
+            }
+        }
+    };
+
+    // ROOM_STATE pelin aikana: rakenna peli tilannekuvasta
+    const applyNetSnapshot = (m) => {
+        Net.game = m.game;
+        const st = (m.game && m.game.state) || {};
+        const hadWords = generatedWordsList.length > 0; // sivu ei ehtinyt latautua
+        if (m.game.cfg) startRoomGameLocal(m.game.cfg);
+        netApplyState(st);
+        const wordsOpened = _netPhase === 'words' || _netPhase === 'locked';
+        if (window.netIsMyTurn() && wordsOpened && !hadWords) {
+            // Sivu ladattiin uudelleen kesken vuoron — sanoja ei voi palauttaa
+            // (niitä ei koskaan lähetetä verkkoon). Ohitetaan oma vuoro, jotta peli jatkuu.
+            const sigBefore = st.sig || turnSig();
+            netSkipOneTurn();
+            netEnsureExplainerAvailable();
+            Net.relay({ kind: 'TURN_SKIPPED', sigBefore, state: netBuildState() });
+            netRefreshGuesserScreen();
             return;
         }
-        updateTurnDisplay();
-        window.netShowSummary('—', '⚠️ Selittäjän yhteys katkesi — vuoro ohitettiin.');
+        netRenderPhaseUI();
+        netEnsureExplainerAvailable();
         netRefreshGuesserScreen();
     };
 
     Net.on('EVENT', (m) => {
         const ev = m.event || {};
         switch (ev.kind) {
+            case 'STATE_SYNC': {
+                const st = ev.state;
+                if (!window.isRoomGame() || !st) break;
+                if (typeof st.seq === 'number' && st.seq > turnSeq()) {
+                    netApplyState(st);
+                    netCleanupTurnUI();
+                    netRenderPhaseUI();
+                    netEnsureExplainerAvailable();
+                } else if (st.scores) {
+                    st.scores.forEach((s, i) => { if (gamePlayers[i]) gamePlayers[i].score = s; });
+                    updateTurnDisplay();
+                }
+                break;
+            }
+            case 'TURN_SKIPPED': {
+                if (!window.isRoomGame()) break;
+                if (ev.sigBefore && turnSig() === ev.sigBefore) {
+                    netSkipOneTurn();
+                    netEnsureExplainerAvailable();
+                    netRefreshGuesserScreen();
+                } else if (ev.state && typeof ev.state.seq === 'number' && ev.state.seq > turnSeq()) {
+                    netApplyState(ev.state);
+                    netCleanupTurnUI();
+                    netRenderPhaseUI();
+                    netEnsureExplainerAvailable();
+                }
+                break;
+            }
+            case 'PLAYER_WAITING':
+                toast(`⏳ Pelaajan ${rosterName(ev.playerId)} yhteys katkesi — odotetaan paluuta…`);
+                ngStatus(`⏳ Odotetaan pelaajan ${rosterName(ev.playerId)} paluuta…`);
+                break;
+            case 'PLAYER_BACK':
+                toast(`✅ ${rosterName(ev.playerId)} palasi peliin!`);
+                netRefreshGuesserScreen();
+                break;
+            case 'PLAYER_DISCONNECTED':
+                netEnsureExplainerAvailable();
+                break;
             case 'THEME_ROLLING':
+                if (!isFromExplainer(m)) break;
+                _netPhase = 'rolling';
                 $('ngDrum').style.display = 'block';
                 $('ngThemeBlock').style.display = 'none';
+                playAudio(sounds.drum); // rumpu kuuluu myös arvaajien puhelimista
                 ngStatus('');
                 break;
             case 'THEME':
+                if (!isFromExplainer(m)) break;
+                _netPhase = 'theme';
                 ngApplyTheme(ev.theme);
                 if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[ev.theme]) {
                     window.playThemeEffect(themeSounds[ev.theme]);
                 }
                 break;
             case 'WORDS_OPEN':
+                if (!isFromExplainer(m)) break;
+                _netPhase = 'words';
                 ngStatus(`Selittäjä katsoo sanoja (${ev.count} kpl) — arvatkaa!`);
                 ngTimerStart(ev.timer);
                 break;
             case 'WORD_LOCKED':
+                if (!isFromExplainer(m)) break;
+                _netPhase = 'locked';
                 ngStatus('Sana valittu — selitys käynnissä. Arvatkaa!');
                 break;
             case 'SPELL_CAST': {
+                if (!isFromExplainer(m)) break;
                 const flashType = { flood: 'curse', morph: 'curse', regrowth: 'druid', hunger: 'morph', chaos: 'morph' }[ev.spell] || 'curse';
                 if (typeof triggerSpellAnimation === 'function') triggerSpellAnimation(flashType);
                 ngStatus('✨ Selittäjä loitsi taian!');
                 break;
             }
             case 'CURSE_PENDING':
+                if (!isFromExplainer(m)) break;
                 pendingCurses[ev.key] = ev.target;
                 break;
             case 'DRAW':
+                if (!isFromExplainer(m)) break;
                 if (typeof window.netDrawEvent === 'function') window.netDrawEvent(ev);
                 break;
             case 'EMOJI':
+                if (!isFromExplainer(m)) break;
                 if (ev.action === 'open') {
                     $('ngEmojiView').style.display = 'block';
                     $('ngEmojiView').textContent = '';
@@ -584,16 +911,28 @@
                     // jätä sisältö näkyviin vuoron loppuun
                 }
                 break;
-            case 'ROUND_END':
-                window.applyNetRoundEnd(ev);
+            case 'ROUND_END': {
+                // Hyväksytään vain jos lähettäjä on meidän mielestämme vuorossa oleva
+                // selittäjä TAI jos me olemme jäljessä (heidän tilansa on uudempi).
+                // Muuten kyseessä on vanhentunut viesti (esim. heränneen laitteen
+                // ajastin laukesi myöhässä) — ohitetaan, ettei vuoro hyppää kahdesti.
+                const okNow = ev.endedIndex === currentPlayerIndex && pidToPlayerIndex(m.from) === ev.endedIndex;
+                const heal = ev.state && typeof ev.state.seq === 'number' && ev.state.seq > turnSeq();
+                if (okNow || heal) window.applyNetRoundEnd(ev);
                 break;
-            case 'PLAYER_DISCONNECTED':
-                if (ev.playerId === window.netGetExplainerPid() && window.isRoomGame()) {
-                    netSkipTurn();
-                }
-                break;
+            }
         }
     });
+
+    // ---------- Äänen oletus + huonekoodi-chipit ----------
+    // Äänet päällä oletuksena vain paikallispelissä ja isännällä — vieraan
+    // puhelin on hiljainen kunnes käyttäjä itse kytkee äänet päälle.
+    window.soundDefaultOn = () => !Net.roomCode || Net.isHost;
+    const refreshSoundBtn = () => { if (typeof window.updateSoundBtn === 'function') window.updateSoundBtn(); };
+    const updateRoomCodeChips = () => {
+        const c = Net.roomCode || '----';
+        ['roomCodeChip', 'ngRoomCode'].forEach(id => { const el = $(id); if (el) el.textContent = c; });
+    };
 
     // ---------- Huoneen luonti/liittyminen ----------
     const enterLobby = (isHost, data) => {
@@ -601,41 +940,55 @@
         Net.hostId = data.hostId;
         Net.players = data.players || [];
         if (data.settings) applySettingsToUI(data.settings);
+        updateRoomCodeChips();
+        refreshSoundBtn();
         showLobby();
     };
 
     Net.on('ROOM_CREATED', (m) => {
         Net.roomCode = m.roomCode; Net.playerId = m.playerId;
         saveSession();
+        updateResumeUI();
         enterLobby(true, m);
     });
     Net.on('ROOM_JOINED', (m) => {
         Net.roomCode = m.roomCode; Net.playerId = m.playerId;
+        Net._reclaimTried = false;
         saveSession();
+        updateResumeUI();
         enterLobby(false, m);
     });
-    Net.on('ROOM_STATE', (m) => { // rejoin onnistui
+    Net.on('ROOM_STATE', (m) => { // rejoin / nimi-claim onnistui
         Net.roomCode = m.roomCode; Net.playerId = m.playerId;
+        Net._reclaimTried = false;
+        if (!Net.myName) { const s = loadSession(); if (s) Net.myName = s.name || ''; }
         saveSession();
         Net.players = m.players || [];
         Net.isHost = (m.hostId === Net.playerId);
         Net.hostId = m.hostId;
-        if (m.game && m.game.started) {
-            Net.game = m.game;
-            // Palauta pelitila tilannekuvasta
-            if (m.game.cfg) startRoomGameLocal(m.game.cfg);
-            if (m.game.state) {
-                const st = m.game.state;
-                currentRound = st.currentRound; currentPlayerIndex = st.currentPlayerIndex;
-                (st.scores || []).forEach((s, i) => { if (gamePlayers[i]) gamePlayers[i].score = s; });
-                updateTurnDisplay();
-            }
-            netRefreshGuesserScreen();
+        updateResumeUI();
+        updateRoomCodeChips();
+        refreshSoundBtn();
+        if (m.game && m.game.started && m.game.cfg) {
+            applyNetSnapshot(m);
         } else {
             enterLobby(Net.isHost, m);
         }
     });
-    Net.on('ROSTER', (m) => { Net.players = m.players || []; renderRoster(); });
+    Net.on('ROSTER', (m) => {
+        Net.players = m.players || [];
+        const wasHost = Net.isHost;
+        Net.hostId = m.hostId;
+        Net.isHost = (m.hostId === Net.playerId);
+        renderRoster();
+        // Isäntä saattoi vaihtua poissaolon takia — päivitä aulan kontrollit
+        if ($('roomLobbyView') && $('roomLobbyView').style.display !== 'none') {
+            $('btnStartRoomGame').style.display = Net.isHost ? 'block' : 'none';
+            $('roomWaitText').style.display = Net.isHost ? 'none' : 'block';
+        }
+        if (Net.isHost && !wasHost) toast('👑 Sinusta tuli huoneen isäntä');
+        refreshSoundBtn(); // isännän vaihtuessa äänioletus voi muuttua
+    });
     Net.on('SETTINGS', (m) => applySettingsToUI(m.settings));
     Net.on('GAME_STARTED', (m) => {
         Net.game = m.game;
@@ -643,15 +996,91 @@
     });
     Net.on('ERROR', (m) => {
         showJoinError(m.msg || 'Virhe');
-        if (m.code === 'NO_ROOM' || m.code === 'NO_PLAYER') clearSession();
+        if (m.msg) toast('⚠️ ' + m.msg);
+        // Istunto vanhentunut (NO_PLAYER) — yritetään palata huoneen nimellä:
+        // palvelin claimaa paikan jos saman niminen pelaaja on rosterissa.
+        if (m.code === 'NO_PLAYER' && !Net._reclaimTried) {
+            const s = loadSession();
+            if (s && s.roomCode && s.name) {
+                Net._reclaimTried = true;
+                Net.send({ type: 'JOIN_ROOM', roomCode: s.roomCode, name: s.name });
+                return;
+            }
+        }
+        if (m.code === 'NO_ROOM' || m.code === 'NO_PLAYER' || Net._reclaimTried) {
+            Net._reclaimTried = false;
+            clearSession();
+        }
+        updateResumeUI();
     });
-    Net.on('PONG', () => {});
+    Net.on('PONG', () => { clearTimeout(Net._pongTimer); });
+    Net.on('SESSION_TAKEN', () => {
+        // Toinen laite/välilehti otti istunnon — ei reconnect-kierteeseen
+        Net._sessionTaken = true;
+        Net._wantRoom = false;
+        clearInterval(Net._hb);
+        clearTimeout(Net._reconnectTimer);
+        clearTimeout(Net._pongTimer);
+        Net.roomCode = null;
+        clearSession();
+        updateConnBadge();
+        updateResumeUI();
+        updateRoomCodeChips();
+        refreshSoundBtn();
+    });
+
+    // ---------- "Palaa peliin" -banneri ----------
+    const updateResumeUI = () => {
+        const s = loadSession();
+        const show = !!(s && s.roomCode && !Net.roomCode && !Net._sessionTaken);
+        const b = $('netResumeBanner');
+        if (b) {
+            b.style.display = show ? 'flex' : 'none';
+            if (show) { const c = $('netResumeCode'); if (c) c.textContent = s.roomCode; }
+        }
+        const l = $('roomResumeLink');
+        if (l) {
+            l.style.display = show ? 'block' : 'none';
+            if (show) { const c = $('roomResumeCode'); if (c) c.textContent = s.roomCode; }
+        }
+    };
+    const resumeIntoRoom = () => {
+        const s = loadSession();
+        if (!s) { updateResumeUI(); return; }
+        Net.myName = s.name || 'Pelaaja';
+        Net._wantRoom = true;
+        Net._resumeIntent = true; // salli auto-REJOIN kun yhteys aukeaa
+        $('netModeRoom')?.classList.add('active');
+        $('netModeOne')?.classList.remove('active');
+        const p = $('roomPanel'); if (p) p.style.display = 'block';
+        showJoinError('');
+        Net.connect().catch(() => showJoinError('Palvelimeen ei saada yhteyttä.'));
+    };
+
+    // ---------- Huoneesta poistuminen ----------
+    // Kaksi painallusta: "Poistu" -> "Varmista?" -> ulos. Tarkoituksellinen
+    // poistu poistaa pelaajan rosterista heti (ei grace-odotusta).
+    const netLeaveRoom = (btn) => {
+        if (!btn) return;
+        if (btn.dataset.armed === '1') {
+            Net.send({ type: 'LEAVE_ROOM' });
+            Net._wantRoom = false;
+            clearSession();
+            location.assign(location.pathname); // puhdas teardown ilman ?room-parametria
+        } else {
+            btn.dataset.armed = '1';
+            const old = btn.textContent;
+            btn.textContent = '⚠️ Varmista poistuminen?';
+            setTimeout(() => { if (btn) { btn.dataset.armed = ''; btn.textContent = old; } }, 3000);
+        }
+    };
 
     // ---------- DOM-kytkökset ----------
     document.addEventListener('DOMContentLoaded', () => {
         const urlRoom = new URLSearchParams(location.search).get('room');
         // Palaava pelaaja / QR-linkki: herätetään palvelin heti sivunlatauksessa
         if (urlRoom || loadSession()) detectServerBase().then(warmServer);
+        updateResumeUI();
 
         $('netModeOne')?.addEventListener('click', () => {
             if (typeof playClickSound === 'function') playClickSound();
@@ -660,6 +1089,7 @@
             $('roomPanel').style.display = 'none';
             Net._wantRoom = false;
             document.body.dataset.net = 'local';
+            updateResumeUI();
         });
 
         $('netModeRoom')?.addEventListener('click', () => {
@@ -681,6 +1111,21 @@
             } catch (e) {
                 showJoinError('Palvelimeen ei saada yhteyttä.');
             }
+        });
+
+        // Huonekoodi-chippi: napautus kopioi koodin leikepöydälle
+        ['roomCodeChip', 'ngRoomCode'].forEach(id => {
+            $(id)?.addEventListener('click', () => {
+                const c = Net.roomCode;
+                if (!c) return;
+                try { navigator.clipboard?.writeText(c); } catch (e) {}
+                const el = $(id);
+                if (el) {
+                    const old = el.textContent;
+                    el.textContent = 'kopioitu';
+                    setTimeout(() => { el.textContent = Net.roomCode || old; }, 1200);
+                }
+            });
         });
 
         $('btnPathJoin')?.addEventListener('click', () => {
@@ -755,12 +1200,54 @@
         });
         document.querySelectorAll('.mode-option').forEach(b => b.addEventListener('click', bc));
 
-        // ?room=ABCD esitäyttö + automaattinen huonetila + liity-polku auki
+        // "Palaa peliin" -banneri ja linkki liittymisnäkymässä
+        $('btnResumeGame')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            resumeIntoRoom();
+        });
+        $('btnDismissResume')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            clearSession();
+            updateResumeUI();
+        });
+        $('roomResumeLink')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            resumeIntoRoom();
+        });
+
+        // Poistumispainikkeet (aula, pelinäkymä, arvaajan näyttö, voittomodaali)
+        ['btnLeaveRoom', 'btnLeaveInGame', 'ngLeaveBtn', 'btnLeaveVictory'].forEach(id => {
+            $(id)?.addEventListener('click', (e) => {
+                if (typeof playClickSound === 'function') playClickSound();
+                netLeaveRoom(e.currentTarget);
+            });
+        });
+
+        // Näytön sammuminen / herääminen / verkon palautuminen
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') netWakeCheck();
+        });
+        window.addEventListener('pageshow', netWakeCheck);
+        window.addEventListener('online', () => {
+            Net._reconnectDelay = 2000;
+            netWakeCheck();
+        });
+
+        // ?room=ABCD esitäyttö + automaattinen huonetila + liity-polku auki.
+        // Huom: koskaan ei auto-rejoinata — käyttäjä valitsee itse "Liity" tai
+        // bannerin "Palaa peliin". Muuten saman selaimen toinen välilehti
+        // (jaettu localStorage) voisi kaapata toisen pelaajan istunnon.
         if (urlRoom) {
+            const s = loadSession();
+            const code = urlRoom.toUpperCase().slice(0, 4);
+            // Uusi QR-linkki voittaa vanhan istunnon — muuten REJOIN veisi
+            // väärään huoneeseen ja JOIN jättäisi aaveen vanhaan.
+            if (s && s.roomCode && s.roomCode !== code) clearSession();
             $('netModeRoom')?.click();
             $('btnPathJoin')?.click();
             const inp = $('roomCodeInput');
-            if (inp) inp.value = urlRoom.toUpperCase().slice(0, 4);
+            if (inp) inp.value = code;
+            updateResumeUI();
         }
     });
 })();

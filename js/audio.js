@@ -82,9 +82,53 @@ const tryPlayBuffered = (audioObject) => {
     return true;
 };
 
+// --- ÄÄNEN PÄÄLLÄ/POIS -KYTKIN ---
+// Oletus: äänet päällä vain paikallispelissä ja huoneen isännällä —
+// vieraan puhelin on oletuksena hiljainen. Käyttäjän valinta säilytetään
+// sessionStoragessa (per-välilehti!) — localStorage olisi yhteinen kaikille
+// saman selaimen välilehdille ja yhden pelaajan mykistys vaikuttaisi muihin.
+const SOUND_PREF_KEY = 'arksanum-sound';
+const isSoundOn = () => {
+    const pref = sessionStorage.getItem(SOUND_PREF_KEY);
+    if (pref !== null) return pref === '1';
+    return typeof window.soundDefaultOn === 'function' ? window.soundDefaultOn() : true;
+};
+window.isSoundOn = isSoundOn;
+
+// Sammuttaa kaiken parhaillaan soivan äänen (myös teemaefektit).
+const stopAllSounds = () => {
+    Object.values(sounds).forEach(a => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
+    Object.values(themeEffectPool).forEach(a => { try { a.pause(); a.currentTime = 0; } catch (e) {} });
+};
+
+const updateSoundBtn = () => {
+    const btn = document.getElementById('soundToggleBtn');
+    if (!btn) return;
+    const on = isSoundOn();
+    btn.textContent = on ? '🔊' : '🔇';
+    btn.classList.toggle('muted', !on);
+    const label = on ? 'Ääni päällä — poista äänet' : 'Äänet pois — laita äänet päälle';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('aria-pressed', String(on));
+};
+window.updateSoundBtn = updateSoundBtn;
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('soundToggleBtn')?.addEventListener('click', () => {
+        const on = !isSoundOn();
+        sessionStorage.setItem(SOUND_PREF_KEY, on ? '1' : '0');
+        if (!on) stopAllSounds();
+        else if (uiAudioCtx && uiAudioCtx.state === 'suspended') uiAudioCtx.resume().catch(() => {});
+        updateSoundBtn();
+        if (typeof playClickSound === 'function' && on) playClickSound();
+    });
+    updateSoundBtn();
+});
+
 // Toimintavarma äänirutiini selainestoja vastaan
 const playAudio = (audioObject, startTime = 0) => {
-    if (!audioObject) return;
+    if (!audioObject || !isSoundOn()) return;
     if (startTime === 0 && tryPlayBuffered(audioObject)) return;
     audioObject.currentTime = startTime;
     const playPromise = audioObject.play();
@@ -105,7 +149,7 @@ const playClickSound = () => {
 const themeEffectPool = {};
 
 window.playThemeEffect = (audioUrl) => {
-    if (!audioUrl) return;
+    if (!audioUrl || !isSoundOn()) return;
 
     let effect = themeEffectPool[audioUrl];
     if (!effect) {

@@ -2291,3 +2291,194 @@ body[data-net="room-guest"] .spell-rules {
     border-radius: 999px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.5);
 }
+
+/* --- "Palaa peliin" -banneri aloitusnäkymässä --- */
+#netResumeBanner {
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(229,193,88,0.1);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 0 18px rgba(229,193,88,0.15);
+}
+#netResumeBanner .nrb-text {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: left;
+    line-height: 1.35;
+    flex: 1;
+}
+#netResumeBanner .nrb-text strong {
+    color: var(--gold);
+    letter-spacing: 2px;
+    font-family: 'Cinzel', serif;
+}
+#btnResumeGame {
+    margin-top: 0;
+    padding: 10px 16px;
+    width: auto;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+}
+#btnDismissResume {
+    margin-top: 0;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Paluulinkki huoneen liittymisnäkymässä */
+#roomResumeLink {
+    display: none;
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    background: rgba(229,193,88,0.08);
+    border: 1px dashed rgba(229,193,88,0.5);
+    border-radius: 10px;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: bold;
+}
+#roomResumeLink strong { letter-spacing: 2px; font-family: 'Cinzel', serif; }
+
+/* --- Yhteysindikaattori (näkyy pelin päälläkin) --- */
+#netConnBadge {
+    position: fixed;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9400;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 999px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+    font-family: 'Comfortaa', sans-serif;
+    white-space: nowrap;
+    max-width: 92vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#netConnBadge.warn {
+    background: rgba(180,120,20,0.92);
+    color: #fff;
+    animation: ncbPulse 1.6s ease-in-out infinite;
+}
+#netConnBadge.err {
+    background: rgba(160,40,30,0.95);
+    color: #fff;
+}
+#netConnBadge.ok {
+    background: rgba(30,140,80,0.95);
+    color: #fff;
+}
+#netConnBadge .ncb-btn {
+    margin: 0;
+    padding: 4px 12px;
+    width: auto;
+    min-height: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+}
+@keyframes ncbPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+}
+
+/* --- Huoneesta poistumispainikkeet --- */
+.net-leave-btn {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(192,57,43,0.12);
+    border: 1px solid rgba(192,57,43,0.4);
+    border-radius: 10px;
+    color: #ff9d94;
+    font-size: 12.5px;
+    font-weight: bold;
+}
+.net-leave-chip {
+    margin-top: 6px;
+    padding: 5px 10px;
+    width: auto;
+    min-height: 0;
+    background: rgba(192,57,43,0.12);
+    border: 1px solid rgba(192,57,43,0.35);
+    border-radius: 999px;
+    color: #ff9d94;
+    font-size: 11px;
+    font-weight: bold;
+    box-shadow: none;
+}
+
+/* Poistumispainikkeet näkyvät vain huonepelissä */
+#btnLeaveInGame, #btnLeaveVictory { display: none; }
+body[data-net="room-host"] #btnLeaveInGame,
+body[data-net="room-guest"] #btnLeaveInGame { display: inline-block; }
+body[data-net="room-host"] #btnLeaveVictory,
+body[data-net="room-guest"] #btnLeaveVictory { display: block; }
+
+/* --- Äänen päällä/pois -kytkin (aina näkyvä) --- */
+#soundToggleBtn {
+    position: fixed;
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 9600;
+    width: 46px;
+    height: 46px;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    border: 1px solid var(--soft-border);
+    background: rgba(15, 12, 28, 0.92);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+#soundToggleBtn.muted { opacity: 0.75; }
+
+/* --- Huonekoodi-chipit pelin aikana (näkyy vain huonepelissä) --- */
+.room-code-chip {
+    display: none;
+    margin-top: 6px;
+    padding: 5px 10px;
+    width: auto;
+    min-height: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(229,193,88,0.35);
+    background: rgba(229,193,88,0.08);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: 'Comfortaa', sans-serif;
+    box-shadow: none;
+    cursor: pointer;
+}
+#ngRoomCode { margin-top: 0; letter-spacing: 1.5px; }
+body[data-net="room-host"] .room-code-chip,
+body[data-net="room-guest"] .room-code-chip { display: inline-block; }
