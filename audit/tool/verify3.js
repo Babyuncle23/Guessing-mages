@@ -56,7 +56,16 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
 (async () => {
     const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), stdio: 'pipe' });
     srv.stdout.on('data', d => process.env.VERBOSE && console.log('[srv]', String(d)));
-    await sleep(1200);
+    // Ждём готовности сервера по /healthz (до 10 с), а не фиксированный слип
+    {
+        const t0 = Date.now();
+        let up = false;
+        while (Date.now() - t0 < 10000 && !up) {
+            try { const r = await fetch('http://127.0.0.1:8080/healthz'); up = r.ok; } catch (e) { /* ещё не поднялся */ }
+            if (!up) await sleep(250);
+        }
+        if (!up) throw new Error('server.js did not start within 10s');
+    }
 
     const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, protocolTimeout: 30000, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding'] });
     try {

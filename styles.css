@@ -2199,6 +2199,28 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
 .room-char-opt.picked { border-color: var(--gold); background: rgba(229,193,88,0.12); }
 .room-char-opt.taken { opacity: 0.35; pointer-events: none; }
 
+/* Liity-polun toissijainen painike + piilotettu koodirivi */
+.room-path-btn {
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: none;
+}
+.room-path-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(229,193,88,0.1);
+}
+
+/* --- Bonussanan selite sanalistan alla --- */
+.bonus-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+    text-align: center;
+}
+
 /* Huonepelissä vieras ei näe yhden puhelimen asetuksia */
 body[data-net="room-guest"] .mode-selector,
 body[data-net="room-guest"] #characterSelectionBlock,

@@ -158,9 +158,23 @@ const renderOlList = () => {
         return `<li data-index="${index}" data-rare="${isRare}"><strong>${index + 1}.</strong> ${w} ${bonusTag}</li>`;
     }).join('');
 
+    const bonusHint = document.getElementById('bonusHint');
+    if (bonusHint) {
+        const meta = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn === true);
+        bonusHint.textContent = meta
+            ? 'Ei bonussanaa tällä vuorolla.'
+            : '✨-merkitty sana arvotaan koko sanakirjasta — usein harvinainen! Selitä se ja saat +25p.';
+        bonusHint.style.display = 'block';
+    }
+
     if (typeof updateGuessedButtonsText === 'function') {
         updateGuessedButtonsText();
     }
+};
+
+window.hideBonusHint = () => {
+    const h = document.getElementById('bonusHint');
+    if (h) h.style.display = 'none';
 };
 
 const clearWordsBeforeTurn = () => {
@@ -168,6 +182,7 @@ const clearWordsBeforeTurn = () => {
         wordList.innerHTML = '';
         wordList.style.display = "none";
     }
+    window.hideBonusHint();
 };
 
 // Family-friendly toggle removed; images replaced by emojis.

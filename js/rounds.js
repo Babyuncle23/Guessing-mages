@@ -282,6 +282,7 @@ const randomizeTheme = () => {
     btnDisplayWords.style.display = "none";
     roundControls.style.display = 'none';
     wordList.style.display = "none";
+    window.hideBonusHint && window.hideBonusHint();
     
     // TYHJENNETÄÄN OHJETEKSTI VAIN JOS SIITÄ EI OLE SUOJAVIESTIÄ (Tämä estää ylikirjoituksen alussa)
     ruleInstruction.textContent = "";
@@ -755,6 +756,7 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     wordList.style.display = "none";
     wordList.classList.remove("hidden-words");
     isWordListHidden = true;
+    window.hideBonusHint && window.hideBonusHint();
     btnDisplayWords.style.display = "none";
     btnDisplayWords.textContent = "Näytä sanat (vain selittäjälle)";
     ruleInstruction.textContent = "";

@@ -674,6 +674,15 @@
             }
         });
 
+        $('btnPathJoin')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            const row = $('roomCodeRow');
+            const open = row && row.style.display !== 'flex';
+            if (row) row.style.display = open ? 'flex' : 'none';
+            $('btnPathJoin').classList.toggle('active', open);
+            if (open) $('roomCodeInput')?.focus();
+        });
+
         $('btnJoinRoom')?.addEventListener('click', async () => {
             if (typeof playClickSound === 'function') playClickSound();
             const code = ($('roomCodeInput').value || '').trim().toUpperCase();
@@ -737,9 +746,10 @@
         });
         document.querySelectorAll('.mode-option').forEach(b => b.addEventListener('click', bc));
 
-        // ?room=ABCD esitäyttö + automaattinen huonetila
+        // ?room=ABCD esitäyttö + automaattinen huonetila + liity-polku auki
         if (urlRoom) {
             $('netModeRoom')?.click();
+            $('btnPathJoin')?.click();
             const inp = $('roomCodeInput');
             if (inp) inp.value = urlRoom.toUpperCase().slice(0, 4);
         }

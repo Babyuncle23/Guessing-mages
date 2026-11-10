@@ -229,6 +229,7 @@ btnGuessed.addEventListener("click", () => {
         // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
         wordList.innerHTML = '';
         wordList.style.display = "none";
+        window.hideBonusHint && window.hideBonusHint();
         endRound(true, guesserIdx);
     };
 
@@ -249,6 +250,7 @@ btnGiveUp.addEventListener("click", () => {
     // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
     wordList.innerHTML = '';
     wordList.style.display = "none";
+    window.hideBonusHint && window.hideBonusHint();
 
     endRound(false);
 });
