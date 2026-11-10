@@ -536,7 +536,7 @@ window.themeDrum = (() => {
         if (!ctx) return 0;
         const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
         const point = aimPoint(it);
-        const need = norm360(point - norm360(ctx.angle));
+        const need = norm360(-point - norm360(ctx.angle)); // rotate(R): sektori [a0,a1] → [a0+R,a1+R]; osoitin (0°) osuu pointtiin kun R ≡ -point
         const spins = minSpins + Math.floor(Math.random() * 2); // 3–4 kierrosta
         if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
         ctx.landed = false;
@@ -550,7 +550,7 @@ window.themeDrum = (() => {
         ctx.wheelEl.classList.remove('spinning');
         const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
         const point = aimPoint(it);
-        const need = norm360(point - norm360(ctx.angle));
+        const need = norm360(-point - norm360(ctx.angle));
         if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
         ctx.landed = false;
         const v = Math.max(ctx.v || 0, SPIN_V * 0.55); // v käynnissä olevasta simistä
