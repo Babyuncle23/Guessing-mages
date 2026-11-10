@@ -20,6 +20,10 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+    overflow-x: hidden; /* varmistus: ei ikinä vaakasuuntaista vieritystä */
+}
+
 body {
     background-color: var(--dark-bg);
     background-image: radial-gradient(circle at 50% 30%, #1e152a 0%, var(--dark-bg) 70%);
@@ -226,7 +230,9 @@ strong, b {
 
 .score-display span {
     color: var(--text-muted) !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    max-width: 100%;
     line-height: 1.2 !important;
 }
 
@@ -1383,6 +1389,15 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     gap: 6px;
     justify-content: center;
     width: 100%;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+/* Perus-sääntö 'button { width:100% }' pakottaisi työkalupainikkeet
+   koko rivin levyisiksi — työkalurivissä niiden tulee säilyttää
+   luonnollinen kokonsa ja rivittyä tarvittaessa */
+.modal-tools-row > button {
+    width: auto !important;
+    flex: 0 0 auto !important;
 }
 .modal-bottom-row {
     display: flex;
@@ -2124,6 +2139,10 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
 }
 
 /* --- Huonepaneeli --- */
+#roomPanel, #roomJoinView, #roomLobbyView {
+    width: 100%;
+    box-sizing: border-box;
+}
 #roomPanel {
     background: rgba(91,33,182,0.08);
     border: 1px solid rgba(155,89,182,0.3);

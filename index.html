@@ -38,8 +38,8 @@
                     <p class="room-hint">Jokainen pelaaja käyttää omaa puhelinta. Yksi pelaaja luo huoneen, muut liittyvät koodilla tai QR:lla.</p>
                     <input type="text" id="roomNameInput" maxlength="20" placeholder="Nimesi" autocomplete="off" style="width:100%; box-sizing:border-box; padding:12px; border-radius:10px; font-size:16px; margin-bottom:10px; background:rgba(255,255,255,0.05); border:1px solid var(--soft-border); color:var(--text-light); font-family:'Comfortaa';">
                     <div style="display:flex; gap:8px; margin-bottom:10px;">
-                        <input type="text" id="roomCodeInput" maxlength="4" placeholder="KOODI" autocomplete="off" autocapitalize="characters" style="flex:1; padding:12px; border-radius:10px; font-size:20px; letter-spacing:4px; text-transform:uppercase; text-align:center; background:rgba(255,255,255,0.05); border:1px solid var(--soft-border); color:var(--gold); font-family:'Comfortaa'; font-weight:bold;">
-                        <button type="button" id="btnJoinRoom" style="margin-top:0; white-space:nowrap;">🚪 Liity</button>
+                        <input type="text" id="roomCodeInput" maxlength="4" placeholder="KOODI" autocomplete="off" autocapitalize="characters" style="flex:1; min-width:0; padding:12px; border-radius:10px; font-size:20px; letter-spacing:4px; text-transform:uppercase; text-align:center; background:rgba(255,255,255,0.05); border:1px solid var(--soft-border); color:var(--gold); font-family:'Comfortaa'; font-weight:bold;">
+                        <button type="button" id="btnJoinRoom" style="margin-top:0; white-space:nowrap; width:auto; flex:0 0 auto;">🚪 Liity</button>
                     </div>
                     <button type="button" id="btnCreateRoom" style="margin-top:0; width:100%;">🛠️ Luo huone (isännöi)</button>
                     <p id="roomError" style="display:none; color:#ff9d94; font-size:12.5px; margin-top:10px;"></p>
