@@ -237,6 +237,8 @@
                 <label for="timerSelect" style="font-weight:bold; display:block; margin-bottom:8px;">⏱️ Vuoron ajastin</label>
                 <select id="timerSelect" style="padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; font-family: 'Comfortaa'; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
                     <option value="0" selected>Ei ajastinta</option>
+                    <option value="30">30 sekuntia</option>
+                    <option value="45">45 sekuntia</option>
                     <option value="60">60 sekuntia</option>
                     <option value="90">90 sekuntia</option>
                     <option value="120">120 sekuntia</option>
@@ -501,6 +503,7 @@
     <div id="turnTimer" style="display: none;">
         <div id="turnTimerFill"></div>
     </div>
+    <div id="turnTimerSec" style="display: none; text-align: right; font-size: 11px; color: var(--text-muted); margin: 0 2px 4px 0;"></div>
 
     <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
     <div id="themeBlock">
@@ -603,9 +606,10 @@
             <div class="modal-age-badge" style="position:static;">12+</div>
         </div>
         <div id="ngScore" class="score-display" style="margin-bottom:10px;"></div>
-        <div id="ngTimer" style="display:none; width:100%; height:6px; border-radius:4px; background:rgba(255,255,255,0.07); overflow:hidden; margin-bottom:10px;">
+        <div id="ngTimer" style="display:none; width:100%; height:6px; border-radius:4px; background:rgba(255,255,255,0.07); overflow:hidden; margin-bottom:4px;">
             <div id="ngTimerFill" style="height:100%; width:100%; background:linear-gradient(90deg,#27ae60,#a9dfbf);"></div>
         </div>
+        <div id="ngTimerSec" style="display:none; text-align:right; font-size:11px; color:var(--text-muted); margin:0 2px 8px 0;"></div>
         <div id="ngExplainer" style="text-align:center; color:var(--gold); font-weight:bold; font-size:15px; margin-bottom:10px;"></div>
         <div id="ngThemeBlock" style="display:none; text-align:center; padding:14px; border:1px solid var(--soft-border); border-radius:14px; background:rgba(255,255,255,0.03); margin-bottom:10px;">
             <small class="zone-badge-title">Selityksen ehto</small>

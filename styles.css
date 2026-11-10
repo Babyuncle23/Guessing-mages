@@ -2094,8 +2094,8 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     background: linear-gradient(90deg, #27ae60, #a9dfbf);
     transition: width 0.1s linear;
 }
-#turnTimerFill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-#turnTimerFill.danger { background: linear-gradient(90deg, #e74c3c, #f87171); }
+#turnTimerFill.warn, #ngTimerFill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24) !important; }
+#turnTimerFill.danger, #ngTimerFill.danger { background: linear-gradient(90deg, #e74c3c, #f87171) !important; }
 
 /* --- Peek-pilleri (hold-to-peek) --- */
 #peekWordPill {

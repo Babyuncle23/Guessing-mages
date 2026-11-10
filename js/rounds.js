@@ -608,7 +608,9 @@ window.stopTurnTimer = () => {
     }
     const bar = document.getElementById('turnTimer');
     const fill = document.getElementById('turnTimerFill');
+    const sec = document.getElementById('turnTimerSec');
     if (bar) bar.style.display = 'none';
+    if (sec) sec.style.display = 'none';
     if (fill) {
         fill.style.width = '100%';
         fill.classList.remove('warn', 'danger');
@@ -623,15 +625,18 @@ window.startTurnTimer = () => {
 
     const bar = document.getElementById('turnTimer');
     const fill = document.getElementById('turnTimerFill');
+    const sec = document.getElementById('turnTimerSec');
     if (!bar || !fill) return;
 
     bar.style.display = 'block';
+    if (sec) sec.style.display = 'block';
     const endTime = performance.now() + total * 1000;
 
     turnTimerInterval = setInterval(() => {
         const left = endTime - performance.now();
         const pct = Math.max(0, (left / (total * 1000)) * 100);
         fill.style.width = pct + '%';
+        if (sec) sec.textContent = Math.max(0, Math.ceil(left / 1000)) + ' s';
 
         fill.classList.toggle('warn', pct <= 50 && pct > 25);
         fill.classList.toggle('danger', pct <= 25);
@@ -641,7 +646,7 @@ window.startTurnTimer = () => {
             // Aika loppui — vuoro menetetään automaattisesti
             const emojiOv = document.getElementById('emojiModalOverlay');
             if (emojiOv) emojiOv.style.display = 'none';
-            endRound(false);
+            endRound(false, -1, -1, true);
         }
     }, 100);
 };
@@ -678,9 +683,10 @@ const showVictoryModal = () => {
 // isGuessed: selittäjän onnistuminen
 // guesserIndex: 3 pelaajan moodissa arvaajan indeksi (+50p bonusta)
 // stolenIndex: 4+ moodissa ryöstävän joukkueen indeksi (+50p, selittäjä 0p)
-const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1) => {
+const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = false) => {
     const p = gamePlayers[currentPlayerIndex];
     const endingIndex = currentPlayerIndex; // tämän vuoron selittäjä (huonepeliä varten)
+    const endedWord = (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0) ? generatedWordsList[selectedWordIndex] : null;
     let triggersExtraTurnNext = false;
     let consumedHunger = false;
     let consumedChaos = false;
@@ -808,9 +814,13 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
         if (typeof window.netAfterEndRound === 'function') {
             window.netAfterEndRound({
                 isGuessed, guesserIndex, stolenIndex, endingIndex,
-                word: (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0) ? generatedWordsList[selectedWordIndex] : null,
+                word: endedWord,
+                timeout: timedOut,
                 consumedHunger, consumedChaos
             });
+        }
+        if (timedOut && (!window.isRoomGame || !window.isRoomGame()) && typeof window.netShowSummary === 'function') {
+            window.netShowSummary(endedWord || '—', '⏱️ Aika loppui — ei pisteitä.');
         }
 
         return;
@@ -842,8 +852,13 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     if (typeof window.netAfterEndRound === 'function') {
         window.netAfterEndRound({
             isGuessed, guesserIndex, stolenIndex, endingIndex,
-            word: (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0) ? generatedWordsList[selectedWordIndex] : null,
+            word: endedWord,
+            timeout: timedOut,
             consumedHunger, consumedChaos
         });
+    }
+    // Yksinpeli: ajan loputtua näytä pieni yhteenvetokortti (huonepelissä hoitaa ROUND_END)
+    if (timedOut && (!window.isRoomGame || !window.isRoomGame()) && typeof window.netShowSummary === 'function') {
+        window.netShowSummary(endedWord || '—', '⏱️ Aika loppui — ei pisteitä.');
     }
 };

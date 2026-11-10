@@ -330,19 +330,26 @@
     let ngTimerInt = null;
     const ngTimerStart = (secs) => {
         clearInterval(ngTimerInt);
-        const bar = $('ngTimer'), fill = $('ngTimerFill');
+        const bar = $('ngTimer'), fill = $('ngTimerFill'), sec = $('ngTimerSec');
         if (!secs || !bar || !fill) return;
         bar.style.display = 'block';
+        if (sec) sec.style.display = 'block';
+        fill.classList.remove('warn', 'danger');
         const end = performance.now() + secs * 1000;
         ngTimerInt = setInterval(() => {
             const left = end - performance.now();
-            fill.style.width = Math.max(0, left / (secs * 1000) * 100) + '%';
-            if (left <= 0) { clearInterval(ngTimerInt); bar.style.display = 'none'; }
+            const pct = Math.max(0, left / (secs * 1000) * 100);
+            fill.style.width = pct + '%';
+            fill.classList.toggle('warn', pct <= 50 && pct > 25);
+            fill.classList.toggle('danger', pct <= 25);
+            if (sec) sec.textContent = Math.max(0, Math.ceil(left / 1000)) + ' s';
+            if (left <= 0) { clearInterval(ngTimerInt); bar.style.display = 'none'; if (sec) sec.style.display = 'none'; }
         }, 100);
     };
     const ngTimerStop = () => {
         clearInterval(ngTimerInt);
         if ($('ngTimer')) $('ngTimer').style.display = 'none';
+        if ($('ngTimerSec')) $('ngTimerSec').style.display = 'none';
     };
 
     const ngStatus = (txt) => { const el = $('ngStatus'); if (el) el.innerHTML = txt; };
@@ -411,6 +418,7 @@
         const payload = {
             kind: 'ROUND_END',
             result: info.isGuessed ? 'guessed' : (info.stolenIndex >= 0 ? 'stolen' : 'giveup'),
+            timeout: !!info.timeout,
             guesserIndex: info.guesserIndex,
             stolenIndex: info.stolenIndex,
             word: info.word,
@@ -438,6 +446,8 @@
             if (d.guesserIndex >= 0) lines += `<br>🎯 <strong>${name(d.guesserIndex)}</strong> arvasi (+50p)!`;
         } else if (d.result === 'stolen') {
             lines = `⚡ <strong>${name(d.stolenIndex)}</strong> arvasi ensin ja ryösti +50p!`;
+        } else if (d.timeout) {
+            lines = `⏱️ Aika loppui — ei pisteitä.`;
         } else {
             lines = `❌ Vuoro luovutettiin — ei pisteitä.`;
         }
