@@ -3,19 +3,21 @@ const themes = [
     "pantomiimi", "piirtäminen", "näkymätön muste", "espanja", "englanniksi", "ilman verbejä", "ilman substantiiveja", "vastakohdan kautta", "elokuva", "perusvaihtoehto", "vapaavalintainen", "vain emojit"
 ];
 
+// Единственный источник истины для дефолтных весов тем.
+// Значения совпадают с input'ами в index.html и используются в #btnResetDefault.
 const themeWeights = {
-    "pantomiimi": 3,
-    "piirtäminen": 3,
-    "espanja": 1,
+    "pantomiimi": 2,
+    "piirtäminen": 2,
+    "espanja": 0,
     "englanniksi": 1,
     "ilman verbejä": 1,
-    "ilman substantiiveja": 1,
+    "ilman substantiiveja": 0,
     "vastakohdan kautta": 1,
     "elokuva": 1,
-    "perusvaihtoehto": 1,
+    "perusvaihtoehto": 3,
     "vapaavalintainen": 1,
     "näkymätön muste": 0,
-    "vain emojit": 0  // Изменено с 1 на 0
+    "vain emojit": 0
 };
 
 const themeImages = {

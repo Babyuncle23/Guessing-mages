@@ -27,15 +27,27 @@ const getThemeWeightsFromUI = () => {
     return weights;
 };
 
-// Глобальный объект для хранения памяти ползунков
+// Обратное отображение: input id ("theme-weight-nakymaton-muste") -> ключ темы ("näkymätön muste")
+const themeKeyForWeightInput = (input) => {
+    for (const theme of themes) {
+        const formatted = theme.toLowerCase().replace(/\s+/g, '-').replace(/ä/g, 'a').replace(/ö/g, 'o');
+        if (`theme-weight-${formatted}` === input.id) return theme;
+    }
+    return null;
+};
 
 const initializeThemeWeightSteppers = () => {
     const stepperCards = document.querySelectorAll('.theme-card');
 
-    // 1. Tallenna oletusarvot sivuun resetointia varten
+    // 1. Tallenna oletusarvot sivuun resetointia varten — источник истины: themeWeights из js/themes.js
     const inputs = document.querySelectorAll('.theme-weight-input');
     inputs.forEach(input => {
-        input.dataset.defaultValue = input.value;
+        const key = themeKeyForWeightInput(input);
+        const defaultVal = (key && typeof themeWeights !== 'undefined' && themeWeights[key] !== undefined)
+            ? themeWeights[key]
+            : input.value;
+        input.value = defaultVal;
+        input.dataset.defaultValue = defaultVal;
         input.dataset.savedValue = input.value;
     });
 
@@ -261,6 +273,9 @@ const randomizeTheme = () => {
     isMetamorphosisUsedThisTurn = false;
     if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
 
+    // Huonepeli: ilmoita muille puhelimille että rumpu pyörii
+    if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling();
+
 
     btn.disabled = true;
     btn.style.opacity = "0.7";
@@ -307,6 +322,9 @@ const randomizeTheme = () => {
             activeCondition2 = "";
             currentActiveTheme = randomTheme;
 
+            // Huonepeli: lähetä arvottu teema kaikille puhelimille
+            if (typeof window.netRelayTheme === 'function') window.netRelayTheme(randomTheme);
+
             // Выводим название темы на экран (всегда крупными буквами)
             if (themeDisplay) {
                 themeDisplay.style.display = "block";
@@ -349,8 +367,11 @@ if (randomTheme === "vapaavalintainen") {
     renderThemeRulesHelpButton();
 } else {
                 // ДЛЯ ВСЕХ ОСТАЛЬНЫХ ТЕМ:
+                const isMagicModeOn = document.getElementById('magicToggle') && document.getElementById('magicToggle').checked;
                 btnDisplayWords.style.display = "block";
-                btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle, loitsut vain ennen painamista)";
+                btnDisplayWords.textContent = isMagicModeOn
+                    ? "👁️ Näytä sanat (vain selittäjälle, loitsut vain ennen painamista)"
+                    : "👁️ NÄYTÄ SANAT (VAIN SELITTÄJÄLLE)";
                 wordList.classList.remove("hidden-words");
                 isWordListHidden = true;
                 roundControls.style.display = 'none';
@@ -376,20 +397,21 @@ if (randomTheme === "vapaavalintainen") {
                 ruleInstruction.textContent = "";
             }
 
-            const activePlayer = gamePlayers[currentPlayerIndex];
-            
-            // 1. ILMOITUKSET MUODONMUUTTAJALLE HÄNEN OMAN VUORONSA ALUSSA
-            
-            // 2. ILMOITUS UHRILLA (Kirouksenlangettajalle), KUN HÄNEN VUORONSA ALKAA JA HEIJASTETTU KIROUS ISKEE
-            if (activePlayer && activePlayer.name === "Kirouksenlangettaja") {
-                if (activeModifiers.reduceToThree || activeModifiers.chaosFourWords) {
-                    const reversedMessage = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 10px;">☠️ KÄÄNTEINEN MAGIA: Muodonmuuttaja heijasti aiemman kirouksesi takaisin! Kärsit nyt omasta taiastasi tällä vuorolla!</span>`;
-                    if (ruleInstruction.innerHTML) {
-                        ruleInstruction.innerHTML += reversedMessage;
-                    } else {
-                        ruleInstruction.style.display = "block";
-                        ruleInstruction.innerHTML = reversedMessage;
-                    }
+            // KIROUSBANNERI: näytä selvä ilmoitus kun vastustajan loitsu iskee tähän vuoroon
+            const curseBanner = document.getElementById('curseBanner');
+            if (curseBanner) {
+                const notices = [];
+                if (activeModifiers.reduceToThree) {
+                    notices.push("Korttinälkä! Vastustaja kavensi sanalistaasi 2 sanalla.");
+                }
+                if (activeModifiers.chaosFourWords) {
+                    notices.push("Sanakaaos! 3 ensi vuoron sanaasi muutettiin vaikeiksi.");
+                }
+                if (notices.length > 0) {
+                    curseBanner.innerHTML = `💀 KIROUS AKTIVOITUI: ${notices.join(' ')}`;
+                    curseBanner.style.display = 'block';
+                } else {
+                    curseBanner.style.display = 'none';
                 }
             }
 
@@ -483,6 +505,12 @@ const switchToWords = () => {
     isWordListHidden = false;
     renderSpellButtonsAfterWords();
 
+    // Käynnistä vuoron ajastin kun sanat on paljastettu
+    if (typeof window.startTurnTimer === 'function') window.startTurnTimer();
+
+    // Huonepeli: ilmoita arvaajille että sanat ovat auki (sisältöä ei lähetetä!)
+    if (typeof window.netRelayWordsOpen === 'function') window.netRelayWordsOpen();
+
     // ВЫВОД КОМПАКТНЫХ ПОДСКАЗОК ДЛЯ ИГРОКОВ
 if (ruleInstruction) {
         ruleInstruction.style.display = "block";
@@ -569,13 +597,104 @@ const toggleWordVisibility = () => {
     }
 };
 
-const endRound = (isGuessed) => {
+// --- VUORON AJASTIN ---
+let turnTimerInterval = null;
+
+window.stopTurnTimer = () => {
+    if (turnTimerInterval) {
+        clearInterval(turnTimerInterval);
+        turnTimerInterval = null;
+    }
+    const bar = document.getElementById('turnTimer');
+    const fill = document.getElementById('turnTimerFill');
+    if (bar) bar.style.display = 'none';
+    if (fill) {
+        fill.style.width = '100%';
+        fill.classList.remove('warn', 'danger');
+    }
+};
+
+window.startTurnTimer = () => {
+    window.stopTurnTimer();
+    const select = document.getElementById('timerSelect');
+    const total = select ? (parseInt(select.value, 10) || 0) : 0;
+    if (total <= 0) return;
+
+    const bar = document.getElementById('turnTimer');
+    const fill = document.getElementById('turnTimerFill');
+    if (!bar || !fill) return;
+
+    bar.style.display = 'block';
+    const endTime = performance.now() + total * 1000;
+
+    turnTimerInterval = setInterval(() => {
+        const left = endTime - performance.now();
+        const pct = Math.max(0, (left / (total * 1000)) * 100);
+        fill.style.width = pct + '%';
+
+        fill.classList.toggle('warn', pct <= 50 && pct > 25);
+        fill.classList.toggle('danger', pct <= 25);
+
+        if (left <= 0) {
+            window.stopTurnTimer();
+            // Aika loppui — vuoro menetetään automaattisesti
+            const emojiOv = document.getElementById('emojiModalOverlay');
+            if (emojiOv) emojiOv.style.display = 'none';
+            endRound(false);
+        }
+    }, 100);
+};
+
+// --- VOITTO-MODAALI ---
+const showVictoryModal = () => {
+    const modal = document.getElementById('victoryModal');
+    const rankings = document.getElementById('victoryRankings');
+    if (!modal || !rankings) return;
+
+    const sorted = [...gamePlayers].sort((a, b) => b.score - a.score);
+    const topScore = sorted[0].score;
+    const medals = ['🥇', '🥈', '🥉', '🎖️'];
+    const isTie = sorted.length > 1 && sorted[0].score === sorted[1].score;
+
+    rankings.innerHTML = sorted.map((pl, i) => {
+        const isWinner = pl.score === topScore;
+        const medal = isTie ? '🤝' : (medals[i] || '🎖️');
+        return `<div class="victory-row${isWinner ? ' winner' : ''}">
+            <span class="v-rank">${medal}</span>
+            <span class="v-name">${pl.img || ''} ${pl.name}${isWinner && !isTie ? ' — VOITTAJA!' : ''}</span>
+            <span class="v-score">${pl.score}p</span>
+        </div>`;
+    }).join('');
+
+    if (isTie) {
+        rankings.insertAdjacentHTML('afterbegin',
+            `<p style="color: var(--gold); font-weight: bold; margin-bottom: 12px;">Peli päättyi tasan!</p>`);
+    }
+
+    modal.style.display = 'flex';
+};
+
+// isGuessed: selittäjän onnistuminen
+// guesserIndex: 3 pelaajan moodissa arvaajan indeksi (+50p bonusta)
+// stolenIndex: 4+ moodissa ryöstävän joukkueen indeksi (+50p, selittäjä 0p)
+const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1) => {
     const p = gamePlayers[currentPlayerIndex];
+    const endingIndex = currentPlayerIndex; // tämän vuoron selittäjä (huonepeliä varten)
     let triggersExtraTurnNext = false;
+    let consumedHunger = false;
+    let consumedChaos = false;
+
+    window.stopTurnTimer();
+    if (window.hidePeekWord) window.hidePeekWord();
+    const curseBannerEl = document.getElementById('curseBanner');
+    if (curseBannerEl) curseBannerEl.style.display = 'none';
 
     const overlay = document.getElementById('drawingModalOverlay');
     if (overlay) overlay.style.display = 'none';
+    const emojiOv = document.getElementById('emojiModalOverlay');
+    if (emojiOv) emojiOv.style.display = 'none';
     if (window.clearGameCanvas) window.clearGameCanvas();
+    if (window.stopDrawingIntervals) window.stopDrawingIntervals();
 
     const oldHint = document.getElementById('themeDrawingHint');
     if (oldHint) oldHint.remove();
@@ -596,6 +715,11 @@ const endRound = (isGuessed) => {
         }
         p.score += roundBaseScore;
 
+        // 3 pelaajan moodi: arvaaja saa +50p omalle tililleen
+        if (guesserIndex >= 0 && guesserIndex < gamePlayers.length && guesserIndex !== currentPlayerIndex) {
+            gamePlayers[guesserIndex].score += 50;
+        }
+
         // 2. БОНУС ЗА СЛОЖНОЕ СЛОВО (Строго один раз за раунд!)
 if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWordText !== "") {
             const selectedWordText = generatedWordsList[selectedWordIndex];
@@ -614,6 +738,13 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
             p.extraTurnGranted = false;
         }
 
+    } else if (stolenIndex >= 0 && stolenIndex < gamePlayers.length) {
+        // Ryöstö: vastustaja arvasi ensin — heille +50p, selittäjälle 0p
+        playAudio(sounds.curse);
+        gamePlayers[stolenIndex].score += 50;
+        if (p.name === "Yrttitarhuri") {
+            p.extraTurnGranted = false;
+        }
     } else {
         playAudio(sounds.fail);
         if (p.name === "Yrttitarhuri") {
@@ -638,8 +769,10 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
         activeModifiers.reduceToThree = false;
         activeModifiers.chaosFourWords = false;
 
-        if (pendingCurses.hunger) { activeModifiers.reduceToThree = true; pendingCurses.hunger = false; }
-        if (pendingCurses.chaos) { activeModifiers.chaosFourWords = true; pendingCurses.chaos = false; }
+        // Kiroukset aktivoituvat vain niiden kohteen vuorolla (3p-moodissa kohde voi olla kauempana)
+        const nextIdx = (currentPlayerIndex + 1) % gamePlayers.length;
+        if (pendingCurses.hunger === nextIdx) { activeModifiers.reduceToThree = true; pendingCurses.hunger = -1; consumedHunger = true; }
+        if (pendingCurses.chaos === nextIdx) { activeModifiers.chaosFourWords = true; pendingCurses.chaos = -1; consumedChaos = true; }
 
         isExtraTurnRound = false; 
 
@@ -664,17 +797,20 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
         // 2. Включаем главный звук победы в игре
         playAudio(sounds.gameWin);
 
-        const sortedPlayers = [...gamePlayers].sort((a, b) => b.score - a.score);
-        const winnerText = sortedPlayers[0].score === sortedPlayers[1].score ?
-            "Peli päättyi tasan!" : `Voittaja on ${sortedPlayers[0].name}!`;
-        const scoreSummary = gamePlayers.map(pl => `${pl.name}: ${pl.score}p`).join('\n');
-        
-// 3. Выводим результаты почти мгновенно, но даем браузеру отрисовать последний кадр
+        // 3. Näytetään tyylitelty voittomodaali alertin sijaan
         setTimeout(() => {
-            alert(`Peli ohi!\n${winnerText}\n\nLopulliset pisteet:\n${scoreSummary}`);
-            location.reload();
-        }, 50);
-        
+            showVictoryModal();
+        }, 350);
+
+        // Huonepeli: lähetä lopputulos muille (gameOver)
+        if (typeof window.netAfterEndRound === 'function') {
+            window.netAfterEndRound({
+                isGuessed, guesserIndex, stolenIndex, endingIndex,
+                word: (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0) ? generatedWordsList[selectedWordIndex] : null,
+                consumedHunger, consumedChaos
+            });
+        }
+
         return;
     }
     gamePlayers.forEach(pl => {
@@ -699,5 +835,13 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     activeCondition1 = "";
     activeCondition2 = "";
     isMetamorphosisUsedThisTurn = false;
-    document.getElementById("gameContainer").classList.remove("words-active");
+
+    // Huonepeli: lähetä lopputulos muille puhelimille
+    if (typeof window.netAfterEndRound === 'function') {
+        window.netAfterEndRound({
+            isGuessed, guesserIndex, stolenIndex, endingIndex,
+            word: (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0) ? generatedWordsList[selectedWordIndex] : null,
+            consumedHunger, consumedChaos
+        });
+    }
 };

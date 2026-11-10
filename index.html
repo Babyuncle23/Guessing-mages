@@ -26,6 +26,40 @@
         <div id="gameTab" class="tab-content active">
             <h2>🧙‍♂️ Ark-sanum</h2>
 
+            <!-- PELITILA-VALITSIN: yksi puhelin vs huonepeli -->
+            <div class="net-switch">
+                <button type="button" id="netModeOne" class="net-mode-btn active">📱 Yksi puhelin</button>
+                <button type="button" id="netModeRoom" class="net-mode-btn">📲 Useampi puhelin (Huonepeli)</button>
+            </div>
+
+            <!-- HUONEPELIN LIITTYMÄ- JA AULANÄKYMÄT -->
+            <div id="roomPanel" style="display: none;">
+                <div id="roomJoinView">
+                    <p class="room-hint">Jokainen pelaaja käyttää omaa puhelinta. Yksi pelaaja luo huoneen, muut liittyvät koodilla tai QR:lla.</p>
+                    <input type="text" id="roomNameInput" maxlength="20" placeholder="Nimesi" autocomplete="off" style="width:100%; box-sizing:border-box; padding:12px; border-radius:10px; font-size:16px; margin-bottom:10px; background:rgba(255,255,255,0.05); border:1px solid var(--soft-border); color:var(--text-light); font-family:'Comfortaa';">
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="roomCodeInput" maxlength="4" placeholder="KOODI" autocomplete="off" autocapitalize="characters" style="flex:1; padding:12px; border-radius:10px; font-size:20px; letter-spacing:4px; text-transform:uppercase; text-align:center; background:rgba(255,255,255,0.05); border:1px solid var(--soft-border); color:var(--gold); font-family:'Comfortaa'; font-weight:bold;">
+                        <button type="button" id="btnJoinRoom" style="margin-top:0; white-space:nowrap;">🚪 Liity</button>
+                    </div>
+                    <button type="button" id="btnCreateRoom" style="margin-top:0; width:100%;">🛠️ Luo huone (isännöi)</button>
+                    <p id="roomError" style="display:none; color:#ff9d94; font-size:12.5px; margin-top:10px;"></p>
+                    <p id="roomConnStatus" style="color:var(--text-muted); font-size:12px; margin-top:10px;"></p>
+                </div>
+
+                <div id="roomLobbyView" style="display:none;">
+                    <p class="room-hint" style="margin-bottom:4px;">Huonekoodi — näytä tai skannaa:</p>
+                    <div id="roomCodeBig">----</div>
+                    <img id="roomQrImg" alt="Huoneen QR-koodi" style="width:150px; height:150px; border-radius:10px; border:1px solid var(--gold); margin:8px auto 12px; display:block; background:#0f0c1c;">
+                    <div id="roomPlayerList" style="margin-bottom:12px;"></div>
+                    <div id="roomCharPick" style="display:none; margin-bottom:12px;">
+                        <p class="room-hint" style="margin-bottom:8px;">Valitse hahmosi:</p>
+                        <div id="roomCharOptions" style="display:flex; gap:8px; justify-content:center;"></div>
+                    </div>
+                    <p id="roomWaitText" style="color:var(--text-muted); font-size:13px;">Odotetaan että isäntä aloittaa pelin…</p>
+                    <button type="button" id="btnStartRoomGame" style="display:none; width:100%; background:#27ae60; color:#fff; font-weight:bold;">🚀 Aloita huonepeli</button>
+                </div>
+            </div>
+
             <!-- RULES -->
 
 <div class="spell-rules" style="margin-bottom: 20px; border-bottom: 1px solid var(--soft-border); padding-bottom: 12px;">
@@ -44,29 +78,22 @@
         <strong>Milloin 0 pistettä?</strong> Napsauta ”Luovuta vuoro”, jos sääntöjä on rikottu tai kukaan pelaajista ei jaksa jatkaa kierrosta.
     </p>
 
-    <!-- MULTIPLAYER ACCORDION -->
-    <div class="multiplayer-accordion">
-        <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
-            👥 Onko teitä 3 tai enemmän?
-        </button>
-        <div class="accordion-content">
-            <p style="margin-bottom: 12px; color: var(--gold); font-weight: bold; font-size: 13px;">
-                Isommalla porukalla peli jakautuu kahteen tiimiin:
-            </p>
-            
-            <div class="player-count-option" style="margin-bottom: 12px;">
-                <span class="count-badge">3 pelaajaa</span>
-                <p>Kaksi pelaajaa muodostaa tiimin ja pelaa yhdessä kolmatta vastaan.</p>
-            </div>
-
-            <div class="player-count-option">
-                <span class="count-badge">4+ pelaajaa</span>
-                <p>Jakaantukaa kahteen joukkueeseen. Vuorossa oleva selittäjä katsoo sanan yksin:</p>
-                <ul style="margin-left: 15px; margin-top: 5px; font-size: 12px; color: var(--text-muted); list-style: disc;">
-                    <li>Oma joukkue saa pisteen arvaamalla sanan oikein.</li>
-                    <li><strong>Vastustajat mukaan:</strong> Myös vastustajat saavat arvata. Jos he ehtivät ensin, oma tiimi jää ilman pisteitä.</li>
-                </ul>
-            </div>
+    <!-- PELAAJAMÄÄRÄ / PELIMUOTO -VALITSIN -->
+    <div class="mode-selector">
+        <p class="mode-selector-title">👥 Montako pelaajaa?</p>
+        <div class="mode-options">
+            <button type="button" class="mode-option active" data-mode="2">
+                <span class="mode-option-name">👤 2 Pelaajaa</span>
+                <small class="mode-option-desc">Kaksinpeli — klassinen 1v1</small>
+            </button>
+            <button type="button" class="mode-option" data-mode="3">
+                <span class="mode-option-name">👥 3 Pelaajaa</span>
+                <small class="mode-option-desc">Kaikki vastaan kaikki — arvaaja saa +50p</small>
+            </button>
+            <button type="button" class="mode-option" data-mode="4">
+                <span class="mode-option-name">⚔️ 4+ Pelaajaa</span>
+                <small class="mode-option-desc">2 joukkuetta — vastustaja voi ryöstää vuoron (+50p)</small>
+            </button>
         </div>
     </div>
 
@@ -86,38 +113,85 @@
     </p>
 </div>
 
+<!-- TAIKUUSOPAS (Avautuu automaattisesti kun taikahahmot kytketään päälle) -->
+<div class="spell-rules">
+    <button type="button" id="magicGuideBtn" class="accordion-trigger" onclick="toggleAccordion(this)">
+        🪄 Miten loitsut ja bonussanat toimivat?
+    </button>
+    <div id="magicGuide" class="accordion-content">
+        <div class="guide-step">
+            <span class="guide-step-num">1</span>
+            <p><strong>Vaihe 1 — Ennen sanojen avaamista:</strong> Kun teema on arvottu, voit käyttää vuoroa vahvistavia loitsuja <em>ennen</em> kuin painat "Näytä sanat".</p>
+        </div>
+        <div class="guide-step">
+            <span class="guide-step-num">2</span>
+            <p><strong>Vaihe 2 — Sanojen katsomisen aikana:</strong> Kun sanat ovat auki, voit vaihtaa huonot sanat (Sanametamorfoosi) tai langettaa kirouksia vastustajan <em>seuraavalle</em> vuorolle (Kirouksenlangettaja).</p>
+        </div>
+        <div class="guide-step">
+            <span class="guide-step-num">✨</span>
+            <p><strong>Bonussana (+25p):</strong> Sanalistassa yksi sana on harvinainen ja merkitty +25p-merkillä. Jos selität sen, napauta kyseistä sanaa listassa ennen kuin painat "Arvattu oikein"!</p>
+        </div>
+    </div>
+</div>
+
 <!-- HAHMOVALINTAKORTIT (Piilotettu oletuksena) -->
 <div id="characterSelectionBlock" style="display: none;">
     <h3 style="margin-bottom: 5px;">🧙‍♀️ Valitkaa hahmot</h3>
-    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+    <p id="charSelectHint" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
         Valitkaa kaksi eri hahmoa. Ensimmäiseksi valittu aloittaa pelin!
     </p>
-    
+
     <div class="character-options" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
         <!-- Карточка 1: Muodonmuuttaja -->
-        <div class="char-card" data-char="Muodonmuuttaja" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
-            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">🐺</div>
-            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
-                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Muodonmuuttaja</p>
-                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Muokkaa sanaluetteloaan itselleen sopivammaksi</small>
+        <div class="char-card" data-char="Muodonmuuttaja">
+            <div class="char-emoji">🐺</div>
+            <div class="char-info">
+                <p class="char-name">Muodonmuuttaja</p>
+                <small class="char-desc">Muokkaa sanaluetteloaan itselleen sopivammaksi</small>
+                <div class="spell-pills">
+                    <div class="spell-pill">
+                        <span class="pill-head"><b>🃏 Korttitulva (1x)</b><i>Ennen sanoja</i></span>
+                        <span class="pill-desc">Saat +2 lisäsanaa listallesi.</span>
+                    </div>
+                    <div class="spell-pill">
+                        <span class="pill-head"><b>🔄 Sanametamorfoosi (1x)</b><i>Sanojen aikana</i></span>
+                        <span class="pill-desc">Vaihda kaikki sanat uusiin (palkinto 50p).</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Карточка 2: Kirouksenlangettaja -->
-        <div class="char-card" data-char="Kirouksenlangettaja" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
-            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">💀</div>
-            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
-                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Kirouksenlangettaja</p>
-                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Vaikeuttaa vastustajan peliä</small>
+        <div class="char-card" data-char="Kirouksenlangettaja">
+            <div class="char-emoji">💀</div>
+            <div class="char-info">
+                <p class="char-name">Kirouksenlangettaja</p>
+                <small class="char-desc">Vaikeuttaa vastustajan peliä</small>
+                <div class="spell-pills">
+                    <div class="spell-pill">
+                        <span class="pill-head"><b>🥀 Korttinälkä (1x)</b><i>Milloin vain</i></span>
+                        <span class="pill-desc">Vastustaja saa ensi vuorollaan 2 sanaa vähemmän.</span>
+                    </div>
+                    <div class="spell-pill">
+                        <span class="pill-head"><b>🌪️ Sanakaaos (1x)</b><i>Milloin vain</i></span>
+                        <span class="pill-desc">3 vastustajan ensi vuoron sanaa muuttuu vaikeiksi.</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Карточка 3: Yrttitarhuri -->
-        <div class="char-card" data-char="Yrttitarhuri" style="display: flex; align-items: center; gap: 15px; padding: 10px 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--soft-border); width: 100%; height: 115px; box-sizing: border-box;">
-            <div class="char-emoji" style="font-size: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 45px;">🌿</div>
-            <div style="display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; text-align: left;">
-                <p style="text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin: 0 0 4px 0; font-size: 13px; color: #fff; word-wrap: break-word; word-break: break-word;">Yrttitarhuri</p>
-                <small style="font-size: 11px; color: var(--text-muted); line-height: 1.3;">Voi ansaita lisävuoroja</small>
+        <div class="char-card" data-char="Yrttitarhuri">
+            <div class="char-emoji">🌿</div>
+            <div class="char-info">
+                <p class="char-name">Yrttitarhuri</p>
+                <small class="char-desc">Voi ansaita lisävuoroja</small>
+                <div class="spell-pills">
+                    <div class="spell-pill">
+                        <span class="pill-head"><b>🌱 Kasvupurkaus (2x)</b><i>Ennen sanoja</i></span>
+                        <span class="pill-desc">Jos arvaatte oikein, saat heti perään lisävuoron (50p).</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -125,13 +199,13 @@
 
 <!-- ALOITUSPAINIKE (Oletuksena vihreä ja valmis peruspeliin) -->
 <div style="margin-bottom: 20px;">
-    <button id="startGameBtn" class="start-game-btn" style="background: #27ae60; color: #fff;">ALOITA PERUSPELI</button>
+    <button id="startGameBtn" class="start-game-btn" style="background: #27ae60; color: #fff;" disabled>⏳ Ladataan sanakirjoja...</button>
 </div>
 
-<!-- НОВЫЙ БЛОК: QR-КОД И ПОДЕЛИТЬСЯ ИГРОЙ -->
-<div class="share-game-block" style="text-align: center; margin-top: 35px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+<!-- НОВЫЙ БЛОК: QR-КОД И ПОДЕЛИТЬСЯ ИГРОЙ (офлайн-SVG, генерируется один раз) -->
+<div class="share-game-block" style="text-align: center; margin-top: 35px; padding-top: 20px; padding-bottom: 25px; border-top: 1px solid rgba(255,255,255,0.05);">
     <p style="font-size: 14px; color: var(--gold); margin-bottom: 12px; font-weight: bold;">Piditkö pelistä? Jaa se ystävillesi!</p>
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://babyuncle23.github.io/Guessing-mages/&bgcolor=0f0c1c&color=e5c158" alt="Pelin QR-koodi" style="border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 10px; width: 130px; height: 130px;">
+    <img src="qr-code.svg" alt="Pelin QR-koodi" style="border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 10px; width: 130px; height: 130px;">
     <p style="font-size: 12px; color: var(--text-muted); word-break: break-all; margin: 0;">https://babyuncle23.github.io/Guessing-mages/</p>
 </div>
 
@@ -149,6 +223,16 @@
                     <option value="10">10 kierrosta (Taktinen peli)</option>
                     <option value="15">15 kierrosta</option>
                     <option value="20">20 kierrosta (Maraton)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="timerSelect" style="font-weight:bold; display:block; margin-bottom:8px;">⏱️ Vuoron ajastin</label>
+                <select id="timerSelect" style="padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; font-family: 'Comfortaa'; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
+                    <option value="0" selected>Ei ajastinta</option>
+                    <option value="60">60 sekuntia</option>
+                    <option value="90">90 sekuntia</option>
+                    <option value="120">120 sekuntia</option>
                 </select>
             </div>
 
@@ -406,6 +490,11 @@
 </div>
     </div>
 
+    <!-- VUORON AJASTIN (näkyy vain kun sana-avu auki) -->
+    <div id="turnTimer" style="display: none;">
+        <div id="turnTimerFill"></div>
+    </div>
+
     <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
     <div id="themeBlock">
         <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
@@ -422,7 +511,7 @@
 
 <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
     <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
-    <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
+    <small id="spellZoneTitle" class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">✨ Taikuus (Vaihe 1: Ennen sanojen avaamista)</small>
     
     <div class="spell-action-row" id="spellRow1">
         <button id="spellBtn1" class="spell-btn"></button>
@@ -437,6 +526,9 @@
     <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
 </div>
 
+    <!-- KIROUSBANNERI: näytetään kun vastustajan loitsu iskee vuoron alussa -->
+    <div id="curseBanner" style="display: none;"></div>
+
     <!-- SANALISTA JA OHJEET -->
   <!-- SANALISTA JA OHJEET -->
     <ol id="wordList" style="display: none;"></ol>
@@ -444,43 +536,12 @@
     <div id="ruleInstruction" class="rule-instruction"></div>
     <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
-    <!-- KEHITTÄJÄN TESTIVALIKKO 
-    <div id="devTestMenu" style="margin: 15px 0; padding: 12px; border: 1px dashed var(--soft-border); border-radius: 8px; background: rgba(0,0,0,0.4);">
-        <p style="font-size: 12px; color: var(--gold); font-weight: bold; margin-bottom: 8px;">🧙‍♂️ KEHITTÄJÄN TESTIVALIKKO:</p>
-        <select id="devThemeSelect" style="padding: 6px 10px; border-radius: 6px; font-family: 'Comfortaa'; width: 100%; background: var(--dark-bg); color: var(--text-light); border: 1px solid var(--gold);">
-            <option value="RANDOM">-- Normaali satunnainen arvonta --</option>
-            <option value="pantomiimi">Pantomiimi</option>
-            <option value="piirtäminen">Piirtäminen</option>
-            <option value="espanja">Espanja</option>
-            <option value="ilman verbejä">Ilman verbejä</option>
-            <option value="ilman substantiiveja">Ilman substantiiveja</option>
-            <option value="vastakohdan kautta">Vastakohdan kautta</option>
-            <option value="kaksi ehtoa">Kaksi ehtoa</option>
-            <option value="elokuva">Elokuva</option>
-            <option value="perusvaihtoehto">Perusvaihtoehto</option>
-            <option value="vapaavalintainen">Vapaavalintainen</option>
-        </select>
-    </div> -->
-
     <button id="btn">Aloita kierros</button>
-
-    <!-- НИЖЕ ИДЕТ КОНТЕЙНЕР ДЛЯ ЗАКЛИНАНИЙ, КОТОРЫЙ У ТЕБЯ В HTML НАПИСАН ДАЛЬШЕ -->
-    <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
-        <small class="zone-badge-title" style="width: 100%; margin-top: 0 !important;">Käytettävissä oleva taikuus</small>
-        <div class="spell-action-row" id="spellRow1">
-            <button id="spellBtn1" class="spell-btn"></button>
-            <div id="spellHelpBtn1" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
-        </div>
-        <div class="spell-action-row" id="spellRow2">
-            <button id="spellBtn2" class="spell-btn"></button>
-            <div id="spellHelpBtn2" class="spell-help-icon" aria-label="Loitsuinfo" title="Lisätietoa">?</div>
-        </div>
-        <div id="spellInfoBox" class="spell-info-box" style="display:none;"></div>
-    </div>
 
     <!-- БЛОК КНОПОК ДЕЙСТВИЙ (Остается в самом низу HTML, чтобы JS не путался) -->
 <div id="roundControls" class="round-controls-block" style="display: none;">
     <button id="btnGuessed" class="btn-success">Arvattu oikein (+100p)</button>
+    <button id="btnStolen" class="btn-steal steal-btn" style="display: none;">⚡ Vastustaja arvasi ensin! (+50p heille)</button>
     <button id="btnGiveUp" class="btn-danger">Luovutan vuoron / laiminlöin ehdon</button>
 </div>
 
@@ -492,6 +553,76 @@
     </div>
 </div>
 
+<!-- "KUKA ARVASI?" -MODAALI (3 pelaajan tila) -->
+<div id="whoGuessedModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 380px; text-align: center;">
+        <h3 style="color: var(--gold); margin-bottom: 5px;">🎯 Kuka arvasi sanan?</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Arvaaja saa +50p, selittäjä täydet pisteet.</p>
+        <div id="whoGuessedOptions" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <button id="whoGuessedCancel" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); margin-top: 15px; padding: 10px 18px; font-size: 13px;">Peruuta</button>
+    </div>
+</div>
+
+<!-- KIROUKSEN KOHDE -MODAALI (3 pelaajan taikapeli) -->
+<div id="curseTargetModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 380px; text-align: center;">
+        <h3 style="color: var(--gold); margin-bottom: 15px;">💀 Valitse kirouksen kohde</h3>
+        <div id="curseTargetOptions" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <button id="curseTargetCancel" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); margin-top: 15px; padding: 10px 18px; font-size: 13px;">Peruuta</button>
+    </div>
+</div>
+
+<!-- VOITTO-MODAALI -->
+<div id="victoryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="max-width: 420px; text-align: center;">
+        <h2 style="border-bottom: none; margin-bottom: 8px; padding-bottom: 0;">🏆 Peli ohi!</h2>
+        <div id="victoryRankings" style="margin: 15px 0 20px 0;"></div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button id="btnPlayAgain" type="button" style="background: #27ae60; color: #fff; font-weight: bold;">🔄 Pelaa uudelleen</button>
+            <button id="btnChangeSettings" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid var(--soft-border); color: var(--text-light);">⚙️ Muuta asetuksia</button>
+        </div>
+    </div>
+</div>
+
+<!-- PEEK-PILLO: väliaikainen sananäyttö hold-to-peek -painikkeelle -->
+<div id="peekWordPill" style="display: none;"></div>
+
+<!-- ARVAAJAN NÄYTTÖ (huonepeli: näkyy kaikilla paitsi selittäjällä) -->
+<div id="netGuesserScreen" style="display:none; position:fixed; inset:0; z-index:9000; background:#0f0c1c; overflow-y:auto; padding:16px; box-sizing:border-box;">
+    <div class="ng-inner" style="max-width:480px; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div class="round-counter" id="ngRound">Kierros: 1 / 10</div>
+            <div class="modal-age-badge" style="position:static;">12+</div>
+        </div>
+        <div id="ngScore" class="score-display" style="margin-bottom:10px;"></div>
+        <div id="ngTimer" style="display:none; width:100%; height:6px; border-radius:4px; background:rgba(255,255,255,0.07); overflow:hidden; margin-bottom:10px;">
+            <div id="ngTimerFill" style="height:100%; width:100%; background:linear-gradient(90deg,#27ae60,#a9dfbf);"></div>
+        </div>
+        <div id="ngExplainer" style="text-align:center; color:var(--gold); font-weight:bold; font-size:15px; margin-bottom:10px;"></div>
+        <div id="ngThemeBlock" style="display:none; text-align:center; padding:14px; border:1px solid var(--soft-border); border-radius:14px; background:rgba(255,255,255,0.03); margin-bottom:10px;">
+            <small class="zone-badge-title">Selityksen ehto</small>
+            <div id="ngTheme" class="theme-text"></div>
+            <div id="ngThemeEmoji" style="font-size:38px;"></div>
+            <div id="ngThemeRule" style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.4;"></div>
+        </div>
+        <div id="ngCurseBanner" style="display:none;"></div>
+        <div id="ngDrum" class="drum-animation" style="display:none;"><span>Noniin...</span></div>
+        <div id="ngStatus" style="text-align:center; color:var(--text-muted); font-size:13.5px; line-height:1.5; margin:10px 0;"></div>
+        <canvas id="ngCanvas" style="display:none; width:100%; height:55vh; background:rgba(255,255,255,0.04); border:1px dashed rgba(229,193,88,0.25); border-radius:16px; margin-top:10px;"></canvas>
+        <div id="ngEmojiView" style="display:none; width:100%; min-height:40vh; background:rgba(255,255,255,0.04); border:1px dashed rgba(229,193,88,0.25); border-radius:16px; margin-top:10px; padding:15px; box-sizing:border-box; font-size:44px; text-align:center; word-break:break-all; line-height:1.4;"></div>
+    </div>
+</div>
+
+<!-- VUORON YHTEENVETOKORTTI (4 s, kaikki puhelimet) -->
+<div id="turnSummaryCard" style="display:none; position:fixed; inset:0; z-index:9500; background:rgba(10,8,20,0.92); align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+    <div style="max-width:420px; width:100%; background:rgba(30,24,55,0.98); border:1px solid var(--gold); border-radius:18px; padding:24px; text-align:center; box-shadow:0 0 40px rgba(229,193,88,0.25);">
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:6px;">Vuoron sana oli:</div>
+        <div id="tsWord" style="font-size:26px; font-weight:bold; color:var(--gold); margin-bottom:14px; word-break:break-word;"></div>
+        <div id="tsPoints" style="font-size:14.5px; color:var(--text-light); line-height:1.7;"></div>
+    </div>
+</div>
+
+
 <!-- МАКСИМАЛЬНО КОМПАКТНЫЙ И ОПТИМИЗИРОВАННЫЙ МОДУЛЬ РИСОВАНИЯ -->
 <div id="drawingModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0c1c; z-index: 9999; flex-direction: column; padding: 10px; box-sizing: border-box; justify-content: space-between; gap: 5px;">
     
@@ -500,8 +631,10 @@
         
         <!-- Инструменты сбалансированы по левому краю -->
         <div class="modal-tools-row" style="display: flex; gap: 5px; align-items: center; flex-grow: 1;">
+            <button id="btnPeekDraw" type="button" class="peek-btn" style="background: rgba(229,193,88,0.12); border: 1px solid rgba(229,193,88,0.4); color: var(--gold); padding: 6px 12px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; user-select: none; -webkit-user-select: none; touch-action: none;">👁️ Pidä pohjassa</button>
             <button id="btnToolDraw" type="button" class="canvas-tool-btn active" style="background: var(--gold); color: #000; border: none; padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; min-width: 70px;">✏️ Kynä</button>
             <button id="btnToolErase" type="button" class="canvas-tool-btn" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; min-width: 70px;">🧽 Kumi</button>
+            <button id="btnUndoStroke" type="button" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; font-family: 'Comfortaa';">↩️ Kumoa</button>
             <button id="btnClearModalCanvas" type="button" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); padding: 6px 12px; border-radius: 14px; font-size: 11px; cursor: pointer; font-family: 'Comfortaa';">🗑️ Tyhjennä</button>
         </div>
 
@@ -517,6 +650,9 @@
         <button id="btnModalGuessed" type="button" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
             ✔️ Arvattu oikein
         </button>
+        <button id="btnModalStolen" type="button" class="steal-btn" style="display: none; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ⚡ Ryöstö +50p
+        </button>
         <button id="btnModalGiveUp" type="button" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
             ❌ Luovuta vuoro
         </button>
@@ -527,52 +663,38 @@
     <div class="modal-header-container" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; margin-bottom: 2px; gap: 8px;">
         <div class="modal-tools-row" style="display: flex; gap: 5px; align-items: center; flex-grow: 1;">
             <span style="color: var(--gold); font-family: 'Cinzel', serif; font-size: 16px; font-weight: bold;">📱 Vain Emojit</span>
+            <button id="btnPeekEmoji" type="button" class="peek-btn" style="background: rgba(229,193,88,0.12); border: 1px solid rgba(229,193,88,0.4); color: var(--gold); padding: 6px 12px; border-radius: 14px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'Comfortaa'; user-select: none; -webkit-user-select: none; touch-action: none;">👁️ Pidä pohjassa</button>
         </div>
         <button id="btnCloseEmojiModalX" type="button" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'Comfortaa'; transition: all 0.2s;">✕</button>
     </div>
 
-    <textarea id="emojiInputArea" placeholder="Syötä emojit tähän..." style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(229, 193, 88, 0.25); border-radius: 16px; touch-action: manipulation; width: 100%; height: 73vh; box-sizing: border-box; flex-shrink: 0; margin: 0; color: white; font-size: 48px; padding: 15px; resize: none; text-align: center; outline: none;"></textarea>
+    <textarea id="emojiInputArea" placeholder="Syötä emojit tähän..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(229, 193, 88, 0.25); border-radius: 16px; touch-action: manipulation; width: 100%; height: 73vh; box-sizing: border-box; flex-shrink: 0; margin: 0; color: white; font-size: 48px; padding: 15px; resize: none; text-align: center; outline: none;"></textarea>
     
     <div class="modal-bottom-row" style="display: flex; gap: 10px; width: 100%; justify-content: center; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 2px);">
         <button id="btnEmojiGuessed" type="button" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
             ✔️ Arvattu oikein
+        </button>
+        <button id="btnEmojiStolen" type="button" class="steal-btn" style="display: none; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
+            ⚡ Ryöstö +50p
         </button>
         <button id="btnEmojiGiveUp" type="button" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #fff; padding: 10px 10px; border-radius: 14px; font-size: 12px; font-weight: bold; cursor: pointer; flex-grow: 1; text-transform: uppercase; font-family: 'Comfortaa'; letter-spacing: 0.5px;">
             ❌ Luovuta vuoro
         </button>
     </div>
 </div>
-<script src="js\utils.js"></script>
-<script src="js\audio.js"></script>
-<script src="js\themes.js"></script>
-<script src="js\words.js"></script>
-<script src="js\state.js"></script>
-<script src="js\ui.js"></script>
-<script src="js\players.js"></script>
-<script src="js\spells.js"></script>
-<script src="js\rounds.js"></script>
-<script src="js\drawing.js"></script> 
-<script src="js\main.js"></script>
-
-
-<script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-</script>
+<script src="js/utils.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/words.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/players.js"></script>
+<script src="js/spells.js"></script>
+<script src="js/rounds.js"></script>
+<script src="js/drawing.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/network.js"></script>
+<script src="js/main.js"></script>
 
 </body>
 </html>

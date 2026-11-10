@@ -1,0 +1,17 @@
+{
+  "name": "ark-sanum",
+  "version": "2.0.0",
+  "description": "Ark-sanum — Finnish party word-explanation game (pass-and-play + multi-phone rooms)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0",
+    "qrcode": "^1.5.4"
+  }
+}

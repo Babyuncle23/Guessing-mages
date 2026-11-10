@@ -95,17 +95,20 @@ document.addEventListener("click", (e) => {
 
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
-    const p1 = gamePlayers[0]; 
-    const p2 = gamePlayers[1]; 
 
     document.getElementById('roundDisplay').textContent = `Kierros: ${currentRound} / ${totalTurns}`;
     const avatarEl = document.getElementById('currentAvatar');
     if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
-    
+
     document.getElementById('currentName').innerHTML = `Vuoro:<br><span>${gamePlayers[currentPlayerIndex].name}</span>`;
-    
-    // Перевели отображение на целые числа (100, 50, 25)
-    document.getElementById('scoreDisplay').innerHTML = `<span>${p1.name}: <strong>${p1.score}p</strong></span><br><span>${p2.name}: <strong>${p2.score}p</strong></span>`;
+
+    // Tulostaulu: kaikki pelaajat/joukkueet (2, 3 tai tiimit)
+    document.getElementById('scoreDisplay').innerHTML = gamePlayers
+        .map((pl, idx) => {
+            const marker = idx === currentPlayerIndex ? '▶ ' : '';
+            return `<span>${marker}${pl.name}: <strong>${pl.score}p</strong></span>`;
+        })
+        .join('<br>');
 
     const debuffContainer = document.getElementById('debuffIcons');
     debuffContainer.innerHTML = '';
@@ -125,15 +128,17 @@ const updateTurnDisplay = () => {
 const updateGuessedButtonsText = () => {
     const mainGuessedBtn = document.getElementById('btnGuessed');
     const modalGuessedBtn = document.getElementById('btnModalGuessed');
-    
+    const emojiGuessedBtn = document.getElementById('btnEmojiGuessed');
+
     // Проверяем, урезана ли награда из-за магии или доп. хода
-    const isHalfScore = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn) || 
+    const isHalfScore = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn) ||
                         (typeof isExtraTurnRound !== 'undefined' && isExtraTurnRound);
-    
+
     const targetText = isHalfScore ? "Arvattu oikein (+50p)" : "Arvattu oikein (+100p)";
-    
+
     if (mainGuessedBtn) mainGuessedBtn.textContent = targetText;
     if (modalGuessedBtn) modalGuessedBtn.textContent = targetText;
+    if (emojiGuessedBtn) emojiGuessedBtn.textContent = targetText;
 };
 
 const renderOlList = () => {
@@ -216,14 +221,18 @@ if (typeof wordList !== 'undefined' && typeof btnDisplayWords !== 'undefined') {
     isWordListHidden = true;
 }
 
-    emojiInput.value = ""; 
+    emojiInput.value = "";
     emojiOverlay.style.display = 'flex';
     setTimeout(() => emojiInput.focus(), 100); // Fokus viiveellä mobiililaitteille
+
+    // Huonepeli: ilmoita arvaajien puhelimille että emoji-taulu avautui
+    if (typeof window.netRelayEmoji === 'function') window.netRelayEmoji({ action: 'open' });
 };
 
 document.getElementById('btnCloseEmojiModalX')?.addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     emojiOverlay.style.display = 'none';
+    if (typeof window.netRelayEmoji === 'function') window.netRelayEmoji({ action: 'close' });
 });
 
 document.getElementById('btnEmojiGuessed')?.addEventListener('click', () => {
@@ -235,5 +244,105 @@ document.getElementById('btnEmojiGuessed')?.addEventListener('click', () => {
 document.getElementById('btnEmojiGiveUp')?.addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     emojiOverlay.style.display = 'none';
-    document.getElementById('btnGiveUp')?.click(); 
+    document.getElementById('btnGiveUp')?.click();
 });
+
+// Ryöstö-painike emoji-modaalissa (4+ joukkuemoodi)
+document.getElementById('btnEmojiStolen')?.addEventListener('click', () => {
+    if (typeof playClickSound === 'function') playClickSound();
+    emojiOverlay.style.display = 'none';
+    document.getElementById('btnStolen')?.click();
+});
+
+// --- EMOJI-SUODATUS: vain emojit ja välilyönnit sallitaan ---
+// Poistaa kirjaimet, numerot, välimerkit ja matemaattiset/valuutta-/muunnosymbolit.
+// Jäljelle jäävät So-symbolit (emojit), yhdistävät merkit (VS16, ihonvärit),
+// ZWJ-sekvenssien ohjausmerkit ja välilyönnit.
+if (emojiInput) {
+    const nonEmojiPattern = /[\p{L}\p{N}\p{P}\p{Sm}\p{Sc}\p{Sk}]/gu;
+    let lastEmojiSend = 0;
+    emojiInput.addEventListener('input', () => {
+        const filtered = emojiInput.value.replace(nonEmojiPattern, '');
+        if (filtered !== emojiInput.value) {
+            emojiInput.value = filtered;
+        }
+        // Huonepeli: striimaa emoji-sisältö arvaajille (~120 ms välein)
+        const now = performance.now();
+        if (now - lastEmojiSend > 120 && typeof window.netRelayEmoji === 'function') {
+            lastEmojiSend = now;
+            window.netRelayEmoji({ action: 'update', text: emojiInput.value });
+        }
+    });
+}
+
+// --- HOLD-TO-PEEK: pidä pohjassa nähdäksesi oman sanasi ---
+const peekPill = document.getElementById('peekWordPill');
+
+const showPeekWord = () => {
+    if (!peekPill) return;
+    const word = (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0 &&
+                  typeof generatedWordsList !== 'undefined')
+        ? generatedWordsList[selectedWordIndex]
+        : null;
+    peekPill.textContent = word ? `🤫 ${word}` : '⚠️ Valitse ensin sana listasta';
+    peekPill.style.display = 'block';
+};
+
+const hidePeekWord = () => {
+    if (peekPill) peekPill.style.display = 'none';
+};
+window.hidePeekWord = hidePeekWord;
+
+const bindHoldToPeek = (btnEl) => {
+    if (!btnEl) return;
+    const start = (e) => {
+        if (e.cancelable) e.preventDefault();
+        showPeekWord();
+    };
+    const stop = () => hidePeekWord();
+
+    // Hiirituki
+    btnEl.addEventListener('mousedown', start);
+    btnEl.addEventListener('mouseup', stop);
+    btnEl.addEventListener('mouseleave', stop);
+    // Kosketustuki
+    btnEl.addEventListener('touchstart', start, { passive: false });
+    btnEl.addEventListener('touchend', stop);
+    btnEl.addEventListener('touchcancel', stop);
+    // Estä kontekstivalikko pitkästä painalluksesta mobiilissa
+    btnEl.addEventListener('contextmenu', (e) => e.preventDefault());
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    bindHoldToPeek(document.getElementById('btnPeekDraw'));
+    bindHoldToPeek(document.getElementById('btnPeekEmoji'));
+});
+
+// --- "KUKA ARVASI?" -MODAALI (3 pelaajan vapaa kaikkien peli) ---
+// callback(guesserIndex) kutsutaan valinnan jälkeen; Peruuta -> callback(-1)
+window.openWhoGuessedModal = (callback) => {
+    const modal = document.getElementById('whoGuessedModal');
+    const options = document.getElementById('whoGuessedOptions');
+    if (!modal || !options) {
+        callback(-1);
+        return;
+    }
+    options.innerHTML = '';
+    gamePlayers.forEach((pl, idx) => {
+        if (idx === currentPlayerIndex) return;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = `${pl.img || '👤'} ${pl.name} (+50p)`;
+        b.onclick = () => {
+            modal.style.display = 'none';
+            callback(idx);
+        };
+        options.appendChild(b);
+    });
+    const cancel = document.getElementById('whoGuessedCancel');
+    if (cancel) cancel.onclick = () => {
+        modal.style.display = 'none';
+        callback(-1);
+    };
+    modal.style.display = 'flex';
+};

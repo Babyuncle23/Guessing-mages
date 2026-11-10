@@ -474,19 +474,18 @@ button:disabled, .spell-btn:disabled {
 
 .character-options .char-card {
     display: flex !important;
-    flex-direction: column !important; 
-    align-items: center !important;    
-    flex: 1 !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
     /* MUUTETTU: Poistettu liian tiukat min-width ja max-width rajoitukset */
-    min-width: 0 !important; 
+    min-width: 0 !important;
     width: 100% !important;
-    padding: 16px !important; /* Hieman enemmän ilmaa reunoille */
+    padding: 12px 14px !important; /* Hieman enemmän ilmaa reunoille */
     border-radius: 12px !important;
     background: rgba(255,255,255,0.02) !important;
     border: 1px solid rgba(255,255,255,0.05) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
-    text-align: center !important;
+    text-align: left !important;
     box-sizing: border-box !important;
 }
 
@@ -505,14 +504,14 @@ button:disabled, .spell-btn:disabled {
     font-size: 0.95rem !important; /* Hieman luettavampi koko */
     font-weight: bold !important;
     color: #e2daf0 !important;
-    text-align: center !important;
+    text-align: left !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0 0 6px 0 !important;
     width: 100% !important;
     /* MUUTETTU: Sallitaan tekstin jakautua siististi kahdelle riville, jos se ei mahdu */
-    white-space: normal !important; 
-    word-break: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
 }
 
 .character-options .char-card small {
@@ -808,15 +807,12 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     /* Адаптивные стили для карточек героев */
     .character-options .char-card {
         flex-direction: row !important;
-        align-items: center !important;
+        align-items: flex-start !important;
         text-align: left !important;
         max-width: 100% !important;
         width: 100% !important;
         padding: 10px 15px !important;
         box-sizing: border-box !important;
-        
-        /* Увеличенная минимальная высота гарантирует идеальную симметрию */
-        min-height: 130px !important; 
     }
 
     /* Настройка контейнера для текстовых эмодзи-иконок героев */
@@ -932,7 +928,6 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 
     /* Уменьшаем высоту карточек для ультра-узких дисплеев */
     .character-options .char-card {
-        height: 95px !important; 
         padding: 10px 12px !important;
     }
 
@@ -1780,4 +1775,452 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 /* Убедимся, что золотая рамка зажатого слова тоже не ломает размер */
 #wordList li.selected-word {
     padding: 9px 13px !important; /* Компенсируем 1px толщины рамки */
+}
+/* ==========================================================
+   TASK 2: PELIMUOTO-VALITSIN, TAIKAKORTIT, MODAALIT, AJASTIN
+   ========================================================== */
+
+/* --- Pitkät suomen sanat: tavutus + responsiiviset fontit --- */
+.char-name, .char-card p, .theme-card-name, .mode-option-name {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}
+.char-card .char-name {
+    font-size: clamp(0.72rem, 3.4vw, 0.95rem) !important;
+}
+.theme-text {
+    font-size: clamp(1.1rem, 5.5vw, 1.6rem);
+}
+.modal-content h2 {
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
+}
+
+/* --- Pelaajamäärän valitsin --- */
+.mode-selector {
+    margin: 15px 0 5px 0;
+    width: 100%;
+}
+.mode-selector-title {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mode-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    text-align: left;
+    min-height: auto;
+    margin-top: 0;
+    transition: all 0.2s ease;
+    color: var(--text-light);
+}
+.mode-option .mode-option-name {
+    font-size: 13.5px;
+    font-weight: bold;
+    color: var(--text-light);
+}
+.mode-option .mode-option-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+.mode-option.active {
+    border-color: var(--gold);
+    background: rgba(229,193,88,0.08);
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+.mode-option.active .mode-option-name { color: var(--gold); }
+
+/* --- Taikaopas --- */
+.guide-step {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    text-align: left;
+}
+.guide-step:last-child { margin-bottom: 0; }
+.guide-step-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(229,193,88,0.15);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 11px; font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.guide-step p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--text-light);
+    line-height: 1.45;
+}
+
+/* --- Hahmokortit: uusi rakenne + loitsupillerit --- */
+.char-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid var(--soft-border);
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.char-card .char-emoji {
+    font-size: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    padding-top: 4px;
+}
+.char-card .char-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+    text-align: left;
+}
+.char-card .char-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+.spell-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.spell-pill {
+    background: rgba(91,33,182,0.14);
+    border: 1px solid rgba(155,89,182,0.35);
+    border-radius: 8px;
+    padding: 6px 9px;
+    font-size: 10.5px;
+    line-height: 1.35;
+}
+.spell-pill .pill-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.spell-pill .pill-head b {
+    color: #d8c8ff;
+    font-size: 10.5px;
+}
+.spell-pill .pill-head i {
+    font-style: normal;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--gold);
+    background: rgba(229,193,88,0.12);
+    border-radius: 4px;
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+.spell-pill .pill-desc {
+    display: block;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+/* --- Kaksiriviset loitsupainikkeet --- */
+.spell-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1.25;
+}
+.spell-btn .spell-name { font-weight: bold; }
+.spell-btn .spell-sub {
+    font-size: 10px;
+    font-weight: normal;
+    opacity: 0.85;
+    text-transform: none;
+}
+
+/* --- Kirousbanneri --- */
+#curseBanner {
+    background: rgba(192, 57, 43, 0.22);
+    border: 1px solid rgba(231, 76, 60, 0.6);
+    border-left: 4px solid #e74c3c;
+    border-radius: 10px;
+    color: #ffb3ab;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.4;
+    padding: 10px 14px;
+    margin: 10px 0;
+    text-align: center;
+    animation: cursePulse 1.6s ease-in-out infinite;
+}
+@keyframes cursePulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(231,76,60,0.0); }
+    50% { box-shadow: 0 0 18px rgba(231,76,60,0.45); }
+}
+
+/* --- Ryöstöpainike --- */
+.btn-steal {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    border: none;
+}
+/* Ryöstöpainikkeet näkyvät vain 4+ -tilassa (body[data-mode="4"]) */
+/* Tarvitaan korkea spesifisyys koska .round-controls-block button asettaa display:flex !important */
+.steal-btn, .round-controls-block .steal-btn { display: none !important; }
+body[data-mode="4"] .steal-btn { display: inline-block !important; }
+body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important; }
+
+/* --- "Kuka arvasi?" / kirouksen kohde -vaihtoehdot --- */
+#whoGuessedOptions button, #curseTargetOptions button {
+    background: rgba(91,33,182,0.25);
+    border: 1px solid rgba(155,89,182,0.5);
+    color: var(--text-light);
+    font-size: 14px;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 0;
+}
+#whoGuessedOptions button:hover, #curseTargetOptions button:hover {
+    border-color: var(--gold);
+    background: rgba(229,193,88,0.12);
+}
+
+/* --- Voittomodaalin ranking --- */
+.victory-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    font-size: 14px;
+}
+.victory-row .v-rank { font-weight: bold; margin-right: 8px; }
+.victory-row .v-name { flex-grow: 1; text-align: left; }
+.victory-row .v-score { color: var(--gold); font-weight: bold; }
+.victory-row.winner {
+    border-color: var(--gold);
+    background: rgba(229,193,88,0.1);
+    box-shadow: 0 0 14px var(--gold-glow);
+}
+#victoryModal .modal-content, #whoGuessedModal .modal-content, #curseTargetModal .modal-content {
+    padding: 22px;
+}
+
+/* --- Vuoron ajastinpalkki --- */
+#turnTimer {
+    width: 100%;
+    height: 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.07);
+    overflow: hidden;
+    margin: 8px 0 2px 0;
+}
+#turnTimerFill {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #27ae60, #a9dfbf);
+    transition: width 0.1s linear;
+}
+#turnTimerFill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+#turnTimerFill.danger { background: linear-gradient(90deg, #e74c3c, #f87171); }
+
+/* --- Peek-pilleri (hold-to-peek) --- */
+#peekWordPill {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+    background: rgba(15, 12, 28, 0.97);
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    color: var(--gold);
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 16px var(--gold-glow);
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 92vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.peek-btn:active {
+    background: rgba(229,193,88,0.3) !important;
+}
+
+/* --- Asetusten selkeyttävät --- */
+#settingsTab select {
+    margin-bottom: 0;
+}
+
+/* Kolmannen valitun hahmon korostus (3 pelaajan taikapeli) */
+.char-card.selected-third {
+    border: 2px solid #27ae60 !important;
+    background: rgba(39, 174, 96, 0.1) !important;
+    box-shadow: 0 0 15px rgba(39, 174, 96, 0.3) !important;
+}
+
+/* ==========================================================
+   TASK 3: HUONEPELI (multi-phone room mode)
+   ========================================================== */
+
+/* --- Pelitila-valitsin --- */
+.net-switch {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.net-mode-btn {
+    flex: 1;
+    padding: 11px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 0;
+    transition: all 0.2s ease;
+}
+.net-mode-btn.active {
+    border-color: var(--gold);
+    background: rgba(229,193,88,0.1);
+    color: var(--gold);
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+/* --- Huonepaneeli --- */
+#roomPanel {
+    background: rgba(91,33,182,0.08);
+    border: 1px solid rgba(155,89,182,0.3);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+    text-align: center;
+}
+.room-hint {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+#roomCodeBig {
+    font-size: 38px;
+    font-weight: bold;
+    letter-spacing: 10px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    text-shadow: 0 0 18px var(--gold-glow);
+}
+#roomPlayerList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+.room-player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 9px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+}
+.room-player-row .rp-host { color: var(--gold); font-size: 11px; }
+.room-player-row .rp-off { color: #ff9d94; font-size: 11px; margin-left: auto; }
+.room-char-opt {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    border: 2px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    font-size: 28px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+    padding: 0;
+}
+.room-char-opt.picked { border-color: var(--gold); background: rgba(229,193,88,0.12); }
+.room-char-opt.taken { opacity: 0.35; pointer-events: none; }
+
+/* Huonepelissä vieras ei näe yhden puhelimen asetuksia */
+body[data-net="room-guest"] .mode-selector,
+body[data-net="room-guest"] #characterSelectionBlock,
+body[data-net="room-guest"] #startGameBtn,
+body[data-net="room-host"] #startGameBtn,
+body[data-net="room-host"] #characterSelectionBlock {
+    display: none !important;
+}
+body[data-net="room-host"] .spell-rules,
+body[data-net="room-guest"] .spell-rules {
+    display: none;
+}
+
+/* --- Arvaajan näytön kirousbanneri --- */
+#ngCurseBanner {
+    background: rgba(192, 57, 43, 0.22);
+    border: 1px solid rgba(231, 76, 60, 0.6);
+    border-left: 4px solid #e74c3c;
+    border-radius: 10px;
+    color: #ffb3ab;
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1.4;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    text-align: center;
+    animation: cursePulse 1.6s ease-in-out infinite;
+}
+
+/* --- Reconnect-ilmoitus --- */
+#netReconnectToast {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12000;
+    background: rgba(192,57,43,0.92);
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 999px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
 }

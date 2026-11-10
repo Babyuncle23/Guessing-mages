@@ -38,11 +38,20 @@ const playClickSound = () => {
 
 // --- YKSINKERTAISTETTU SOITIN TEEMOILLE ---
 // Kaikki feidaukset ja äänenvoimakkuudet on säädetty valmiiksi audiotiedostoissa (Studio One)
+// Пул переиспользуемых Audio-инстансов: по одному на URL, перематываем в начало вместо new Audio().
+const themeEffectPool = {};
+
 window.playThemeEffect = (audioUrl) => {
     if (!audioUrl) return;
 
-    const effect = new Audio(audioUrl);
-    effect.volume = 1.0; 
+    let effect = themeEffectPool[audioUrl];
+    if (!effect) {
+        effect = new Audio(audioUrl);
+        effect.volume = 1.0;
+        effect.preload = "auto";
+        themeEffectPool[audioUrl] = effect;
+    }
 
+    effect.currentTime = 0;
     effect.play().catch(err => console.log("Audio play error:", err));
 };

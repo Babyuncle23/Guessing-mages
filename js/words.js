@@ -766,13 +766,13 @@ let usedWordsInThisGame = [];
 
 const parseWords = (text, maxLines = Infinity) => {
     const seen = new Set();
-    
+
     // 1. Разбиваем файл строго по переносам строк
     let lines = text.split('\n');
-    
-    // 2. Оставляем только строки с 1 по 36999 (индексы от 0 до 36998)
+
+    // 2. Оставляем только первые maxLines строк файла
     if (maxLines !== Infinity) {
-        lines = lines.slice(0, maxLines - 1); 
+        lines = lines.slice(0, maxLines);
     }
 
     // 3. Соединяем обратно и обрабатываем каждую строку по вашему алгоритму
@@ -791,21 +791,19 @@ const parseWords = (text, maxLines = Infinity) => {
         .map(item => item.original); // Возвращает слова в нижнем регистре
 };
 
-let rareWordsSet = new Set();
-
-// Päivitetyt fetch-kutsut:
-fetch('words/kaikkisanat.txt')
-    .then(res => res.text())
-    .then(d => {
-        allWords = parseWords(d, 76000);
-        // Luodaan valmis indeksi isoilla kirjaimilla salamannopeaa hakua varten
-        rareWordsSet = new Set(allWords.map(w => capitalize(w)));
-    })
-    .catch(e => console.log("kaikkisanat.txt failed:", e));
-
-fetch('words/yleisetsanat.txt')
-    .then(res => res.text())
-    .then(d => {
-        commonWords = parseWords(d);
-    })
-    .catch(e => console.log("yleisetsanat.txt failed:", e));
+// Загружаем оба словаря параллельно. Промис резолвится только когда ОБА готовы;
+// при ошибке (сеть, file://) reject'ится — обработка в js/main.js.
+const wordsReady = Promise.all([
+    fetch('words/kaikkisanat.txt')
+        .then(res => {
+            if (!res.ok) throw new Error(`kaikkisanat.txt: HTTP ${res.status}`);
+            return res.text();
+        })
+        .then(d => { allWords = parseWords(d, 76000); }),
+    fetch('words/yleisetsanat.txt')
+        .then(res => {
+            if (!res.ok) throw new Error(`yleisetsanat.txt: HTTP ${res.status}`);
+            return res.text();
+        })
+        .then(d => { commonWords = parseWords(d); })
+]);

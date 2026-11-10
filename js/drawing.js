@@ -1,62 +1,20 @@
-// js/drawing.js — Финальное исправление ластика и тач-координат
+// js/drawing.js — векторная рисовалка: история штрихов, rAF-рендер, undo, режим "näkymätön muste"
 (function() {
-    let isDrawing = false;
-    let lastX = 0;
-    let lastY = 0;
-    let currentTool = "draw";
-    
+    const GHOST_FADE_MS = 3500; // Время полного исчезновения штриха в режиме "näkymätön muste"
+
     let canvas, ctx, overlay;
+    let isDrawing = false;
+    let currentTool = "draw";
+    let strokes = [];           // [{ tool: 'draw'|'erase', points: [{x,y} в долях 0..1], t: timestamp }]
+    let currentStroke = null;
+    let rafId = null;
 
-    const resizeCanvas = () => {
-        if (!canvas) return;
-        ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        
+    const isGhostMode = () =>
+        typeof currentActiveTheme !== 'undefined' && currentActiveTheme === "näkymätön muste";
+
+    // Координаты события в нормализованном виде (0..1) — переживают resize канваса
+    const getNormCoords = (e) => {
         const rect = canvas.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
-
-        // Сохраняем текущий рисунок во временную память перед изменением размеров
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        if (tempCtx) {
-            tempCtx.drawImage(canvas, 0, 0);
-        }
-
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-
-        updateBrushSettings();
-
-        if (tempCanvas.width > 0 && tempCanvas.height > 0) {
-            ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, canvas.width, canvas.height);
-        }
-    };
-
-    // НАСТОЯЩИЙ ИДЕАЛЬНЫЙ ЛАСТИК БЕЗ ЦВЕТНЫХ ПЯТЕН
-    const updateBrushSettings = () => {
-        if (!ctx) return;
-        if (currentTool === "erase") {
-            // Режим 'destination-out' заставляет кисть стирать нарисованное до полной прозрачности!
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.lineWidth = 28; // Делаем ластик пошире для удобства
-        } else {
-            // Режим 'source-over' возвращает стандартное рисование поверх холста
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.strokeStyle = '#e5c158'; // Магический золотой цвет
-            ctx.lineWidth = 4;
-        }
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-    };
-
-    const getCoords = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
         let clientX = e.clientX;
         let clientY = e.clientY;
 
@@ -69,59 +27,151 @@
         }
 
         return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
+            x: (clientX - rect.left) / rect.width,
+            y: (clientY - rect.top) / rect.height
         };
     };
 
-    // === НАЧАЛО ИСПРАВЛЕННОГО БЛОКА РИСОВАНИЯ ===
-const startDrawing = (e) => {
-        isDrawing = true;
-        const coords = getCoords(e);
-        lastX = coords.x;
-        lastY = coords.y;
+    // Воспроизведение одного штриха сглаженной кривой (как в старой версии)
+    const replayStrokePath = (s) => {
+        const pts = s.points;
+        if (pts.length === 0) return;
 
-        // Рисуем точку прямо в момент касания/клика
+        const W = canvas.width, H = canvas.height;
         ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(lastX, lastY); // Линия нулевой длины
-        ctx.stroke();             // Отрисовываем её (получится круг благодаря lineCap = 'round')
+        ctx.moveTo(pts[0].x * W, pts[0].y * H);
 
-        // Сразу начинаем новый путь на случай, если пользователь поведёт линию дальше
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-    };
-
-
- const draw = (e) => {
-        if (!isDrawing) return;
-        if (e.cancelable) e.preventDefault(); 
-        
-        const coords = getCoords(e);
-        
-        // Вычисляем среднюю точку между предыдущей и текущей координатой
-        const midX = (lastX + coords.x) / 2;
-        const midY = (lastY + coords.y) / 2;
-        
-        // Рисуем идеальный сглаженный изгиб к средней точке
-        ctx.quadraticCurveTo(lastX, lastY, midX, midY);
-        ctx.stroke();
-        
-        // Начинаем новый под-путь из средней точки, чтобы линия не прерывалась
-        ctx.beginPath();
-        ctx.moveTo(midX, midY);
-        
-        // Сохраняем текущие координаты как базовые для следующего шага движения
-        lastX = coords.x;
-        lastY = coords.y;
-    };
-
-
-    const stopDrawing = () => { 
-        if (isDrawing) {
-            ctx.closePath(); // Корректно завершаем векторный путь в памяти
-            isDrawing = false; 
+        if (pts.length === 1) {
+            // Точка: линия нулевой длины с круглым lineCap
+            ctx.lineTo(pts[0].x * W, pts[0].y * H);
+            return;
         }
+        for (let i = 1; i < pts.length - 1; i++) {
+            const midX = (pts[i].x + pts[i + 1].x) / 2 * W;
+            const midY = (pts[i].y + pts[i + 1].y) / 2 * H;
+            ctx.quadraticCurveTo(pts[i].x * W, pts[i].y * H, midX, midY);
+        }
+        ctx.lineTo(pts[pts.length - 1].x * W, pts[pts.length - 1].y * H);
+    };
+
+    // Полная перерисовка сцены из истории штрихов
+    const render = (now) => {
+        if (!ctx || !canvas) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const ghost = isGhostMode();
+        if (ghost) {
+            // Выкинуть полностью исчезнувшие мазки (ластик не исчезает)
+            strokes = strokes.filter(s => s.tool === 'erase' || (now - s.t) < GHOST_FADE_MS);
+        }
+
+        for (const s of strokes) {
+            const alpha = (ghost && s.tool === 'draw')
+                ? Math.max(0, 1 - (now - s.t) / GHOST_FADE_MS)
+                : 1;
+            if (alpha <= 0) continue;
+
+            ctx.globalAlpha = alpha;
+            if (s.tool === 'erase') {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 28;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#e5c158';
+                ctx.lineWidth = 4;
+            }
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            replayStrokePath(s);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+    };
+
+    // rAF-цикл живёт только пока открыта модалка
+    const loop = (now) => {
+        render(now);
+        rafId = requestAnimationFrame(loop);
+    };
+
+    const startLoop = () => {
+        if (rafId === null) rafId = requestAnimationFrame(loop);
+    };
+
+    // Останавливает ВСЕ фоновые задачи рисовалки. Вызывается при закрытии модалки и из endRound.
+    window.stopDrawingIntervals = () => {
+        if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+        if (window.inkFadeInterval) { // легаси-страховка
+            clearInterval(window.inkFadeInterval);
+            window.inkFadeInterval = null;
+        }
+    };
+
+    window.clearGameCanvas = () => {
+        strokes.length = 0;
+        currentStroke = null;
+        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const resizeCanvas = () => {
+        if (!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        // Штрихи хранятся в долях (0..1) — при изменении размера просто перерисуем
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        render(performance.now());
+    };
+
+    const updateToolButtons = () => {
+        const btnDraw = document.getElementById('btnToolDraw');
+        const btnErase = document.getElementById('btnToolErase');
+        if (!btnDraw || !btnErase) return;
+        const active = { bg: 'var(--gold)', color: '#000' };
+        const idle = { bg: 'rgba(255,255,255,0.06)', color: '#fff' };
+        const draw = currentTool === 'draw' ? active : idle;
+        const erase = currentTool === 'erase' ? active : idle;
+        btnDraw.style.background = draw.bg; btnDraw.style.color = draw.color;
+        btnErase.style.background = erase.bg; btnErase.style.color = erase.color;
+    };
+
+    const startDrawing = (e) => {
+        if (!ctx) return;
+        isDrawing = true;
+        currentStroke = { tool: currentTool, points: [getNormCoords(e)], t: performance.now() };
+        strokes.push(currentStroke);
+    };
+
+    // Huonepeli: livenä striimattava osittainen vedos (~80 ms välein)
+    let lastLiveSend = 0;
+    const draw = (e) => {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        currentStroke.points.push(getNormCoords(e));
+        const now = performance.now();
+        if (now - lastLiveSend > 80 && typeof window.netRelayDraw === 'function') {
+            lastLiveSend = now;
+            window.netRelayDraw({ action: 'live', tool: currentStroke.tool, points: currentStroke.points });
+        }
+    };
+
+    const stopDrawing = () => {
+        if (isDrawing && currentStroke && currentStroke.points.length > 0 &&
+            typeof window.netRelayDraw === 'function') {
+            window.netRelayDraw({
+                action: 'stroke',
+                tool: currentStroke.tool,
+                points: currentStroke.points,
+                age: performance.now() - currentStroke.t
+            });
+        }
+        isDrawing = false;
+        currentStroke = null;
     };
 
     window.openDrawingModal = () => {
@@ -132,62 +182,33 @@ const startDrawing = (e) => {
         if (typeof wordList !== 'undefined' && typeof btnDisplayWords !== 'undefined') {
             wordList.classList.add("hidden-words");
             btnDisplayWords.textContent = "👁️ Näytä sanat (vain selittäjälle)";
-            isWordListHidden = true; 
+            isWordListHidden = true;
         }
 
         overlay.style.display = 'flex';
-        
+        if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'open' });
+
         currentTool = "draw";
-        const btnDraw = document.getElementById('btnToolDraw');
-        const btnErase = document.getElementById('btnToolErase');
-        if (btnDraw && btnErase) {
-            btnDraw.style.background = "var(--gold)"; btnDraw.style.color = "#000";
-            btnErase.style.background = "rgba(255,255,255,0.06)"; btnErase.style.color = "#fff";
-        }
+        updateToolButtons();
 
         ctx = canvas.getContext('2d');
         resizeCanvas();
         setTimeout(resizeCanvas, 50);
 
-// --- UUSI: Näkymättömän musteen taika ---
-        if (window.inkFadeInterval) clearInterval(window.inkFadeInterval); 
-
-        if (typeof currentActiveTheme !== 'undefined' && currentActiveTheme === "näkymätön muste") {
-            window.inkFadeInterval = setInterval(() => {
-                if (!ctx || !canvas || currentTool === "erase") return; 
-                
-                const w = canvas.width;
-                const h = canvas.height;
-                if (w === 0 || h === 0) return;
-
-                // Получаем сырые данные всех пикселей на холсте
-                const imgData = ctx.getImageData(0, 0, w, h);
-                const data = imgData.data;
-                
-                // Проходимся по альфа-каналу (каждое 4-е значение в массиве RGBA)
-                for (let i = 3; i < data.length; i += 4) {
-                    if (data[i] > 0) {
-                        // Физически вычитаем 8 единиц прозрачности из 255. 
-                        // Это заставит линию полностью испариться примерно за 2 секунды.
-                        data[i] = Math.max(0, data[i] - 8); 
-                    }
-                }
-                
-                // Возвращаем пиксели обратно на холст (это игнорирует любые баги наложения)
-                ctx.putImageData(imgData, 0, 0);
-                
-            }, 60); 
-        }
+        startLoop(); // рендер-цикл: рисует штрихи и гаснущие линии в режиме näkymätön muste
     };
 
-    window.clearGameCanvas = () => {
-        if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const closeModal = () => {
+        if (typeof playClickSound === 'function') playClickSound();
+        window.stopDrawingIntervals();
+        if (overlay) overlay.style.display = 'none';
+        if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'close' });
     };
 
     document.addEventListener('DOMContentLoaded', () => {
         canvas = document.getElementById('drawingModalCanvas');
         overlay = document.getElementById('drawingModalOverlay');
-        
+
         if (canvas) {
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
@@ -200,65 +221,53 @@ const startDrawing = (e) => {
             canvas.addEventListener('touchcancel', stopDrawing);
         }
 
-        const btnDraw = document.getElementById('btnToolDraw');
-        const btnErase = document.getElementById('btnToolErase');
+        document.getElementById('btnToolDraw')?.addEventListener('click', () => {
+            currentTool = "draw";
+            updateToolButtons();
+            if (typeof playClickSound === 'function') playClickSound();
+        });
 
-        if (btnDraw && btnErase) {
-            btnDraw.addEventListener('click', () => {
-                currentTool = "draw";
-                btnDraw.style.background = "var(--gold)"; btnDraw.style.color = "#000";
-                btnErase.style.background = "rgba(255,255,255,0.06)"; btnErase.style.color = "#fff";
-                updateBrushSettings();
-                if (typeof playClickSound === 'function') playClickSound();
-            });
+        document.getElementById('btnToolErase')?.addEventListener('click', () => {
+            currentTool = "erase";
+            updateToolButtons();
+            if (typeof playClickSound === 'function') playClickSound();
+        });
 
-            btnErase.addEventListener('click', () => {
-                currentTool = "erase";
-                btnErase.style.background = "var(--gold)"; btnErase.style.color = "#000";
-                btnDraw.style.background = "rgba(255,255,255,0.06)"; btnDraw.style.color = "#fff";
-                updateBrushSettings();
-                if (typeof playClickSound === 'function') playClickSound();
-            });
-        }
+        document.getElementById('btnUndoStroke')?.addEventListener('click', () => {
+            strokes.pop(); // Убираем последний штрих — перерисует rAF-цикл
+            if (typeof playClickSound === 'function') playClickSound();
+            if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'undo' });
+        });
 
-        const clearBtn = document.getElementById('btnClearModalCanvas');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (typeof playClickSound === 'function') playClickSound();
-            });
-        }
+        document.getElementById('btnClearModalCanvas')?.addEventListener('click', () => {
+            window.clearGameCanvas();
+            if (typeof playClickSound === 'function') playClickSound();
+            if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'clear' });
+        });
 
-        const closeBtnX = document.getElementById('btnCloseModalCanvasX');
-        if (closeBtnX) {
-            closeBtnX.addEventListener('click', () => {
-                if (typeof playClickSound === 'function') playClickSound();
-                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
-                if (overlay) overlay.style.display = 'none';
-            });
-        }
+        document.getElementById('btnCloseModalCanvasX')?.addEventListener('click', closeModal);
 
-        const modalGuessed = document.getElementById('btnModalGuessed');
-        if (modalGuessed) {
-            modalGuessed.addEventListener('click', () => {
-                if (typeof playClickSound === 'function') playClickSound();
-                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
-                if (overlay) overlay.style.display = 'none';
-                const mainGuessedBtn = document.getElementById('btnGuessed');
-                if (mainGuessedBtn) mainGuessedBtn.click();
-            });
-        }
+        document.getElementById('btnModalGuessed')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            window.stopDrawingIntervals();
+            if (overlay) overlay.style.display = 'none';
+            document.getElementById('btnGuessed')?.click();
+        });
 
-        const modalGiveUp = document.getElementById('btnModalGiveUp');
-        if (modalGiveUp) {
-            modalGiveUp.addEventListener('click', () => {
-                if (typeof playClickSound === 'function') playClickSound();
-                if (window.inkFadeInterval) clearInterval(window.inkFadeInterval);
-                if (overlay) overlay.style.display = 'none';
-                const mainGiveUpBtn = document.getElementById('btnGiveUp');
-                if (mainGiveUpBtn) mainGiveUpBtn.click();
-            });
-        }
+        document.getElementById('btnModalGiveUp')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            window.stopDrawingIntervals();
+            if (overlay) overlay.style.display = 'none';
+            document.getElementById('btnGiveUp')?.click();
+        });
+
+        // Ryöstö-painike piirtomodaalissa (4+ joukkuemoodi)
+        document.getElementById('btnModalStolen')?.addEventListener('click', () => {
+            if (typeof playClickSound === 'function') playClickSound();
+            window.stopDrawingIntervals();
+            if (overlay) overlay.style.display = 'none';
+            document.getElementById('btnStolen')?.click();
+        });
     });
 
     window.addEventListener('resize', () => {
@@ -266,4 +275,107 @@ const startDrawing = (e) => {
             resizeCanvas();
         }
     });
+
+    // ============ ARVAAJAN CANVAS (read-only live-replay huonepelissä) ============
+    let ngCvs = null, ngCtx = null, ngStrokes = [], ngLive = null, ngRaf = null;
+
+    const ngRender = (now) => {
+        if (!ngCtx || !ngCvs) return;
+        ngCtx.clearRect(0, 0, ngCvs.width, ngCvs.height);
+        const ghost = isGhostMode();
+        if (ghost) {
+            ngStrokes = ngStrokes.filter(s => s.tool === 'erase' || (now - s.t) < GHOST_FADE_MS);
+        }
+        const all = ngLive ? [...ngStrokes, ngLive] : ngStrokes;
+        for (const s of all) {
+            const alpha = (ghost && s.tool === 'draw')
+                ? Math.max(0, 1 - (now - s.t) / GHOST_FADE_MS)
+                : 1;
+            if (alpha <= 0) continue;
+            ngCtx.globalAlpha = alpha;
+            if (s.tool === 'erase') {
+                ngCtx.globalCompositeOperation = 'destination-out';
+                ngCtx.lineWidth = 28;
+            } else {
+                ngCtx.globalCompositeOperation = 'source-over';
+                ngCtx.strokeStyle = '#e5c158';
+                ngCtx.lineWidth = 4;
+            }
+            ngCtx.lineCap = 'round';
+            ngCtx.lineJoin = 'round';
+            const pts = s.points;
+            if (pts.length) {
+                const W = ngCvs.width, H = ngCvs.height;
+                ngCtx.beginPath();
+                ngCtx.moveTo(pts[0].x * W, pts[0].y * H);
+                if (pts.length === 1) ngCtx.lineTo(pts[0].x * W, pts[0].y * H);
+                for (let i = 1; i < pts.length - 1; i++) {
+                    const midX = (pts[i].x + pts[i + 1].x) / 2 * W;
+                    const midY = (pts[i].y + pts[i + 1].y) / 2 * H;
+                    ngCtx.quadraticCurveTo(pts[i].x * W, pts[i].y * H, midX, midY);
+                }
+                ngCtx.lineTo(pts[pts.length - 1].x * W, pts[pts.length - 1].y * H);
+                ngCtx.stroke();
+            }
+        }
+        ngCtx.globalAlpha = 1;
+        ngCtx.globalCompositeOperation = 'source-over';
+    };
+
+    const ngLoop = (now) => {
+        ngRender(now);
+        ngRaf = requestAnimationFrame(ngLoop);
+    };
+
+    const ngStart = () => {
+        ngCvs = document.getElementById('ngCanvas');
+        if (!ngCvs) return;
+        const rect = ngCvs.getBoundingClientRect();
+        ngCvs.width = rect.width || 400;
+        ngCvs.height = rect.height || 500;
+        ngCtx = ngCvs.getContext('2d');
+        if (ngRaf === null) ngRaf = requestAnimationFrame(ngLoop);
+    };
+
+    window.netDrawStop = () => {
+        if (ngRaf !== null) { cancelAnimationFrame(ngRaf); ngRaf = null; }
+        ngStrokes = [];
+        ngLive = null;
+    };
+
+    // Käsittelee selittäjältä tulleet piirtotapahtumat
+    window.netDrawEvent = (ev) => {
+        switch (ev.action) {
+            case 'open': {
+                const c = document.getElementById('ngCanvas');
+                if (c) c.style.display = 'block';
+                ngStrokes = [];
+                ngLive = null;
+                setTimeout(ngStart, 50);
+                break;
+            }
+            case 'live':
+                ngLive = { tool: ev.tool, points: ev.points, t: performance.now() };
+                ngRender(performance.now()); // render heti — rAF voi olla tauolla taustalla olevalta puhelimelta
+                break;
+            case 'stroke':
+                ngLive = null;
+                ngStrokes.push({ tool: ev.tool, points: ev.points, t: performance.now() - (ev.age || 0) });
+                ngRender(performance.now());
+                break;
+            case 'undo':
+                ngLive = null;
+                ngStrokes.pop();
+                ngRender(performance.now());
+                break;
+            case 'clear':
+                ngLive = null;
+                ngStrokes = [];
+                ngRender(performance.now());
+                break;
+            case 'close':
+                window.netDrawStop();
+                break;
+        }
+    };
 })();
