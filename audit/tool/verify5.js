@@ -34,12 +34,10 @@ const fill = (page, sel, text) => page.evaluate((s, t) => {
 }, sel, text);
 const evl = (page, fn, ...a) => page.evaluate(fn, ...a);
 const roll = async (page) => { await tap(page, '#btn'); await sleep(3400); };
-// select.value принимает только существующие option — добавляем временную, если надо
+// setTimerSeconds + change-tapahtuma timerInputiin (tallennus + broadcast kuuntelijat)
 const setTimer = (page, secs) => page.evaluate((s) => {
-    const sel = document.getElementById('timerSelect');
-    if (![...sel.options].some(o => o.value === String(s))) sel.add(new Option(s + ' sekuntia', String(s)));
-    sel.value = String(s);
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    window.setTimerSeconds(s);
+    document.getElementById('timerInput').dispatchEvent(new Event('change', { bubbles: true }));
 }, secs);
 
 (async () => {
@@ -53,16 +51,24 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         if (!up) throw new Error('server.js did not start within 10s');
     }
     const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, protocolTimeout: 30000, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
+
     try {
-        // ============ A. Solo: настройка и «нет таймера» ============
-        console.log('== A. Solo: options + Ei ajastinta ==');
+        // ============ A. Solo: гибкий контрол + «нет таймера» ============
+        console.log('== A. Solo: controls + Ei ajastinta ==');
         let p = await newPage(browser);
-        const opts = await evl(p, () => [...document.getElementById('timerSelect').options].map(o => o.value));
-        check('timerSelect has 0/30/45/60/90/120', JSON.stringify(opts) === JSON.stringify(['0', '30', '45', '60', '90', '120']), opts.join(','));
+        check('range+number controls exist', await evl(p, () => !!document.getElementById('timerRange') && !!document.getElementById('timerInput')));
+        check('range bounds 0-300 step15', await evl(p, () => { const r = document.getElementById('timerRange'); return r.min === '0' && r.max === '300' && r.step === '15'; }));
+        check('input bounds 0-600', await evl(p, () => { const i = document.getElementById('timerInput'); return i.min === '0' && i.max === '600'; }));
+        await setTimer(p, 240);
+        check('arbitrary 240s accepted (>120)', await evl(p, () => window.getTimerSeconds() === 240));
+        check('slider follows to 240', await evl(p, () => document.getElementById('timerRange').value === '240'));
+        await setTimer(p, 450);
+        check('450s accepted, slider clamps 300, input keeps 450', await evl(p, () =>
+            window.getTimerSeconds() === 450 && document.getElementById('timerRange').value === '300' && document.getElementById('timerInput').value === '450'));
+        await setTimer(p, 0);
         await evl(p, () => {
             document.querySelectorAll('.theme-weight-input').forEach(x => x.value = 0);
             document.getElementById('theme-weight-perusvaihtoehto').value = 1;
-            document.getElementById('timerSelect').value = '0';
         });
         await tap(p, '#startGameBtn'); await sleep(400);
         await roll(p);
@@ -77,7 +83,7 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         await evl(p, () => {
             document.querySelectorAll('.theme-weight-input').forEach(x => x.value = 0);
             document.getElementById('theme-weight-perusvaihtoehto').value = 1;
-            document.getElementById('timerSelect').value = '30';
+            window.setTimerSeconds(30);
         });
         await tap(p, '#startGameBtn'); await sleep(400);
         await roll(p);
@@ -111,7 +117,7 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         await p.reload({ waitUntil: 'domcontentloaded' });
         await p.evaluate(() => wordsReady.then(() => window.__w = true));
         await p.waitForFunction('window.__w === true', { timeout: 20000 });
-        check('timer=45 persisted after reload', await evl(p, () => document.getElementById('timerSelect').value === '45'));
+        check('timer=45 persisted after reload', await evl(p, () => document.getElementById('timerInput').value === '45'));
         await p.close();
 
         // ============ C. Комната: синк у угадывающих ============
@@ -129,7 +135,7 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         check('B in lobby', await evl(B, () => document.getElementById('roomLobbyView').style.display === 'block'));
         // Broadcast-проверка реальной опцией, потом быстрый 4-сек таймер у хоста
         await setTimer(A, 30); await sleep(400);
-        check('timer setting broadcast to guest', await evl(B, () => document.getElementById('timerSelect').value === '30'));
+        check('timer setting broadcast to guest', await evl(B, () => document.getElementById('timerInput').value === '30'));
         await setTimer(A, 4); await sleep(300);
         await tap(A, '#btnStartRoomGame'); await sleep(1200);
         check('B guesser screen up', await evl(B, () => document.getElementById('netGuesserScreen').style.display === 'block'));
@@ -148,6 +154,17 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         check('B: summary says Aika loppui', await evl(B, () => document.getElementById('tsPoints').textContent.includes('Aika loppui')));
         check('B: ngTimer hidden after end', await evl(B, () => document.getElementById('ngTimer').style.display === 'none'));
         await A.close(); await B.close();
+
+        // ============ D. Audio: мгновенный путь для UI-звуков ============
+        console.log('== D. Audio: buffered UI sounds ==');
+        p = await newPage(browser);
+        await sleep(900); // декодирование буферов
+        check('ui AudioContext exists', await evl(p, () => typeof uiAudioCtx === 'object' && uiAudioCtx !== null));
+        check('ui ctx running (no silence on play)', await evl(p, () => uiAudioCtx && uiAudioCtx.state === 'running'));
+        check('click buffer decoded', await evl(p, () => typeof uiBuffers === 'object' && !!uiBuffers['sounds/click.mp3'] && uiBuffers['sounds/click.mp3'].duration > 0));
+        check('flip+book buffers decoded', await evl(p, () => !!uiBuffers['sounds/flip.mp3'] && !!uiBuffers['sounds/book.mp3']));
+        check('buffered click plays instantly', await evl(p, () => typeof tryPlayBuffered === 'function' && tryPlayBuffered(sounds.click) === true));
+        await p.close();
         console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
     } finally {
         browser.close().catch(() => {});

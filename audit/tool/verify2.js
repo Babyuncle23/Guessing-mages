@@ -267,7 +267,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         page = await newPage(browser, errors);
         await load(page);
         await forceTheme(page, 'theme-weight-pantomiimi');
-        await page.select('#timerSelect', '60'); await sleep(200);
+        await page.evaluate(() => { window.setTimerSeconds(60); document.getElementById('timerInput').dispatchEvent(new Event('change', { bubbles: true })); }); await sleep(200);
         await page.select('#roundSelect', '5'); await sleep(200);
         check('settings saved to localStorage', await page.evaluate(() => {
             const s = JSON.parse(localStorage.getItem('arksanum-settings-v1') || 'null');
@@ -291,7 +291,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         await page.evaluate(() => wordsReady.then(() => window.__w2 = true));
         await page.waitForFunction('window.__w2 === true', { timeout: 20000 });
         await sleep(600);
-        check('timer restored after reload', await page.evaluate(() => document.getElementById('timerSelect').value === '60'));
+        check('timer restored after reload', await page.evaluate(() => document.getElementById('timerInput').value === '60'));
         check('rounds restored after reload', await page.evaluate(() => document.getElementById('roundSelect').value === '5'));
         await page.close();
 

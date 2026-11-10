@@ -619,8 +619,7 @@ window.stopTurnTimer = () => {
 
 window.startTurnTimer = () => {
     window.stopTurnTimer();
-    const select = document.getElementById('timerSelect');
-    const total = select ? (parseInt(select.value, 10) || 0) : 0;
+    const total = (typeof window.getTimerSeconds === 'function') ? window.getTimerSeconds() : 0;
     if (total <= 0) return;
 
     const bar = document.getElementById('turnTimer');

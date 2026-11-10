@@ -199,7 +199,7 @@
             magicToggle.dispatchEvent(new Event('change'));
         }
         if (s.rounds && $('roundSelect')) $('roundSelect').value = s.rounds;
-        if (s.timer && $('timerSelect')) $('timerSelect').value = s.timer;
+        if (s.timer !== undefined && typeof window.setTimerSeconds === 'function') window.setTimerSeconds(s.timer);
         if (s.weights) {
             Object.entries(s.weights).forEach(([id, v]) => {
                 const inp = document.getElementById(id);
@@ -215,7 +215,7 @@
         playerMode,
         magic: !!($('magicToggle') && $('magicToggle').checked),
         rounds: $('roundSelect') ? $('roundSelect').value : '7',
-        timer: $('timerSelect') ? $('timerSelect').value : '0',
+        timer: String(typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0),
         weights: Object.fromEntries([...document.querySelectorAll('.theme-weight-input')].map(i => [i.id, parseInt(i.value, 10) || 0]))
     });
 
@@ -396,8 +396,7 @@
     window.netRelayTheme = (theme) => { if (window.isRoomGame()) Net.relay({ kind: 'THEME', theme }); };
     window.netRelayWordsOpen = () => {
         if (!window.isRoomGame()) return;
-        const timerSel = $('timerSelect');
-        Net.relay({ kind: 'WORDS_OPEN', count: generatedWordsList.length, timer: timerSel ? parseInt(timerSel.value, 10) || 0 : 0 });
+        Net.relay({ kind: 'WORDS_OPEN', count: generatedWordsList.length, timer: typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0 });
     };
     window.netRelayWordLocked = () => { if (window.isRoomGame()) Net.relay({ kind: 'WORD_LOCKED' }); };
     window.netRelaySpellCast = (spell) => { if (window.isRoomGame()) Net.relay({ kind: 'SPELL_CAST', spell }); };
@@ -748,7 +747,7 @@
 
         // Isännän asetusmuutokset välitetään huoneeseen
         const bc = () => window.netBroadcastSettings();
-        ['magicToggle', 'roundSelect', 'timerSelect'].forEach(id => {
+        ['magicToggle', 'roundSelect', 'timerRange', 'timerInput'].forEach(id => {
             document.getElementById(id)?.addEventListener('change', bc);
         });
         document.addEventListener('input', (e) => {

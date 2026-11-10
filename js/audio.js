@@ -42,9 +42,50 @@ Object.values(sounds).forEach(audio => {
     audio.load();
 });
 
+// --- WEB AUDIO: salamanopea UI-palaute ilman seek/decode-viivettä ---
+// AudioContext luodaan heti (tila 'suspended' ennen ensimmäistä käyttäjäelettä,
+// mutta decodeAudioData toimii silti) → puskurit ovat valmiina ensimmäiseen
+// klikkaukseen mennessä. resume() ajetaan pointerdown:issa.
+let uiAudioCtx = null;
+const uiBuffers = {};
+const UI_BUFFER_SOUNDS = ["sounds/click.mp3", "sounds/flip.mp3", "sounds/book.mp3"];
+
+try {
+    uiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    UI_BUFFER_SOUNDS.forEach(url => {
+        fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(b => uiAudioCtx.decodeAudioData(b))
+            .then(buf => { uiBuffers[url] = buf; })
+            .catch(() => {});
+    });
+    document.addEventListener('pointerdown', () => {
+        if (uiAudioCtx && uiAudioCtx.state === 'suspended') uiAudioCtx.resume().catch(() => {});
+    });
+} catch (e) {
+    uiAudioCtx = null;
+}
+
+// Yrittää toistaa äänen dekoodatusta puskurista (~0 ms latency).
+// Palauttaa false jos puskuria ei ole tai ctx ei vielä 'running' → fallback HTMLAudioon.
+const tryPlayBuffered = (audioObject) => {
+    if (!uiAudioCtx || uiAudioCtx.state !== 'running') return false;
+    const buf = uiBuffers[audioObject.getAttribute('src')];
+    if (!buf) return false;
+    const src = uiAudioCtx.createBufferSource();
+    const gain = uiAudioCtx.createGain();
+    gain.gain.value = audioObject.volume;
+    src.buffer = buf;
+    src.connect(gain);
+    gain.connect(uiAudioCtx.destination);
+    src.start(0);
+    return true;
+};
+
 // Toimintavarma äänirutiini selainestoja vastaan
 const playAudio = (audioObject, startTime = 0) => {
     if (!audioObject) return;
+    if (startTime === 0 && tryPlayBuffered(audioObject)) return;
     audioObject.currentTime = startTime;
     const playPromise = audioObject.play();
     if (playPromise !== undefined) {

@@ -23,6 +23,7 @@ async function newPage(browser, url) {
     page.on('dialog', d => d.accept().catch(() => {}));
     await page.setRequestInterception(true);
     page.on('request', r => { if (r.url().includes('/sounds/')) r.abort(); else r.continue(); });
+    page.on('response', r => { if (r.status() >= 400) console.log('  [HTTP' + r.status() + ']', r.url()); });
     page.on('pageerror', e => errors.push('pageerror: ' + e.message));
     page.on('console', m => { if (m.type() === 'error') errors.push('console.error: ' + m.text()); });
     await page.goto(url || BASE, { waitUntil: 'domcontentloaded', timeout: 30000 });
