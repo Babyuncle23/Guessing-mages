@@ -22,7 +22,23 @@
     };
     window.Net = Net;
 
-    const wsUrl = () => (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host;
+    // Staattisella hostauksella (esim. GitHub Pages) ei ole WS-palvelinta —
+    // silloin käytetään tuotantopalvelinta. WebSocket ei ole CORS-rajoitettu.
+    const SERVER_FALLBACK = 'https://ark-sanum.onrender.com';
+    let _serverBase = null;
+    const detectServerBase = async () => {
+        if (_serverBase) return _serverBase;
+        try {
+            const r = await fetch(location.origin + '/healthz', { cache: 'no-store' });
+            if (r.ok && (await r.text()).trim().toLowerCase() === 'ok') {
+                _serverBase = location.origin;
+                return _serverBase;
+            }
+        } catch (e) {}
+        _serverBase = SERVER_FALLBACK;
+        return _serverBase;
+    };
+    const pageUrl = () => location.origin + location.pathname; // toimii myös GitHub Pagesin alipolussa
 
     const saveSession = () => {
         try {
@@ -59,9 +75,10 @@
 
     Net.connect = () => new Promise((resolve, reject) => {
         if (Net.ws && Net.ws.readyState === 1) return resolve();
-        try {
-            Net.ws = new WebSocket(wsUrl());
-        } catch (e) { return reject(e); }
+        detectServerBase().then((base) => {
+            try {
+                Net.ws = new WebSocket(base.replace(/^http/, 'ws'));
+            } catch (e) { return reject(e); }
 
         Net.ws.onopen = () => {
             Net.connected = true;
@@ -95,9 +112,10 @@
         };
         Net.ws.onerror = () => {
             if (Net.ws.readyState !== 1) {
-                setConnStatus('Huonepalvelimeen ei saada yhteyttä. Käynnistäkö palvelin? (npm start)');
+                setConnStatus('Huonepalvelimeen (' + String(_serverBase || '').replace(/^https?:\/\//, '') + ') ei saada yhteyttä.');
             }
         };
+        });
     });
 
     Net.send = (obj) => {
@@ -189,7 +207,7 @@
         $('roomLobbyView').style.display = 'block';
         $('roomCodeBig').textContent = Net.roomCode || '----';
         const qr = $('roomQrImg');
-        if (qr) qr.src = '/qr.svg?data=' + encodeURIComponent(location.origin + '/?room=' + Net.roomCode);
+        if (qr) qr.src = (_serverBase || location.origin) + '/qr.svg?data=' + encodeURIComponent(pageUrl() + '?room=' + Net.roomCode);
         $('btnStartRoomGame').style.display = Net.isHost ? 'block' : 'none';
         $('roomWaitText').style.display = Net.isHost ? 'none' : 'block';
         document.body.dataset.net = Net.isHost ? 'room-host' : 'room-guest';
