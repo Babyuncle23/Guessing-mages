@@ -1,5 +1,21 @@
 // Kaikki ääniin liittyvä alustus ja soittorutiinit.
 
+// Äänenvoimakkuudet normalisoitu per tiedosto (mitattu RMS ~ -22 dB tavoite;
+// kuumimmat tehosteet vaimennettu, hiljempiä ei vahvisteta).
+const SOUND_VOLUMES = {
+    "sounds/scream.ogg": 0.49,        // rms -15.7 dB → -6.3 dB
+    "sounds/drawingGhost.ogg": 0.53,  // -16.5 → -5.5
+    "sounds/shh.mp3": 0.54,           // -16.7 → -5.3
+    "sounds/curse.mp3": 0.66,         // -18.4 → -3.6
+    "sounds/buzzerNoNouns.mp3": 0.66, // -18.4 → -3.6
+    "sounds/reverse.mp3": 0.79,       // -19.9 → -2.1
+    "sounds/throat.mp3": 0.90,        // -21.1 → -0.9
+    "sounds/drum.ogg": 0.92,          // -21.2 → -0.8
+    "sounds/spanish.mp3": 0.96,       // -21.6 → -0.4
+    "sounds/buzzerNoVerbs.mp3": 0.98, // -21.8 → -0.2
+    "sounds/harp.mp3": 0.99           // -21.9 → -0.1
+};
+
 // Äänijärjestelmä (uudet yksinkertaiset nimet)
 const sounds = {
     flip: new Audio("sounds/flip.mp3"),
@@ -13,6 +29,12 @@ const sounds = {
     fail: new Audio("sounds/fail.mp3"),
     gameWin: new Audio("sounds/gameWin.mp3")
 };
+
+// Asetetaan per-tiedosto voimakkuudet
+Object.values(sounds).forEach(audio => {
+    const url = audio.getAttribute('src');
+    if (url in SOUND_VOLUMES) audio.volume = SOUND_VOLUMES[url];
+});
 
 // Esiladataan kaikki äänitiedostot
 Object.values(sounds).forEach(audio => {
@@ -47,7 +69,7 @@ window.playThemeEffect = (audioUrl) => {
     let effect = themeEffectPool[audioUrl];
     if (!effect) {
         effect = new Audio(audioUrl);
-        effect.volume = 1.0;
+        effect.volume = SOUND_VOLUMES[audioUrl] ?? 1.0;
         effect.preload = "auto";
         themeEffectPool[audioUrl] = effect;
     }
