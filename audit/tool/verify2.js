@@ -12,6 +12,7 @@ const check = (name, cond, extra = '') => {
 
 async function newPage(browser, errors) {
     const page = await browser.newPage();
+    await page.bringToFront();
     await page.setViewport({ width: 420, height: 900, deviceScaleFactor: 1 });
     page.on('dialog', d => d.accept().catch(() => {}));
     page.on('pageerror', e => errors.push('pageerror: ' + e.message));

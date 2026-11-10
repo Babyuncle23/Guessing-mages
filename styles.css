@@ -888,8 +888,12 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         border: 1px solid rgba(255, 255, 255, 0.04) !important;
     }
 
+    .modal-overlay {
+        padding: 10px;
+    }
+
     .modal-content {
-        padding: 20px 15px;
+        padding: 16px 12px;
         max-width: 95vw;
         max-height: 88vh;
     }
@@ -919,6 +923,28 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         #btnDisplayWords {
         width: 100% !important;
         padding: 10px 14px !important;
+    }
+}
+
+/* --- УЗКИЕ ТЕЛЕФОНЫ (до 480px): максимум ширины для контента --- */
+@media (max-width: 480px) {
+    .modal-overlay {
+        padding: 8px;
+    }
+
+    .modal-content {
+        padding: 14px 10px;
+        max-width: 100%;
+    }
+
+    .tab-content {
+        padding: 10px;
+    }
+
+    /* Заголовки с широким letter-spacing не должны сжимать карточку */
+    .modal-content h2 {
+        letter-spacing: 2px;
+        font-size: 1.35rem;
     }
 }
 

@@ -12,6 +12,7 @@ const check = (name, cond, extra = '') => {
 
 async function newPage(browser, errors) {
     const page = await browser.newPage();
+    await page.bringToFront();
     await page.setViewport({ width: 420, height: 860, deviceScaleFactor: 1 });
     page.on('dialog', d => d.accept().catch(() => {}));
     page.on('pageerror', e => errors.push('pageerror: ' + e.message));
@@ -36,6 +37,13 @@ const canvasInk = (page) => page.evaluate(() => {
     const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
     let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++;
     return n;
+});
+// Max alpha любого пикселя — меряет реальный fade (alpha-рамп), а не бинарное наличие чернил
+const canvasMaxAlpha = (page) => page.evaluate(() => {
+    const c = document.getElementById('drawingModalCanvas');
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let m = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > m) m = d[i];
+    return m;
 });
 const drawStroke = async (page, pts) => {
     const box = await (await page.$('#drawingModalCanvas')).boundingBox();
@@ -146,13 +154,13 @@ const drawStroke = async (page, pts) => {
         await page.click('#themeBlock'); await sleep(500);
         await drawStroke(page, [[0.3, 0.5], [0.7, 0.5]]);
         await sleep(400);
-        const g1 = await canvasInk(page);
+        const g1 = await canvasMaxAlpha(page);
         check('ghost stroke visible', g1 > 50, g1);
         await sleep(2000);
-        const g2 = await canvasInk(page);
+        const g2 = await canvasMaxAlpha(page);
         check('ghost fading (partial)', g2 < g1 && g2 > 0, `${g1} -> ${g2}`);
         await sleep(2000);
-        const g3 = await canvasInk(page);
+        const g3 = await canvasMaxAlpha(page);
         check('ghost fully faded after ~4s', g3 === 0, g3);
         // endRound while modal open -> stopDrawingIntervals + cleared
         await page.click('#btnModalGuessed'); await sleep(500);

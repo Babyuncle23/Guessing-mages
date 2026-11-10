@@ -18,6 +18,7 @@ const check = (name, cond, extra = '') => {
 const errors = [];
 async function newPage(browser, url) {
     const page = await browser.newPage();
+    await page.bringToFront();
     await page.setViewport({ width: 420, height: 900 });
     page.on('dialog', d => d.accept().catch(() => {}));
     await page.setRequestInterception(true);
