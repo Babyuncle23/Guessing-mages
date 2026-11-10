@@ -365,19 +365,66 @@ window.openWhoGuessedModal = (callback) => {
 /* ================= TEEMARULETTI =================
  * Yhteinen rumpupyörä selittäjälle (#loader) ja arvaajille (#ngDrum).
  * Sektorit ovat suhteessa painoihin → sektorikulma vastaa osumisen
- * todennäköisyyttä. Käyttö:
+ * todennäköisyyttä. Pyörää ajetaan requestAnimationFramella:
+ * hub-teksti seuraa osoittimen alla olevaa sektoria reaaliajassa ja
+ * osoitin "räpsähtää" aina kun sektoriraja ohittaa sen. Jarrutus näyttää
+ * vakiokiihtyvältä + lyhyt vaimeneva jousivärähtely maalissa.
  *   const ctx = themeDrum.mount(wheelEl, [{theme:'piirtäminen', w:2},...], hubNameEl);
- *   themeDrum.spinInfinite(ctx);         // jatkuva pyörintä (arvaaja)
- *   themeDrum.spinTo(ctx, 'elokuva', 2100); // hidastuu voittajaan (selittäjä)
- *   themeDrum.land(ctx, 'elokuva', 700); // pysäyttää spinningin voittajaan
+ *   themeDrum.spinInfinite(ctx);            // jatkuva pyörintä (arvaaja)
+ *   themeDrum.spinTo(ctx, 'elokuva', 1950); // hidastuu voittajaan (selittäjä)
+ *   const ms = themeDrum.land(ctx, 'elokuva'); // jarruttaa spinningin voittajaan → kesto ms
  *   themeDrum.destroy(ctx);
  */
 window.themeDrum = (() => {
     const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const TINTS = ['rgba(229,193,88,0.16)', 'rgba(122,92,220,0.20)'];
-    const GAP = 0.7; // asteen rako sektorien väliin
+    const GAP = 0.7;      // asteen rako sektorien väliin
+    const SPIN_V = 640;   // vapaan pyörintänopeus °/s (arvaajan rumpu)
+    const SETTLE_MS = 430;// jousivärähtelyn kesto maalissa
+    const OVER = 7;       // ylitys ennen takaisinvalkaisua, astetta
+    const TICK_MS = 55;   // minimi räpsyväli (kun pyörä on tosi nopea)
 
     const norm360 = (d) => ((d % 360) + 360) % 360;
+
+    // Sektori osoittimen alla annetulla pyörän kulmalla (0° = ylös).
+    const themeAt = (ctx, angle) => {
+        const x = norm360(-angle);
+        const it = ctx.items.find(i => x >= i.a0 && x < i.a1);
+        return it ? it.theme : ctx.items[0].theme;
+    };
+
+    // Aseta kulma + synkkaa hub osoittimen alla olevan sektorin kanssa +
+    // räpsäytä osoitinta kun sektori vaihtuu (oikean räpynän tuntu).
+    const applyAngle = (ctx, angle, v) => {
+        ctx.angle = angle;
+        if (typeof v === 'number') ctx.v = v;
+        ctx.wheelEl.style.transform = `rotate(${angle}deg)`;
+        const t = themeAt(ctx, angle);
+        if (t !== ctx.hubTheme) {
+            ctx.hubTheme = t;
+            if (ctx.hubEl) ctx.hubEl.textContent = t;
+            const now = performance.now();
+            if (ctx.pointerEl && now - ctx.lastTick >= TICK_MS) {
+                ctx.lastTick = now;
+                ctx.pointerEl.classList.remove('tick');
+                void ctx.pointerEl.offsetWidth; // uudelleenkäynnistä animaatio
+                ctx.pointerEl.classList.add('tick');
+            }
+            if (typeof playClickSound === 'function') playClickSound();
+        }
+    };
+
+    const tickLoop = (ctx) => {
+        cancelAnimationFrame(ctx.raf);
+        let last = performance.now();
+        const step = (now) => {
+            const dt = Math.min(64, now - last);
+            last = now;
+            if (ctx.sim && ctx.sim(dt, now)) ctx.raf = requestAnimationFrame(step);
+            else ctx.raf = 0;
+        };
+        ctx.raf = requestAnimationFrame(step);
+    };
 
     // Rakentaa conic-gradientin + sektoriesimerkit keskipisteilleen.
     // Sektoreille tallennetaan data-a0/a1 (reunat) testejä ja landia varten.
@@ -415,21 +462,19 @@ window.themeDrum = (() => {
         });
         wheelEl.style.background = `conic-gradient(${stops.join(', ')})`;
 
-        const ctx = { wheelEl, hubEl, items, hubTimer: null, landed: false };
+        const drum = wheelEl.closest('.theme-drum');
+        const ctx = {
+            wheelEl, hubEl, items,
+            pointerEl: drum ? drum.querySelector('.theme-drum-pointer') : null,
+            raf: 0, sim: null, angle: 0, v: 0,
+            landed: false, hubTheme: null, lastTick: 0,
+        };
         wheelEl._drum = ctx;
-        // Hub-vilkutus: nimet vilisevat pyörimisen aikana
-        if (hubEl) {
-            let i = 0;
-            ctx.hubTimer = setInterval(() => {
-                if (ctx.landed) return;
-                hubEl.textContent = items[i % items.length].theme;
-                i++;
-            }, 110);
-        }
+        applyAngle(ctx, 0, 0); // hub näyttää heti sen teeman, joka on osoittimessa
         return ctx;
     };
 
-    // Nykyinen rotaatiokulma (0-360) luettaessa CSS-animaation kesken.
+    // Nykyinen rotaatiokulma (0-360) luettaessa transform-matriisista.
     const currentAngle = (wheelEl) => {
         const t = getComputedStyle(wheelEl).transform;
         if (!t || t === 'none') return 0;
@@ -439,63 +484,108 @@ window.themeDrum = (() => {
         return norm360(Math.atan2(b, a) * 180 / Math.PI);
     };
 
-    // Kohdekulma: voittajasektorin keskipiste osoittajaan (0° = ylös).
-    const targetRotation = (ctx, theme, fromAngle, minSpins) => {
-        const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
-        const need = norm360(-it.mid - norm360(fromAngle));
-        return fromAngle + need + 360 * minSpins;
-    };
-
-    const spinInfinite = (ctx) => { if (ctx && !REDUCED) ctx.wheelEl.classList.add('spinning'); };
-
-    // Selittäjä: voittaja tiedossa heti — pitkä ease-out-pyörähdys alusta.
-    const spinTo = (ctx, theme, dur = 2100, minSpins = 3) => {
-        if (!ctx) return;
-        ctx.landed = false;
-        const from = currentAngle(ctx.wheelEl);
-        const target = targetRotation(ctx, theme, from, minSpins);
-        ctx.wheelEl.style.transform = `rotate(${from}deg)`;
-        void ctx.wheelEl.offsetWidth; // reflow ennen transitionia
-        if (REDUCED) { finish(ctx, theme, target); return; }
-        ctx.wheelEl.style.transition = `transform ${dur}ms cubic-bezier(0.12, 0.8, 0.15, 1)`;
-        ctx.wheelEl.style.transform = `rotate(${target}deg)`;
-        setTimeout(() => finish(ctx, theme, target), dur);
-    };
-
-    // Arvaaja: jatkuva spini → lyhyt hidastus voittajaan kun THEME saapuu.
-    const land = (ctx, theme, dur = 700, minSpins = 1) => {
-        if (!ctx) return;
-        ctx.wheelEl.classList.remove('spinning');
-        const from = currentAngle(ctx.wheelEl);
-        const target = targetRotation(ctx, theme, from, minSpins);
-        ctx.wheelEl.style.transform = `rotate(${from}deg)`;
-        void ctx.wheelEl.offsetWidth;
-        if (REDUCED) { finish(ctx, theme, target); return; }
-        ctx.wheelEl.style.transition = `transform ${dur}ms cubic-bezier(0.2, 0.85, 0.25, 1)`;
-        ctx.wheelEl.style.transform = `rotate(${target}deg)`;
-        setTimeout(() => finish(ctx, theme, target), dur);
-    };
-
     const finish = (ctx, theme, target) => {
         ctx.landed = true;
-        clearInterval(ctx.hubTimer);
-        ctx.hubTimer = null;
+        ctx.sim = null;
+        ctx.v = 0;
+        cancelAnimationFrame(ctx.raf);
+        ctx.raf = 0;
         ctx.wheelEl.style.transition = 'none';
-        ctx.wheelEl.style.transform = `rotate(${norm360(target)}deg)`;
+        applyAngle(ctx, norm360(target), 0);
+        ctx.wheelEl.classList.remove('spinning');
         ctx.wheelEl.classList.add('landed');
         if (ctx.hubEl) ctx.hubEl.textContent = theme;
     };
 
+    // Satunnainen pysähdyspiste voittajasektorin sisällä (ei aina täsmälleen
+    // keskipisteessä — näyttää aidolta). Marginaali > OVER+GAP ettei
+    // värähtely heitä osoitinta viereiseen sektoriin.
+    const aimPoint = (it) => {
+        const span = it.a1 - it.a0;
+        const margin = Math.min(span * 0.2, 14); // ≥ OVER+GAP turvassa
+        const lo = it.a0 + margin, hi = it.a1 - margin;
+        return lo + Math.random() * Math.max(0, hi - lo);
+    };
+
+    // Vakiokiihtyvän jarrutuksen näköinen pysäytys + vaimeneva värähtely.
+    // Palauttaa kokonaiskeston ms (jarrutus + settle).
+    const runTo = (ctx, theme, delta, durMs) => {
+        const a0 = ctx.angle;
+        const target = a0 + delta;
+        const t0 = performance.now();
+        ctx.sim = (dt, now) => {
+            const t = now - t0;
+            if (t < durMs) {
+                const u = t / durMs;
+                // easeOutQuad ≈ lineaainen nopeuden lasku (Coulomb-kitkan tuntu)
+                applyAngle(ctx, a0 + (delta + OVER) * (2 * u - u * u), 2 * (delta + OVER) * (1 - u) / durMs * 1000);
+                return true;
+            }
+            const s = (t - durMs) / SETTLE_MS;
+            if (s >= 1) { finish(ctx, theme, target); return false; }
+            // Vaimeneva jousivärähtely: pieni ylitys rockahtaa takaisin maaliin
+            applyAngle(ctx, target + OVER * Math.exp(-5.5 * s) * Math.cos(10 * s), 0);
+            return true;
+        };
+        tickLoop(ctx);
+        return durMs + SETTLE_MS;
+    };
+
+    // Selittäjä: voittaja tiedossa heti — pitkä ease-out-pyörähdys + settle.
+    const spinTo = (ctx, theme, dur = 1950, minSpins = 3) => {
+        if (!ctx) return 0;
+        const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
+        const point = aimPoint(it);
+        const need = norm360(point - norm360(ctx.angle));
+        const spins = minSpins + Math.floor(Math.random() * 2); // 3–4 kierrosta
+        if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
+        ctx.landed = false;
+        return runTo(ctx, theme, need + 360 * spins, dur);
+    };
+
+    // Arvaaja: jatkuva spini → jarrutus voittajaan kun THEME saapuu.
+    // Kesto johdetaan nykynopeudesta (vakiojarrutus) — max ~1.5 s.
+    const land = (ctx, theme, _dur, _minSpins) => {
+        if (!ctx) return 0;
+        ctx.wheelEl.classList.remove('spinning');
+        const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
+        const point = aimPoint(it);
+        const need = norm360(point - norm360(ctx.angle));
+        if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
+        ctx.landed = false;
+        const v = Math.max(ctx.v || 0, SPIN_V * 0.55); // v käynnissä olevasta simistä
+        let delta = need;
+        if (2 * delta / v * 1000 < 550) delta += 360; // vähintään reilu jarrutusmatka
+        const dur = Math.min(1500, Math.max(550, 2 * delta / v * 1000));
+        return runTo(ctx, theme, delta, dur);
+    };
+
+    // Arvaajan vapaa pyörintä: pehmeä käynnistys vakionopeuteen.
+    const spinInfinite = (ctx) => {
+        if (!ctx) return;
+        ctx.landed = false;
+        ctx.wheelEl.classList.add('spinning');
+        let v = 0;
+        ctx.sim = (dt) => {
+            v = Math.min(SPIN_V, v + dt * 3.2); // kiihdytys ~200 ms täyteen
+            applyAngle(ctx, ctx.angle + v * dt / 1000, v);
+            return true;
+        };
+        tickLoop(ctx);
+    };
+
     const destroy = (ctx) => {
         if (!ctx) return;
-        clearInterval(ctx.hubTimer);
-        ctx.hubTimer = null;
+        ctx.sim = null;
+        cancelAnimationFrame(ctx.raf);
+        ctx.raf = 0;
         ctx.wheelEl.classList.remove('spinning', 'landed');
         ctx.wheelEl.style.transform = '';
         ctx.wheelEl.style.transition = '';
         ctx.wheelEl.innerHTML = '';
         ctx.wheelEl.style.background = '';
         if (ctx.hubEl) ctx.hubEl.textContent = '?';
+        if (ctx.pointerEl) ctx.pointerEl.classList.remove('tick');
         if (ctx.wheelEl._drum === ctx) ctx.wheelEl._drum = null;
     };
 

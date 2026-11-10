@@ -84,12 +84,10 @@ const setWeights = (page, map) => evl(page, (m) => {
             const t = document.getElementById('drumHubName').textContent.trim();
             return t.length > 0 && t !== '?';
         }));
-        const winner = d2.items.find(i => {
-            const mid = (i.a0 + i.a1) / 2;
-            const atPointer = ((d2.angle + mid) % 360 + 360) % 360;
-            return atPointer < 6 || atPointer > 354;
-        });
-        check('pointer stopped inside a sector', !!winner, `angle=${d2.angle}`);
+        // Osoitin voi pysähtyä minne tahansa voittajasektorin sisään (rand jitter)
+        const x = ((360 - (d2.angle % 360)) % 360);
+        const winner = d2.items.find(i => x > i.a0 + 0.5 && x < i.a1 - 0.5);
+        check('pointer stopped inside a sector', !!winner, `angle=${d2.angle} x=${x}`);
         await p.waitForFunction('document.getElementById("themeDisplay").textContent.trim().length > 0', { timeout: 4000 });
         await sleep(300);
         const rolled = await evl(p, () => currentActiveTheme);

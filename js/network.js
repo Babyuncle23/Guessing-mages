@@ -487,9 +487,12 @@
         if (_ngDrumCtx) {
             const ctx = _ngDrumCtx;
             _ngDrumCtx = null;
-            themeDrum.land(ctx, theme, 400);
-            setTimeout(cb, 250); // teemakortti esille kun pyörä on jo melkein pysähtynyt
-            setTimeout(() => themeDrum.destroy(ctx), 600); // siivous vasta animaation jälkeen
+            const ms = themeDrum.land(ctx, theme); // fysiikkajarrutus, palauttaa keston
+            setTimeout(cb, 250); // teemakortin data täytetään jo rummun ollessa näkyvissä
+            setTimeout(() => {
+                themeDrum.destroy(ctx);
+                const d = $('ngDrum'); if (d) d.style.display = 'none';
+            }, ms + 120); // pyörä piilotetaan vasta kun se on pysähtynyt
         } else cb();
     };
     const ngStopDrum = () => { if (_ngDrumCtx) { themeDrum.destroy(_ngDrumCtx); _ngDrumCtx = null; } };
@@ -497,8 +500,7 @@
     const ngApplyTheme = (theme) => {
         currentActiveTheme = theme;
         activeCondition1 = theme;
-        ngStopDrum();
-        $('ngDrum').style.display = 'none';
+        ngStopDrum(); // no-op jos landaus vielä käynnissä (_ngDrumCtx=null)
         const tb = $('ngThemeBlock');
         tb.style.display = 'block';
         $('ngTheme').textContent = theme.toUpperCase();

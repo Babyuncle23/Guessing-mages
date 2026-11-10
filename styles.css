@@ -2511,14 +2511,18 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
     will-change: transform;
 }
 .theme-drum-wheel.spinning {
-    animation: drumSpin 0.9s linear infinite;
+    /* pyörintä ajetaan requestAnimationFramella (themeDrum), luokka on vain tilamerkki */
 }
 .theme-drum-wheel.landed {
     box-shadow: 0 0 42px rgba(229,193,88,0.55), inset 0 0 24px rgba(0,0,0,0.55);
 }
-@keyframes drumSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.theme-drum-pointer.tick {
+    animation: drumTick 110ms ease-out;
+}
+@keyframes drumTick {
+    0% { transform: translateX(-50%) rotate(0deg) scale(1); }
+    35% { transform: translateX(-50%) rotate(-20deg) scale(1.18); }
+    100% { transform: translateX(-50%) rotate(0deg) scale(1); }
 }
 .theme-drum-item {
     position: absolute;

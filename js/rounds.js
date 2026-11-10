@@ -312,7 +312,7 @@ const randomizeTheme = () => {
     const drumCtx = (typeof window.themeDrum === 'object')
         ? themeDrum.mount(document.getElementById('drumWheel'), sectors, document.getElementById('drumHubName'))
         : null;
-    if (drumCtx) themeDrum.spinTo(drumCtx, randomTheme, 2100);
+    if (drumCtx) themeDrum.spinTo(drumCtx, randomTheme, 1950);
 
     // Huonepeli: ilmoita muille puhelimille että rumpu pyörii (+ sektorit)
     if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling(sectors);
