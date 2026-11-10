@@ -2482,3 +2482,100 @@ body[data-net="room-guest"] #btnLeaveVictory { display: block; }
 #ngRoomCode { margin-top: 0; letter-spacing: 1.5px; }
 body[data-net="room-host"] .room-code-chip,
 body[data-net="room-guest"] .room-code-chip { display: inline-block; }
+
+/* --- TEEMARULETTI (rummun aikana) --- */
+.theme-drum {
+    position: relative;
+    width: 270px;
+    height: 270px;
+    margin: 8px auto 6px;
+}
+.theme-drum-pointer {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 26px;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(229,193,88,0.9);
+    z-index: 3;
+    pointer-events: none;
+}
+.theme-drum-wheel {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 4px solid rgba(229,193,88,0.85);
+    box-shadow: 0 0 30px rgba(229,193,88,0.25), inset 0 0 24px rgba(0,0,0,0.55);
+    overflow: hidden;
+    will-change: transform;
+}
+.theme-drum-wheel.spinning {
+    animation: drumSpin 0.9s linear infinite;
+}
+.theme-drum-wheel.landed {
+    box-shadow: 0 0 42px rgba(229,193,88,0.55), inset 0 0 24px rgba(0,0,0,0.55);
+}
+@keyframes drumSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.theme-drum-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 22px;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+}
+.theme-drum-hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #2d2450, #14101f 75%);
+    border: 2px solid rgba(229,193,88,0.85);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 2;
+    pointer-events: none;
+}
+.theme-drum-hub span {
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.15;
+    text-transform: uppercase;
+    word-break: break-word;
+    font-family: 'Comfortaa', sans-serif;
+}
+.drum-caption {
+    display: block;
+    font-size: 1.05rem;
+    color: var(--gold);
+    opacity: 0.85;
+    animation: pulse 1s infinite alternate;
+}
+@media (max-width: 360px) {
+    .theme-drum { width: 230px; height: 230px; }
+    .theme-drum-item { font-size: 19px; }
+    .theme-drum-hub { width: 92px; height: 92px; }
+    .theme-drum-hub span { font-size: 11.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-drum-wheel.spinning { animation: none; }
+}

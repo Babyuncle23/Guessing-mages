@@ -393,6 +393,8 @@
         totalTurns = parseInt(cfg.rounds, 10) || 10;
         teamCursors = [0, 0];
         _netPhase = 'idle';
+        _netSpin = null;
+        ngStopDrum();
         gamePlayers = buildRoomPlayers(cfg);
         currentRound = 1;
         turnsInCurrentRound = 0;
@@ -463,9 +465,39 @@
 
     const ngStatus = (txt) => { const el = $('ngStatus'); if (el) el.innerHTML = txt; };
 
+    // ---------- Ruletti arvaajien ruudulla ----------
+    let _ngDrumCtx = null;
+    const ngSectorsFromUI = () => {
+        if (typeof getThemeWeightsFromUI !== 'function') return [{ theme: 'perusvaihtoehto', w: 1 }];
+        const w = getThemeWeightsFromUI();
+        const s = Object.keys(w).filter(t => w[t] > 0).map(t => ({ theme: t, w: w[t] }));
+        return s.length ? s : [{ theme: 'perusvaihtoehto', w: 1 }];
+    };
+    const ngStartDrum = (spin) => {
+        $('ngDrum').style.display = 'block';
+        $('ngThemeBlock').style.display = 'none';
+        ngStatus('');
+        const wheel = $('ngDrumWheel');
+        if (!wheel || typeof window.themeDrum !== 'object') return;
+        const sectors = (Array.isArray(spin) && spin.length) ? spin : ngSectorsFromUI();
+        _ngDrumCtx = themeDrum.mount(wheel, sectors, $('ngDrumHubName'));
+        themeDrum.spinInfinite(_ngDrumCtx);
+    };
+    const ngLandDrum = (theme, cb) => {
+        if (_ngDrumCtx) {
+            const ctx = _ngDrumCtx;
+            _ngDrumCtx = null;
+            themeDrum.land(ctx, theme, 400);
+            setTimeout(cb, 250); // teemakortti esille kun pyörä on jo melkein pysähtynyt
+            setTimeout(() => themeDrum.destroy(ctx), 600); // siivous vasta animaation jälkeen
+        } else cb();
+    };
+    const ngStopDrum = () => { if (_ngDrumCtx) { themeDrum.destroy(_ngDrumCtx); _ngDrumCtx = null; } };
+
     const ngApplyTheme = (theme) => {
         currentActiveTheme = theme;
         activeCondition1 = theme;
+        ngStopDrum();
         $('ngDrum').style.display = 'none';
         const tb = $('ngThemeBlock');
         tb.style.display = 'block';
@@ -501,7 +533,7 @@
     };
 
     // ---------- Lähtevät pelitapahtumat (kutsutaan olemassa olevasta koodista) ----------
-    window.netRelayThemeRolling = () => { if (!window.isRoomGame()) return; _netPhase = 'rolling'; Net.relay({ kind: 'THEME_ROLLING', state: netBuildState() }); };
+    window.netRelayThemeRolling = (spin) => { if (!window.isRoomGame()) return; _netPhase = 'rolling'; _netSpin = spin || null; Net.relay({ kind: 'THEME_ROLLING', spin: _netSpin, state: netBuildState() }); };
     window.netRelayTheme = (theme) => { if (!window.isRoomGame()) return; _netPhase = 'theme'; Net.relay({ kind: 'THEME', theme, state: netBuildState() }); };
     window.netRelayWordsOpen = () => {
         if (!window.isRoomGame()) return;
@@ -608,6 +640,7 @@
     const turnSeq = () => currentRound * 1000 + turnsInCurrentRound;
     const turnSig = () => `${currentRound}:${currentPlayerIndex}:${turnsInCurrentRound}:${isExtraTurnRound ? 1 : 0}`;
     let _netPhase = 'idle'; // idle | rolling | theme | words | locked
+    let _netSpin = null; // rulettisektorit [{theme,w}] rolling-vaiheessa
 
     const netBuildState = () => ({
         round: currentRound, idx: currentPlayerIndex, turns: turnsInCurrentRound,
@@ -618,6 +651,7 @@
         extra: isExtraTurnRound,
         cursors: [...teamCursors],
         phase: _netPhase,
+        spin: _netPhase === 'rolling' ? _netSpin : null,
         theme: currentActiveTheme || '',
         wordsCount: generatedWordsList.length,
         used: (typeof usedWordsInThisGame !== 'undefined') ? [...usedWordsInThisGame] : []
@@ -640,6 +674,10 @@
     const netCleanupTurnUI = () => {
         window.stopTurnTimer();
         ngTimerStop();
+        ngStopDrum();
+        _netSpin = null;
+        const ngd = $('ngDrum'); if (ngd) ngd.style.display = 'none';
+        const ldr = $('loader'); if (ldr) ldr.style.display = 'none';
         if (window.hidePeekWord) window.hidePeekWord();
         const cb = $('curseBanner'); if (cb) cb.style.display = 'none';
         ngCurseBanner(null);
@@ -748,6 +786,7 @@
             st.used.forEach(w => usedWordsInThisGame.push(w));
         }
         _netPhase = st.phase || 'idle';
+        _netSpin = (st.phase === 'rolling' && Array.isArray(st.spin)) ? st.spin : null;
         if (st.theme) { currentActiveTheme = st.theme; activeCondition1 = st.theme; }
         updateTurnDisplay();
     };
@@ -759,7 +798,9 @@
         if (mine) {
             ngShow(false);
             if (_netPhase === 'rolling' || _netPhase === 'idle') {
-                btn.style.display = _netPhase === 'idle' ? 'block' : 'none';
+                // Rejoin kesken rummun: THEME-menetti meni kuolleeseen sockettiin —
+                // sivu latautui, joten tulkitaan idleksi ja annetaan rullata uudelleen.
+                btn.style.display = 'block';
                 btn.disabled = false;
                 return;
             }
@@ -783,8 +824,7 @@
         } else {
             ngShow(true);
             if (_netPhase === 'rolling') {
-                $('ngDrum').style.display = 'block';
-                $('ngThemeBlock').style.display = 'none';
+                ngStartDrum(_netSpin); // rejoin kesken rummun — sama ruletti pyörii
             } else if (_netPhase === 'theme' || _netPhase === 'words' || _netPhase === 'locked') {
                 if (currentActiveTheme) ngApplyTheme(currentActiveTheme);
                 ngStatus(_netPhase === 'theme' ? 'Selittäjä valmistautuu…' : 'Selittäjä katsoo sanoja — arvatkaa!');
@@ -860,18 +900,21 @@
             case 'THEME_ROLLING':
                 if (!isFromExplainer(m)) break;
                 _netPhase = 'rolling';
-                $('ngDrum').style.display = 'block';
-                $('ngThemeBlock').style.display = 'none';
+                _netSpin = ev.spin || null;
                 playAudio(sounds.drum); // rumpu kuuluu myös arvaajien puhelimista
-                ngStatus('');
+                ngStartDrum(ev.spin);
                 break;
             case 'THEME':
                 if (!isFromExplainer(m)) break;
                 _netPhase = 'theme';
-                ngApplyTheme(ev.theme);
-                if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[ev.theme]) {
-                    window.playThemeEffect(themeSounds[ev.theme]);
-                }
+                _netSpin = null;
+                // Pyörä hidastuu voittajaan, sitten teemakortti + ääni kuten ennen
+                ngLandDrum(ev.theme, () => {
+                    ngApplyTheme(ev.theme);
+                    if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[ev.theme]) {
+                        window.playThemeEffect(themeSounds[ev.theme]);
+                    }
+                });
                 break;
             case 'WORDS_OPEN':
                 if (!isFromExplainer(m)) break;

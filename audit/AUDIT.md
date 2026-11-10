@@ -372,3 +372,49 @@ RELAY-события (kind): `THEME_ROLLING`, `THEME`, `WORDS_OPEN` (тольк�
   playerId:llä (roster ei kasva), reclaim aulassa, STARTED-vihje.
 - Регрессия: verify 39, verify2 67, verify3 45, verify4 21, verify5 36,
   verify6 44 — kaikki vihreät (280 yhteensä).
+
+## 9. Teemaruletti (teemarumpu)
+
+Selitysvaiheen 2,5 s rummutuksen aikana kaikilla puhelimilla pyörii
+rulettipyörä, jonka sektorit vastaavat asetuksissa päällä olevia teemoja.
+
+### Rakenne (`js/ui.js` → `window.themeDrum`)
+- `mount(wheelEl, sectors, hubEl)` — rakentaa sektorit `conic-gradient`-
+  taustalla + teemoemoji keskellä sektoria; sektorin kulma =
+  `w/Σw × 360°` eli tasan suhteessa todennäköisyyteen.
+- `spinTo(ctx, theme, 2100)` — selittäjä: voittaja tiedossa heti, pyörä
+  hidastuu pointteriin (0° = ylös) voittajasektorin keskipisteessä,
+  ~3 kierrosta ease-outilla.
+- `spinInfinite(ctx)` — arvaaja: jatkuva CSS-animaatio kunnes `THEME`
+  saapuu; `land(ctx, theme, 400)` nappaa nykykulman ja hidastuu
+  voittajaan.
+- Hub (`#drumHubName`/`#ngDrumHubName`) näyttää lopuksi voittaneen
+  teeman nimen; `prefers-reduced-motion` → suora maaliin ilman
+  animaatiota.
+
+### Synkronointi
+- `THEME_ROLLING` kantaa `spin`-taulukon (selittäjän rakentamat
+  sektorit `{theme, w}`) → kaikilla sama pyörä, myös `ngSectorsFromUI`
+  -fallbackilla jos spin puuttuu.
+- `THEME` → `ngLandDrum` → teemakortti + teemasound ~250 ms myöhemmin
+  (pyörä vielä näkyvissä hidastumassa).
+- `netBuildState`/`applyNetSnapshot` pitävät `phase:'rolling'` +
+  `_netSpin` → rejoin rummun aikana rakentaa saman pyörän.
+- Rejoin selittäjänä mid-roll: vaihe tulkitaan `idle`-tilaksi eikä
+  `#btn` jää piiloon (ei deadlockia).
+
+### Edge-caset
+- Yksi teema päällä → yksi 360°-sektori, pyörä "pyörii" tyhjyyttään.
+- Kaikki painot 0 → fallback `perusvaihtoehto` (kuten ennen).
+- `vapaavalintainen` / devThemeSelect-valinta lisätään sektoriin
+  vaikka paino olisi 0.
+- `netCleanupTurnUI` + `mount`-sisäinen `destroy` siivoavat
+  edellisen pyörän — ei jääntekiloja seuraavaan rullaan.
+
+### Проверка
+- `audit/tool/verify8.js` — **18/18**: pyörä mountattu, Σ=360°,
+  elokuva w1/4=90°, perus w3/4=270°, conic-gradient, landed-luokka,
+  hub-nimi = arvottu teema, pointteri voittajasektorin sisällä,
+  yksi teema = 360°, vieras näkee saman pyörän + sektorit,
+  ngDrum piiloutuu ja tyhjenee revealin jälkeen.
+- Регрессия после рулетки: 39+67+45+21+36+44+28+18 = **298 PASS**.

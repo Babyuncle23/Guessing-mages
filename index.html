@@ -524,7 +524,14 @@
         <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
     </div>
 
-    <div id="loader" class="drum-animation" style="display: none;"><span>Noniin...</span></div>
+    <div id="loader" class="drum-animation" style="display: none;">
+        <div class="theme-drum">
+            <div class="theme-drum-pointer">▼</div>
+            <div class="theme-drum-wheel" id="drumWheel"></div>
+            <div class="theme-drum-hub"><span id="drumHubName">?</span></div>
+        </div>
+        <span class="drum-caption">Noniin...</span>
+    </div>
 
     <div id="customWordBlock" style="display: none; margin: 15px 0;">
         <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
@@ -636,7 +643,14 @@
             <div id="ngThemeRule" style="font-size:12px; color:var(--text-muted); margin-top:8px; line-height:1.4;"></div>
         </div>
         <div id="ngCurseBanner" style="display:none;"></div>
-        <div id="ngDrum" class="drum-animation" style="display:none;"><span>Noniin...</span></div>
+        <div id="ngDrum" class="drum-animation" style="display:none;">
+            <div class="theme-drum">
+                <div class="theme-drum-pointer">▼</div>
+                <div class="theme-drum-wheel" id="ngDrumWheel"></div>
+                <div class="theme-drum-hub"><span id="ngDrumHubName">?</span></div>
+            </div>
+            <span class="drum-caption">Noniin...</span>
+        </div>
         <div id="ngStatus" style="text-align:center; color:var(--text-muted); font-size:13.5px; line-height:1.5; margin:10px 0;"></div>
         <canvas id="ngCanvas" style="display:none; width:100%; height:55vh; background:rgba(255,255,255,0.04); border:1px dashed rgba(229,193,88,0.25); border-radius:16px; margin-top:10px;"></canvas>
         <div id="ngEmojiView" style="display:none; width:100%; min-height:40vh; background:rgba(255,255,255,0.04); border:1px dashed rgba(229,193,88,0.25); border-radius:16px; margin-top:10px; padding:15px; box-sizing:border-box; font-size:44px; text-align:center; word-break:break-all; line-height:1.4;"></div>

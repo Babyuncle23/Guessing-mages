@@ -273,27 +273,20 @@ const randomizeTheme = () => {
     isMetamorphosisUsedThisTurn = false;
     if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
 
-    // Huonepeli: ilmoita muille puhelimille että rumpu pyörii
-    if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling();
-
-
     btn.disabled = true;
     btn.style.opacity = "0.7";
     btnDisplayWords.style.display = "none";
     roundControls.style.display = 'none';
     wordList.style.display = "none";
     window.hideBonusHint && window.hideBonusHint();
-    
+
     // TYHJENNETÄÄN OHJETEKSTI VAIN JOS SIITÄ EI OLE SUOJAVIESTIÄ (Tämä estää ylikirjoituksen alussa)
     ruleInstruction.textContent = "";
-    
+
     themeDisplay.textContent = "";
     themeImage.style.display = "none";
     spellContainer.style.display = "none";
     currentActiveTheme = "";
-
-    drumAnim.style.display = "block";
-    playAudio(sounds.drum);
 
     // Luodaan teemapooli käyttäjän tekemien painotusten perusteella
     const weights = getThemeWeightsFromUI();
@@ -304,8 +297,28 @@ const randomizeTheme = () => {
         currentThemesList = ["perusvaihtoehto"];
     }
 
+    // Rulettisektorit: yksi per teema, kulma suhteessa painoon (= todennäköisyys)
+    const sectorMap = {};
+    currentThemesList.forEach(t => { sectorMap[t] = (sectorMap[t] || 0) + 1; });
+    const sectors = Object.keys(sectorMap).map(t => ({ theme: t, w: sectorMap[t] }));
+
+    // Voittaja päätetään heti — pyörä hidastuu juuri sen kohdalle
+    const devSelect = document.getElementById("devThemeSelect");
+    const randomTheme = (devSelect && devSelect.value !== "RANDOM") ? devSelect.value : currentThemesList[Math.floor(Math.random() * currentThemesList.length)];
+    if (!sectorMap[randomTheme]) sectors.push({ theme: randomTheme, w: 1 });
+
+    drumAnim.style.display = "block";
+    playAudio(sounds.drum);
+    const drumCtx = (typeof window.themeDrum === 'object')
+        ? themeDrum.mount(document.getElementById('drumWheel'), sectors, document.getElementById('drumHubName'))
+        : null;
+    if (drumCtx) themeDrum.spinTo(drumCtx, randomTheme, 2100);
+
+    // Huonepeli: ilmoita muille puhelimille että rumpu pyörii (+ sektorit)
+    if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling(sectors);
+
     setTimeout(() => {
-        drumAnim.style.display = "none";
+        drumAnim.style.display = "none"; // pyörä piiloutuu loaderin mukana; seuraava mount siivoaa
         const nyt = document.createElement('div');
         nyt.className = 'flash-now';
         nyt.textContent = 'NYT!';
@@ -314,11 +327,7 @@ const randomizeTheme = () => {
 
          setTimeout(() => {
             nyt.remove();
-            const devSelect = document.getElementById("devThemeSelect");
-            
-            let randomTheme = (devSelect && devSelect.value !== "RANDOM") ? devSelect.value : currentThemesList[Math.floor(Math.random() * currentThemesList.length)];
-
-                       // === НАЧАЛО ТОЧЕЧНОЙ ЗАМЕНЫ ===
+            // === НАЧАЛО ТОЧЕЧНОЙ ЗАМЕНЫ ===
             activeCondition1 = randomTheme;
             activeCondition2 = "";
             currentActiveTheme = randomTheme;

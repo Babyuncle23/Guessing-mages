@@ -361,3 +361,143 @@ window.openWhoGuessedModal = (callback) => {
     };
     modal.style.display = 'flex';
 };
+
+/* ================= TEEMARULETTI =================
+ * Yhteinen rumpupyörä selittäjälle (#loader) ja arvaajille (#ngDrum).
+ * Sektorit ovat suhteessa painoihin → sektorikulma vastaa osumisen
+ * todennäköisyyttä. Käyttö:
+ *   const ctx = themeDrum.mount(wheelEl, [{theme:'piirtäminen', w:2},...], hubNameEl);
+ *   themeDrum.spinInfinite(ctx);         // jatkuva pyörintä (arvaaja)
+ *   themeDrum.spinTo(ctx, 'elokuva', 2100); // hidastuu voittajaan (selittäjä)
+ *   themeDrum.land(ctx, 'elokuva', 700); // pysäyttää spinningin voittajaan
+ *   themeDrum.destroy(ctx);
+ */
+window.themeDrum = (() => {
+    const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TINTS = ['rgba(229,193,88,0.16)', 'rgba(122,92,220,0.20)'];
+    const GAP = 0.7; // asteen rako sektorien väliin
+
+    const norm360 = (d) => ((d % 360) + 360) % 360;
+
+    // Rakentaa conic-gradientin + sektoriesimerkit keskipisteilleen.
+    // Sektoreille tallennetaan data-a0/a1 (reunat) testejä ja landia varten.
+    const mount = (wheelEl, sectors, hubEl) => {
+        if (!wheelEl) return null;
+        destroy(wheelEl._drum);
+        wheelEl.innerHTML = '';
+        wheelEl.classList.remove('spinning', 'landed');
+        wheelEl.style.transform = '';
+        wheelEl.style.transition = '';
+
+        const list = (sectors || []).filter(s => s && s.theme && s.w > 0);
+        if (!list.length) list.push({ theme: 'perusvaihtoehto', w: 1 });
+        const total = list.reduce((a, s) => a + s.w, 0);
+        const R = Math.max(56, Math.round(wheelEl.clientWidth / 2 * 0.68)) || 92;
+
+        let stops = [], items = [], acc = 0;
+        list.forEach((s, i) => {
+            const span = s.w / total * 360;
+            const a0 = acc, a1 = acc + span;
+            acc = a1;
+            const tint = TINTS[i % TINTS.length];
+            if (list.length > 1) stops.push(`${tint} ${a0}deg ${a1 - GAP}deg`, `rgba(0,0,0,0.45) ${a1 - GAP}deg ${a1}deg`);
+            else stops.push(`${tint} 0deg 360deg`);
+            const el = document.createElement('div');
+            el.className = 'theme-drum-item';
+            el.dataset.theme = s.theme;
+            el.dataset.a0 = a0;
+            el.dataset.a1 = a1;
+            const mid = (a0 + a1) / 2;
+            el.style.transform = `rotate(${mid}deg) translateY(-${R}px) rotate(${-mid}deg)`;
+            el.textContent = (typeof themeImages !== 'undefined' && themeImages[s.theme]) || '❓';
+            wheelEl.appendChild(el);
+            items.push({ el, theme: s.theme, a0, a1, mid });
+        });
+        wheelEl.style.background = `conic-gradient(${stops.join(', ')})`;
+
+        const ctx = { wheelEl, hubEl, items, hubTimer: null, landed: false };
+        wheelEl._drum = ctx;
+        // Hub-vilkutus: nimet vilisevat pyörimisen aikana
+        if (hubEl) {
+            let i = 0;
+            ctx.hubTimer = setInterval(() => {
+                if (ctx.landed) return;
+                hubEl.textContent = items[i % items.length].theme;
+                i++;
+            }, 110);
+        }
+        return ctx;
+    };
+
+    // Nykyinen rotaatiokulma (0-360) luettaessa CSS-animaation kesken.
+    const currentAngle = (wheelEl) => {
+        const t = getComputedStyle(wheelEl).transform;
+        if (!t || t === 'none') return 0;
+        const m = t.match(/matrix\(([^)]+)\)/);
+        if (!m) return 0;
+        const [a, b] = m[1].split(',').map(Number);
+        return norm360(Math.atan2(b, a) * 180 / Math.PI);
+    };
+
+    // Kohdekulma: voittajasektorin keskipiste osoittajaan (0° = ylös).
+    const targetRotation = (ctx, theme, fromAngle, minSpins) => {
+        const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
+        const need = norm360(-it.mid - norm360(fromAngle));
+        return fromAngle + need + 360 * minSpins;
+    };
+
+    const spinInfinite = (ctx) => { if (ctx && !REDUCED) ctx.wheelEl.classList.add('spinning'); };
+
+    // Selittäjä: voittaja tiedossa heti — pitkä ease-out-pyörähdys alusta.
+    const spinTo = (ctx, theme, dur = 2100, minSpins = 3) => {
+        if (!ctx) return;
+        ctx.landed = false;
+        const from = currentAngle(ctx.wheelEl);
+        const target = targetRotation(ctx, theme, from, minSpins);
+        ctx.wheelEl.style.transform = `rotate(${from}deg)`;
+        void ctx.wheelEl.offsetWidth; // reflow ennen transitionia
+        if (REDUCED) { finish(ctx, theme, target); return; }
+        ctx.wheelEl.style.transition = `transform ${dur}ms cubic-bezier(0.12, 0.8, 0.15, 1)`;
+        ctx.wheelEl.style.transform = `rotate(${target}deg)`;
+        setTimeout(() => finish(ctx, theme, target), dur);
+    };
+
+    // Arvaaja: jatkuva spini → lyhyt hidastus voittajaan kun THEME saapuu.
+    const land = (ctx, theme, dur = 700, minSpins = 1) => {
+        if (!ctx) return;
+        ctx.wheelEl.classList.remove('spinning');
+        const from = currentAngle(ctx.wheelEl);
+        const target = targetRotation(ctx, theme, from, minSpins);
+        ctx.wheelEl.style.transform = `rotate(${from}deg)`;
+        void ctx.wheelEl.offsetWidth;
+        if (REDUCED) { finish(ctx, theme, target); return; }
+        ctx.wheelEl.style.transition = `transform ${dur}ms cubic-bezier(0.2, 0.85, 0.25, 1)`;
+        ctx.wheelEl.style.transform = `rotate(${target}deg)`;
+        setTimeout(() => finish(ctx, theme, target), dur);
+    };
+
+    const finish = (ctx, theme, target) => {
+        ctx.landed = true;
+        clearInterval(ctx.hubTimer);
+        ctx.hubTimer = null;
+        ctx.wheelEl.style.transition = 'none';
+        ctx.wheelEl.style.transform = `rotate(${norm360(target)}deg)`;
+        ctx.wheelEl.classList.add('landed');
+        if (ctx.hubEl) ctx.hubEl.textContent = theme;
+    };
+
+    const destroy = (ctx) => {
+        if (!ctx) return;
+        clearInterval(ctx.hubTimer);
+        ctx.hubTimer = null;
+        ctx.wheelEl.classList.remove('spinning', 'landed');
+        ctx.wheelEl.style.transform = '';
+        ctx.wheelEl.style.transition = '';
+        ctx.wheelEl.innerHTML = '';
+        ctx.wheelEl.style.background = '';
+        if (ctx.hubEl) ctx.hubEl.textContent = '?';
+        if (ctx.wheelEl._drum === ctx) ctx.wheelEl._drum = null;
+    };
+
+    return { mount, spinInfinite, spinTo, land, destroy, currentAngle };
+})();
