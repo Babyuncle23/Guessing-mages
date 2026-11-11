@@ -296,8 +296,11 @@ const randomizeTheme = () => {
     spellContainer.style.display = "none";
     currentActiveTheme = "";
 
-    // Luodaan teemapooli käyttäjän tekemien painotusten perusteella
-    const weights = getThemeWeightsFromUI();
+    // Luodaan teemapooli käyttäjän tekemien painotusten perusteella.
+    // Huonepelissä huoneen (isännän) asetukset ovat totuus — ei kunkin laitteen omat.
+    const weights = (typeof window.isRoomGame === 'function' && window.isRoomGame() && typeof window.netGetThemeWeights === 'function')
+        ? window.netGetThemeWeights()
+        : getThemeWeightsFromUI();
     let currentThemesList = buildWeightedThemePool(weights);
 
     // Varotoimi: jos kaikkea on säädetty nollaan, varmista perusvaihtoehto
@@ -322,8 +325,9 @@ const randomizeTheme = () => {
         : null;
     if (drumCtx) themeDrum.spinTo(drumCtx, randomTheme, 1950);
 
-    // Huonepeli: ilmoita muille puhelimille että rumpu pyörii (+ sektorit)
-    if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling(sectors);
+    // Huonepeli: yksi tapahtuma ajaa koko pyöräytyksen kaikilla puhelimilla —
+    // sektorit + voittaja + kesto, vieraiden rummut pysähtyvät ~samaan aikaan
+    if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling(sectors, randomTheme, 1950);
 
     setTimeout(() => {
         drumAnim.style.display = "none"; // pyörä piiloutuu loaderin mukana; seuraava mount siivoaa
@@ -822,13 +826,16 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
             sounds.success.currentTime = 0; // Сбрасываем дорожку в начало
         }
 
-        // 2. Включаем главный звук победы в игре
-        playAudio(sounds.gameWin);
+        const inRoomGame = typeof window.isRoomGame === 'function' && window.isRoomGame();
 
-        // 3. Näytetään tyylitelty voittomodaali alertin sijaan
-        setTimeout(() => {
-            showVictoryModal();
-        }, 350);
+        // 2-3. Voittoääni + modaali — huonepelissä hoitaa netHandleGameOver
+        // keskitetysti (idempotentti, näyttää modaalin arvaajan näytön päälle)
+        if (!inRoomGame) {
+            playAudio(sounds.gameWin);
+            setTimeout(() => {
+                showVictoryModal();
+            }, 350);
+        }
 
         // Huonepeli: lähetä lopputulos muille (gameOver)
         if (typeof window.netAfterEndRound === 'function') {
@@ -839,8 +846,8 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
                 consumedHunger, consumedChaos
             });
         }
-        if (timedOut && (!window.isRoomGame || !window.isRoomGame()) && typeof window.netShowSummary === 'function') {
-            window.netShowSummary(endedWord || '—', '⏱️ Aika loppui — ei pisteitä.');
+        if (timedOut && !inRoomGame && typeof window.netShowSummary === 'function') {
+            window.netShowSummary(endedWord, '⏱️ Aika loppui — ei pisteitä.');
         }
 
         return;
@@ -879,6 +886,6 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     }
     // Yksinpeli: ajan loputtua näytä pieni yhteenvetokortti (huonepelissä hoitaa ROUND_END)
     if (timedOut && (!window.isRoomGame || !window.isRoomGame()) && typeof window.netShowSummary === 'function') {
-        window.netShowSummary(endedWord || '—', '⏱️ Aika loppui — ei pisteitä.');
+        window.netShowSummary(endedWord, '⏱️ Aika loppui — ei pisteitä.');
     }
 };

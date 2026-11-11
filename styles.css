@@ -2210,6 +2210,13 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     padding: 22px;
 }
 
+/* Voittomodaali aina päällimmäisenä: arvaajan näyttö (9000) ja yhteenvetokortti
+   (9500) ovat korkeammalla kuin tavallinen modaali (1000) — ilman tätä
+   voittoruutu jäisi niiden alle näkymättömäksi vieraslaitteilla. */
+#victoryModal.modal-overlay {
+    z-index: 9700;
+}
+
 /* --- Vuoron ajastinpalkki --- */
 #turnTimer {
     width: 100%;
@@ -2390,6 +2397,17 @@ body[data-net="room-host"] #characterSelectionBlock {
 body[data-net="room-host"] .spell-rules,
 body[data-net="room-guest"] .spell-rules {
     display: none;
+}
+
+/* Huonevieraan asetusnäkymä on vain luettavaksi — isäntä hallitsee asetuksia.
+   pointer-events:none vapauttaa vieraan muokkaukset; scrollaus toimii
+   edelleen .modal-contentin kautta. */
+body.room-settings-locked #settingsTab {
+    pointer-events: none;
+    opacity: 0.55;
+}
+body.room-settings-locked #settingsTab #settingsLockHint {
+    opacity: 1;
 }
 
 /* --- Arvaajan näytön kirousbanneri --- */

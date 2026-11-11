@@ -336,6 +336,27 @@
         if (Net.isHost && Net.roomCode) Net.send({ type: 'SETTINGS', settings: collectSettings() });
     };
 
+    // Vieraan asetusnäkymä on vain luettavaksi — isäntä hallitsee huoneen
+    // asetuksia. Lukitus poistuu kun vieras poistuu huoneesta / tulee isännäksi.
+    const updateSettingsLock = () => {
+        const locked = !!(Net.roomCode && !Net.isHost);
+        document.body.classList.toggle('room-settings-locked', locked);
+        let hint = $('settingsLockHint');
+        if (locked && !hint) {
+            const tab = $('settingsTab');
+            const h3 = tab ? tab.querySelector('h3') : null;
+            if (h3) {
+                hint = document.createElement('p');
+                hint.id = 'settingsLockHint';
+                hint.className = 'room-hint';
+                hint.style.marginBottom = '12px';
+                hint.textContent = '🔒 Asetuksia hallitsee huoneen isäntä — voit katsoa valintoja, mutta vain isäntä voi muuttaa niitä.';
+                h3.insertAdjacentElement('afterend', hint);
+            }
+        }
+        if (hint) hint.style.display = locked ? 'block' : 'none';
+    };
+
     const showLobby = () => {
         $('roomJoinView').style.display = 'none';
         $('roomLobbyView').style.display = 'block';
@@ -346,6 +367,7 @@
         $('roomWaitText').style.display = Net.isHost ? 'none' : 'block';
         document.body.dataset.net = Net.isHost ? 'room-host' : 'room-guest';
         renderRoster();
+        updateSettingsLock();
     };
 
     // ---------- Pelin käynnistys ----------
@@ -399,7 +421,14 @@
         teamCursors = [0, 0];
         _netPhase = 'idle';
         _netSpin = null;
+        _netRoll = null;
+        _victoryFired = false;
         ngStopDrum();
+        // Huoneen omat ehdot: isännän lista on totuus — rekisteröidään
+        // kaikilla laitteilla ennen ensimmäistä arvontaa.
+        if (Array.isArray(cfg.customs) && typeof window.customThemesApi !== 'undefined') {
+            window.customThemesApi.setAll(cfg.customs);
+        }
         gamePlayers = buildRoomPlayers(cfg);
         currentRound = 1;
         turnsInCurrentRound = 0;
@@ -413,6 +442,9 @@
 
         const cm = $('characterModal');
         if (cm) cm.style.display = 'none';
+        // Uusintapeli: edellisen pelin voittomodaali/yhteenveto ei saa jäädä tielle
+        const vm = $('victoryModal'); if (vm) vm.style.display = 'none';
+        const tsc = $('turnSummaryCard'); if (tsc) tsc.style.display = 'none';
         $('playerTurn').style.display = 'flex';
         roundControls.style.display = 'none';
         btn.textContent = 'Aloita kierros';
@@ -428,7 +460,8 @@
     window.netRefreshGuesserScreen = () => {
         if (!window.isRoomGame()) { ngShow(false); return; }
         const mine = window.netIsMyTurn();
-        ngShow(!mine);
+        // Pelin päätyttyä arvaajan näyttö ei saa palata peittämään voittomodaalia
+        ngShow(!mine && currentRound <= totalTurns);
         if (mine) {
             // Oman vuoron normaalinakyma: varmista etta kontrollit nakyvat oikein
             btn.style.display = currentActiveTheme ? 'none' : 'block';
@@ -502,6 +535,13 @@
     };
     const ngStopDrum = () => { if (_ngDrumCtx) { themeDrum.destroy(_ngDrumCtx); _ngDrumCtx = null; } };
 
+    // Yhdistetyn pyöräytyksen ajastimet (teemakortti + pyörän tuho)
+    let _ngLandT1 = null, _ngLandT2 = null;
+    const ngClearLandTimers = () => {
+        clearTimeout(_ngLandT1); clearTimeout(_ngLandT2);
+        _ngLandT1 = _ngLandT2 = null;
+    };
+
     const ngApplyTheme = (theme) => {
         currentActiveTheme = theme;
         activeCondition1 = theme;
@@ -514,6 +554,36 @@
         em.style.display = 'block';
         $('ngThemeRule').textContent = (typeof themeDescriptions !== 'undefined' && themeDescriptions[theme]) || '';
         ngStatus('Selittäjä avaa sanoja omalla ruudullaan…');
+    };
+
+    // Teemakortti + ääni kun pyörä on pysähtynyt — yhteinen loppuosa
+    // sekä vanhalle land-mallille että yhdistetylle pyöräytykselle.
+    const applyLandedTheme = (theme) => {
+        _netPhase = 'theme';
+        ngApplyTheme(theme);
+        if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[theme]) {
+            window.playThemeEffect(themeSounds[theme]);
+        }
+    };
+
+    // Yksi THEME_ROLLING-tapahtuma ajaa koko pyöräytyksen: arvaajan pyörä
+    // jarruttaa samaan voittajaan kuin selittäjän — dur on jo vähennetty
+    // verkkoviiveellä, joten pysähdys osuu ~samaan aikaan kaikkialla.
+    const ngSpinDrumTo = (theme, durMs) => {
+        const ctx = _ngDrumCtx;
+        if (!ctx || !theme) return;
+        const spins = Math.max(0, Math.min(3, Math.floor(durMs / 650)));
+        ngClearLandTimers();
+        const ms = themeDrum.spinTo(ctx, theme, durMs, spins);
+        _ngLandT1 = setTimeout(() => {
+            if (_ngDrumCtx === ctx) _ngDrumCtx = null; // ngStopDrum ei tuhkaa vielä
+            applyLandedTheme(theme);
+        }, Math.max(0, ms - 250));
+        _ngLandT2 = setTimeout(() => {
+            themeDrum.destroy(ctx);
+            if (_ngDrumCtx === ctx) _ngDrumCtx = null;
+            const d = $('ngDrum'); if (d) d.style.display = 'none';
+        }, ms + 120);
     };
 
     const ngCurseBanner = (notices) => {
@@ -532,7 +602,11 @@
     window.netShowSummary = (word, linesHtml) => {
         const card = $('turnSummaryCard');
         if (!card) return;
-        $('tsWord').textContent = word || '—';
+        // Jos sanaa ei valittu (luovutus, aikalupa, ohitus) — ei tyhjää riviä
+        const hasWord = !!word;
+        $('tsWord').textContent = word || '';
+        $('tsWord').style.display = hasWord ? 'block' : 'none';
+        const lbl = $('tsWordLabel'); if (lbl) lbl.style.display = hasWord ? 'block' : 'none';
         $('tsPoints').innerHTML = linesHtml || '';
         card.style.display = 'flex';
         clearTimeout(tsTimer);
@@ -540,7 +614,15 @@
     };
 
     // ---------- Lähtevät pelitapahtumat (kutsutaan olemassa olevasta koodista) ----------
-    window.netRelayThemeRolling = (spin) => { if (!window.isRoomGame()) return; _netPhase = 'rolling'; _netSpin = spin || null; Net.relay({ kind: 'THEME_ROLLING', spin: _netSpin, state: netBuildState() }); };
+    window.netRelayThemeRolling = (spin, theme, dur) => {
+        if (!window.isRoomGame()) return;
+        _netPhase = 'rolling';
+        _netSpin = spin || null;
+        // Yksi tapahtuma ajaa koko pyöräytyksen kaikilla puhelimilla: sektorit +
+        // voittaja + kesto + lähetysaika (t0-korjauksella vieraat saavuttavat)
+        _netRoll = { theme: theme || '', dur: dur || 1950, t0: Date.now() };
+        Net.relay({ kind: 'THEME_ROLLING', spin: _netSpin, theme: _netRoll.theme, dur: _netRoll.dur, t0: _netRoll.t0, state: netBuildState() });
+    };
     window.netRelayTheme = (theme) => { if (!window.isRoomGame()) return; _netPhase = 'theme'; Net.relay({ kind: 'THEME', theme, state: netBuildState() }); };
     window.netRelayWordsOpen = () => {
         if (!window.isRoomGame()) return;
@@ -582,8 +664,9 @@
         };
         Net.relay(payload);
 
-        // Näytä yhteenveto myös selittäjällä
-        showSummaryForResult(payload);
+        // Näytä yhteenveto myös selittäjällä — paitsi viime vuorolla, jolloin
+        // kaikki puhelimet menevät suoraan voittomodaaliin
+        if (!payload.gameOver) showSummaryForResult(payload);
         netRefreshGuesserScreen();
         // Selittäjän oma laitekin tarkistaa onko seuraava selittäjä paikalla
         netEnsureExplainerAvailable();
@@ -618,12 +701,22 @@
         if (playerMode === 4 && !d.isExtraTurnRound) teamCursors[d.endedIndex] = (teamCursors[d.endedIndex] || 0) + 1;
         _netPhase = 'idle';
 
+        // Tulosäänet kuuluvat kaikille puhelimille — muutkin kuulevat kun
+        // selittäjä painaa "Arvattu oikein" omalla ruudullaan. Pelin loppuessa
+        // soi vain voittoääni (kuten selittäjälläkin).
+        if (!d.gameOver) {
+            if (d.result === 'guessed') playAudio(sounds.success);
+            else if (d.result === 'stolen') playAudio(sounds.curse);
+            else playAudio(sounds.fail);
+            if (d.result === 'guessed' && d.isExtraTurnRound) playAudio(sounds.druid);
+        }
+
         netCleanupTurnUI();
         updateTurnDisplay();
-        showSummaryForResult(d);
+        if (!d.gameOver) showSummaryForResult(d);
 
         if (d.gameOver) {
-            setTimeout(() => { if (typeof showVictoryModal === 'function') showVictoryModal(); }, 350);
+            netHandleGameOver();
         } else {
             netRefreshGuesserScreen();
             netEnsureExplainerAvailable(); // seuraava selittäjä voi olla offline -> ketjuohitus
@@ -648,6 +741,35 @@
     const turnSig = () => `${currentRound}:${currentPlayerIndex}:${turnsInCurrentRound}:${isExtraTurnRound ? 1 : 0}`;
     let _netPhase = 'idle'; // idle | rolling | theme | words | locked
     let _netSpin = null; // rulettisektorit [{theme,w}] rolling-vaiheessa
+    let _netRoll = null; // {theme,dur,t0} käynnissä oleva yhdistetty pyöräytys
+    let _victoryFired = false; // voittomodaali jo näytetty tässä pelissä
+
+    // Pelin loppuminen kaikilla puhelimilla — idempotentti. Arvaajan näyttö
+    // (z-index 9000) on piilotettava erikseen, muuten se peittää modaalin.
+    const netHandleGameOver = () => {
+        if (_victoryFired) return;
+        _victoryFired = true;
+        const ngs = $('netGuesserScreen'); if (ngs) ngs.style.display = 'none';
+        const card = $('turnSummaryCard'); if (card) card.style.display = 'none';
+        if (typeof playAudio === 'function' && typeof sounds !== 'undefined') playAudio(sounds.gameWin);
+        setTimeout(() => { if (typeof showVictoryModal === 'function') showVictoryModal(); }, 350);
+    };
+
+    // Huoneen (isännän) teemapainot ovat totuus — cfg.weights kulkee
+    // START_GAMEssa muodossa input-id → paino. Käännetään theme → paino.
+    window.netGetThemeWeights = () => {
+        const w = (Net.game && Net.game.cfg && Net.game.cfg.weights) || {};
+        if (!Object.keys(w).length && typeof getThemeWeightsFromUI === 'function') {
+            return getThemeWeightsFromUI(); // varatilanne: vanha isäntä ilman cfg-painoja
+        }
+        const slugFn = typeof window.themeSlug === 'function' ? window.themeSlug : (t) => t;
+        const out = {};
+        (typeof themes !== 'undefined' ? themes : []).forEach(t => {
+            const v = parseInt(w['theme-weight-' + slugFn(t)], 10);
+            out[t] = Math.max(0, isNaN(v) ? 0 : v);
+        });
+        return out;
+    };
 
     const netBuildState = () => ({
         round: currentRound, idx: currentPlayerIndex, turns: turnsInCurrentRound,
@@ -659,6 +781,7 @@
         cursors: [...teamCursors],
         phase: _netPhase,
         spin: _netPhase === 'rolling' ? _netSpin : null,
+        roll: _netPhase === 'rolling' ? _netRoll : null,
         theme: currentActiveTheme || '',
         wordsCount: generatedWordsList.length,
         used: (typeof usedWordsInThisGame !== 'undefined') ? [...usedWordsInThisGame] : []
@@ -681,8 +804,10 @@
     const netCleanupTurnUI = () => {
         window.stopTurnTimer();
         ngTimerStop();
+        ngClearLandTimers();
         ngStopDrum();
         _netSpin = null;
+        _netRoll = null;
         const ngd = $('ngDrum'); if (ngd) ngd.style.display = 'none';
         const ldr = $('loader'); if (ldr) ldr.style.display = 'none';
         if (window.hidePeekWord) window.hidePeekWord();
@@ -738,7 +863,7 @@
         _netPhase = 'idle';
         netCleanupTurnUI();
         updateTurnDisplay();
-        if (announce) window.netShowSummary('—', '⚠️ Selittäjän yhteys katkesi — vuoro ohitettiin.');
+        if (announce) window.netShowSummary(null, '⚠️ Selittäjän yhteys katkesi — vuoro ohitettiin.');
     };
 
     // Tiimimoodi: pyöräytä selittäjäkursori ensin online-jäseneen vasta sitten ohita vuoro
@@ -771,7 +896,7 @@
         }
         if (currentRound > totalTurns) {
             netCleanupTurnUI();
-            if (typeof showVictoryModal === 'function') setTimeout(showVictoryModal, 350);
+            netHandleGameOver();
             advanced = true;
         }
         if (advanced) { netRefreshGuesserScreen(); netSyncState(); }
@@ -794,6 +919,7 @@
         }
         _netPhase = st.phase || 'idle';
         _netSpin = (st.phase === 'rolling' && Array.isArray(st.spin)) ? st.spin : null;
+        _netRoll = (st.phase === 'rolling' && st.roll && st.roll.theme) ? st.roll : null;
         if (st.theme) { currentActiveTheme = st.theme; activeCondition1 = st.theme; }
         updateTurnDisplay();
     };
@@ -829,9 +955,15 @@
                 btnDisplayWords.style.display = 'block';
             }
         } else {
+            // Peli ohi — älä palauta arvaajan näyttöä voittomodaalin päälle
+            if (currentRound > totalTurns) { ngShow(false); return; }
             ngShow(true);
             if (_netPhase === 'rolling') {
                 ngStartDrum(_netSpin); // rejoin kesken rummun — sama ruletti pyörii
+                if (_netRoll && _netRoll.theme) {
+                    const left = _netRoll.dur - (Date.now() - _netRoll.t0);
+                    ngSpinDrumTo(_netRoll.theme, Math.max(350, left));
+                }
             } else if (_netPhase === 'theme' || _netPhase === 'words' || _netPhase === 'locked') {
                 if (currentActiveTheme) ngApplyTheme(currentActiveTheme);
                 ngStatus(_netPhase === 'theme' ? 'Selittäjä valmistautuu…' : 'Selittäjä katsoo sanoja — arvatkaa!');
@@ -908,20 +1040,25 @@
                 if (!isFromExplainer(m)) break;
                 _netPhase = 'rolling';
                 _netSpin = ev.spin || null;
+                _netRoll = ev.theme ? { theme: ev.theme, dur: ev.dur || 1950, t0: ev.t0 || Date.now() } : null;
                 playAudio(sounds.drum); // rumpu kuuluu myös arvaajien puhelimista
                 ngStartDrum(ev.spin);
+                // Yhdistetty pyöräytys: sama voittaja + t0-korjattu kesto →
+                // kaikkien puhelimien rummut pysähtyvät ~samaan aikaan.
+                if (_netRoll) {
+                    const left = _netRoll.dur - (Date.now() - _netRoll.t0);
+                    ngSpinDrumTo(_netRoll.theme, Math.max(350, left));
+                }
                 break;
             case 'THEME':
                 if (!isFromExplainer(m)) break;
-                _netPhase = 'theme';
                 _netSpin = null;
+                // Yhdistetty pyöräytys sovelsi teeman jo — ei kaksoiskäsittelyä
+                if (currentActiveTheme === ev.theme) { _netPhase = 'theme'; break; }
+                _netPhase = 'theme';
+                ngClearLandTimers(); // hylätä spinin ajastimet — land hoitaa lopun
                 // Pyörä hidastuu voittajaan, sitten teemakortti + ääni kuten ennen
-                ngLandDrum(ev.theme, () => {
-                    ngApplyTheme(ev.theme);
-                    if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[ev.theme]) {
-                        window.playThemeEffect(themeSounds[ev.theme]);
-                    }
-                });
+                ngLandDrum(ev.theme, () => applyLandedTheme(ev.theme));
                 break;
             case 'WORDS_OPEN':
                 if (!isFromExplainer(m)) break;
@@ -1000,6 +1137,9 @@
         saveSession();
         updateResumeUI();
         enterLobby(true, m);
+        // Varmuudeksi vielä SETTINGS-broadcast — kattaa palvelimet jotka eivät
+        // säilö CREATE_ROOMin settings-kenttää (myöhässä liittyvät saavat asetukset)
+        window.netBroadcastSettings();
     });
     Net.on('ROOM_JOINED', (m) => {
         Net.roomCode = m.roomCode; Net.playerId = m.playerId;
@@ -1038,6 +1178,7 @@
         }
         if (Net.isHost && !wasHost) toast('👑 Sinusta tuli huoneen isäntä');
         refreshSoundBtn(); // isännän vaihtuessa äänioletus voi muuttua
+        updateSettingsLock(); // isännän vaihtuessa asetuslukitus voi muuttua
     });
     Net.on('SETTINGS', (m) => applySettingsToUI(m.settings));
     Net.on('GAME_STARTED', (m) => {
@@ -1077,6 +1218,7 @@
         updateResumeUI();
         updateRoomCodeChips();
         refreshSoundBtn();
+        updateSettingsLock(); // istunto kaapattu — huoneesta poistuttu, lukitus pois
     });
 
     // ---------- "Palaa peliin" -banneri ----------
@@ -1157,7 +1299,9 @@
             showJoinError('');
             try {
                 await Net.connect();
-                Net.send({ type: 'CREATE_ROOM', name: Net.myName });
+                // Asetukset mukaan huoneen luontiin — myöhässä liittyvät saavat
+                // isännän teemat suoraan ilman erillistä SETTINGS-odotusta
+                Net.send({ type: 'CREATE_ROOM', name: Net.myName, settings: collectSettings() });
             } catch (e) {
                 showJoinError('Palvelimeen ei saada yhteyttä.');
             }
@@ -1212,6 +1356,7 @@
                 mode: s.playerMode, magic: s.magic,
                 rounds: parseInt(s.rounds, 10) || 10, timer: parseInt(s.timer, 10) || 0,
                 weights: s.weights,
+                customs: s.customs,
                 players: Net.players.filter(p => p.connected).map(p => ({ id: p.id, name: p.name, char: p.char }))
             };
             const need = cfg.mode === 3 ? 3 : 2;

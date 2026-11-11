@@ -40,6 +40,9 @@
     };
 
     window.saveGameSettings = () => {
+        // Huonevieraalla isännän asetukset ovat totuus — niitä ei saa tallentaa
+        // vieraan omiin asetuksiin (sotkisivat hänen paikallispelinsä).
+        if (window.Net && Net.roomCode && !Net.isHost) return;
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(collectSettings()));
         } catch (e) {

@@ -140,7 +140,7 @@ wss.on('connection', (ws) => {
                 const room = {
                     code, hostId: pid,
                     players: new Map([[pid, { id: pid, name: String(m.name || 'Pelaaja').slice(0, 20) || 'Pelaaja', char: null, ws, connected: true }]]),
-                    settings: null, game: null, grace: new Map(),
+                    settings: m.settings || null, game: null, grace: new Map(),
                     lastActivity: Date.now()
                 };
                 rooms.set(code, room);
