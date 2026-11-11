@@ -920,6 +920,18 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         font-size: 13.5px !important;  /* Делаем шрифт кнопок компактным на маленьких экранах */
     }
 
+    /* Piirtomodaalin työkalut ja tulosrivin painikkeet jätetään yleissääntöä
+       tiiviimmiksi — muuten ne syövät piirtoalustan korkeudesta ~90px */
+    .modal-tools-row > button,
+    .modal-header-container > button {
+        padding: 5px 9px !important;
+        font-size: 10px !important;
+    }
+    .modal-bottom-row > button {
+        padding: 7px 8px !important;
+        font-size: 11px !important;
+    }
+
         #btnDisplayWords {
         width: 100% !important;
         padding: 10px 14px !important;
@@ -1424,6 +1436,12 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 .modal-tools-row > button {
     width: auto !important;
     flex: 0 0 auto !important;
+}
+/* Perus 'button { margin-top: 8px }' paisuttaisi jokaisen rivin —
+   työkalu- ja pistepainikkeissa marginaalia ei tarvita */
+.modal-header-container button,
+.modal-bottom-row > button {
+    margin-top: 0;
 }
 .modal-bottom-row {
     display: flex;
