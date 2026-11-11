@@ -932,6 +932,18 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         font-size: 11px !important;
     }
 
+    /* Oman ehdon poistoristi ja lisäyspainike pysyvät kompakteina myös yleissäännön alla */
+    .custom-theme-del {
+        padding: 0 !important;
+        font-size: 11px !important;
+        width: 22px;
+        height: 22px;
+    }
+    #btnAddCustomTheme {
+        padding: 9px 12px !important;
+        font-size: 12.5px !important;
+    }
+
         #btnDisplayWords {
         width: 100% !important;
         padding: 10px 14px !important;
@@ -1749,6 +1761,108 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
+}
+
+/* ==========================================
+   OMAT EHDOT (pelaajan luomat selitysehdot)
+   ========================================== */
+#customThemeForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 4px 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#customThemeFormRow {
+    display: flex;
+    gap: 8px;
+}
+
+#customThemeForm input[type="text"] {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #fff;
+    padding: 9px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+#customThemeForm input[type="text"]:focus {
+    border-color: var(--gold);
+}
+
+#customThemeForm input::placeholder {
+    color: var(--text-muted);
+}
+
+#customThemeEmoji {
+    width: 46px;
+    flex: 0 0 46px;
+    text-align: center;
+    font-size: 15px;
+    padding: 9px 4px;
+}
+
+#customThemeName {
+    flex: 1;
+    min-width: 0;
+}
+
+#customThemeDesc {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#btnAddCustomTheme {
+    background: rgba(229, 193, 88, 0.12);
+    border: 1px solid var(--soft-border);
+    color: var(--gold);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12.5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+#btnAddCustomTheme:active {
+    background: var(--gold);
+    color: #000;
+}
+
+#customThemeError {
+    color: #e57373;
+    font-size: 11px;
+    min-height: 14px;
+    text-align: center;
+}
+
+/* Poista-risti oman ehdon kortissa */
+.custom-theme-del {
+    margin-top: 6px;
+    background: rgba(229, 115, 115, 0.12);
+    border: 1px solid rgba(229, 115, 115, 0.3);
+    color: #e57373;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.custom-theme-del:active {
+    background: #e57373;
+    color: #000;
 }
 
 /* ==========================================

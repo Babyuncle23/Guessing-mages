@@ -308,6 +308,10 @@
         }
         if (s.rounds && $('roundSelect')) $('roundSelect').value = s.rounds;
         if (s.timer !== undefined && typeof window.setTimerSeconds === 'function') window.setTimerSeconds(s.timer);
+        // Omat ehdot ennen painoja — korttien inputit pitää olla olemassa
+        if (Array.isArray(s.customs) && typeof window.customThemesApi !== 'undefined') {
+            window.customThemesApi.setAll(s.customs);
+        }
         if (s.weights) {
             Object.entries(s.weights).forEach(([id, v]) => {
                 const inp = document.getElementById(id);
@@ -324,6 +328,7 @@
         magic: !!($('magicToggle') && $('magicToggle').checked),
         rounds: $('roundSelect') ? $('roundSelect').value : '7',
         timer: String(typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0),
+        customs: typeof window.customThemesApi !== 'undefined' ? window.customThemesApi.list() : [],
         weights: Object.fromEntries([...document.querySelectorAll('.theme-weight-input')].map(i => [i.id, parseInt(i.value, 10) || 0]))
     });
 

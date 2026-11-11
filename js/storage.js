@@ -29,6 +29,7 @@
 
         return {
             weights,
+            customs: typeof window.customThemesApi !== 'undefined' ? window.customThemesApi.list() : [],
             playerMode: typeof playerMode !== 'undefined' ? playerMode : 2,
             magic: magicToggle ? magicToggle.checked : false,
             rounds: roundSelect ? roundSelect.value : '7',
@@ -58,6 +59,12 @@
         // 1. Pelimuoto ensin (vaikuttaa vaadittujen hahmojen määrään)
         if (saved.playerMode && typeof window.setPlayerMode === 'function') {
             window.setPlayerMode(saved.playerMode, false);
+        }
+
+        // 1.5 Omat ehdot ENNEN painoja — korttien inputit pitää olla olemassa,
+        //     jotta niiden painot voidaan palauttaa seuraavassa askeleessa
+        if (Array.isArray(saved.customs) && typeof window.customThemesApi !== 'undefined') {
+            window.customThemesApi.setAll(saved.customs);
         }
 
         // 2. Teemapainot takaisin inputteihin (stepperit ovat jo alustettu,

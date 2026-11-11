@@ -1,3 +1,7 @@
+// Единый slug-форматтер: ключ темы ("näkymätön muste") -> id веса ("theme-weight-nakymaton-muste").
+// Используется и встроенными темами, и customThemesApi — обязан совпадать.
+window.themeSlug = (t) => t.toLowerCase().replace(/\s+/g, '-').replace(/ä/g, 'a').replace(/ö/g, 'o');
+
 const buildWeightedThemePool = (weights, themeKeys = themes) => {
     const pool = [];
     themeKeys.forEach(theme => {
@@ -12,15 +16,7 @@ const buildWeightedThemePool = (weights, themeKeys = themes) => {
 const getThemeWeightsFromUI = () => {
     const weights = {};
     themes.forEach(theme => {
-        // Приводим к нижнему регистру и меняем пробелы на дефисы
-        let formattedTheme = theme.toLowerCase().replace(/\s+/g, '-');
-        
-        // ОЧИСТКА: Заменяем финские ä и ö на обычные a и o, чтобы совпасть с HTML id
-        formattedTheme = formattedTheme.replace(/ä/g, 'a').replace(/ö/g, 'o');
-        
-        const inputId = `theme-weight-${formattedTheme}`;
-        const input = document.getElementById(inputId);
-        
+        const input = document.getElementById(`theme-weight-${window.themeSlug(theme)}`);
         // Если ползунок найден, берем его точное значение, иначе берем 0
         weights[theme] = input ? parseInt(input.value, 10) : 0;
     });
@@ -30,33 +26,18 @@ const getThemeWeightsFromUI = () => {
 // Обратное отображение: input id ("theme-weight-nakymaton-muste") -> ключ темы ("näkymätön muste")
 const themeKeyForWeightInput = (input) => {
     for (const theme of themes) {
-        const formatted = theme.toLowerCase().replace(/\s+/g, '-').replace(/ä/g, 'a').replace(/ö/g, 'o');
-        if (`theme-weight-${formatted}` === input.id) return theme;
+        if (`theme-weight-${window.themeSlug(theme)}` === input.id) return theme;
     }
     return null;
 };
 
-const initializeThemeWeightSteppers = () => {
-    const stepperCards = document.querySelectorAll('.theme-card');
-
-    // 1. Tallenna oletusarvot sivuun resetointia varten — источник истины: themeWeights из js/themes.js
-    const inputs = document.querySelectorAll('.theme-weight-input');
-    inputs.forEach(input => {
-        const key = themeKeyForWeightInput(input);
-        const defaultVal = (key && typeof themeWeights !== 'undefined' && themeWeights[key] !== undefined)
-            ? themeWeights[key]
-            : input.value;
-        input.value = defaultVal;
-        input.dataset.defaultValue = defaultVal;
-        input.dataset.savedValue = input.value;
-    });
-
-    // 2. Yksittäisten teemakorttien logiikka (+ ja -)
-    stepperCards.forEach(card => {
+// Биндинг степпера одной тема-карточки (−/+/input + подсветка категории).
+// Глобальный — customThemesApi вызывает его для карт, созданных после init.
+window.bindThemeStepperCard = (card) => {
         const minusBtn = card.querySelector('.stepper-btn.minus');
         const plusBtn = card.querySelector('.stepper-btn.plus');
         const input = card.querySelector('.theme-weight-input');
-        
+
         if (!minusBtn || !plusBtn || !input) return;
 
         const updateCardState = () => {
@@ -73,7 +54,7 @@ const initializeThemeWeightSteppers = () => {
                 card.classList.add('active-card');
             }
 
-            // Tarkista kategorian tila automaattisesti! 
+            // Tarkista kategorian tila automaattisesti!
             // Jos yksikään teema kategoriassa on > 0, kategoria kytkeytyy visuaalisesti päälle.
             const accordion = card.closest('.accordion-content');
             if (accordion) {
@@ -82,7 +63,7 @@ const initializeThemeWeightSteppers = () => {
                 if (toggleBtn) {
                     const allInputs = Array.from(accordion.querySelectorAll('.theme-weight-input'));
                     const anyActive = allInputs.some(inp => parseInt(inp.value, 10) > 0);
-                    
+
                     if (anyActive && !toggleBtn.classList.contains('active')) {
                         toggleBtn.classList.add('active');
                         toggleBtn.textContent = 'Päällä';
@@ -102,6 +83,8 @@ const initializeThemeWeightSteppers = () => {
             if (val > 0) {
                 input.value = val - 1;
                 updateCardState();
+                // Kupliva input: delegoitu tallennus + SETTINGS-broadcast tarttuvat
+                input.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
 
@@ -111,17 +94,64 @@ const initializeThemeWeightSteppers = () => {
             if (val < 99) {
                 input.value = val + 1;
                 updateCardState();
+                input.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
 
         input.addEventListener('input', updateCardState);
         input.addEventListener('blur', () => {
-            if (input.value === '') input.value = 0;
-            updateCardState();
+            if (input.value === '') {
+                input.value = 0;
+                updateCardState();
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         });
 
         updateCardState();
+};
+
+// Биндинг кнопки "Säännöt (?)" одной карточки — глобальный для customThemesApi.
+window.bindThemeHelpBtn = (btn) => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof playClickSound === 'function') playClickSound();
+
+        const themeKey = btn.dataset.themeKey;
+        const modal = document.getElementById('spellHelpModal');
+        const modalBody = document.getElementById('spellHelpModalBody');
+
+        if (modal && modalBody && typeof themeDescriptions !== 'undefined' && themeDescriptions[themeKey]) {
+            modalBody.innerHTML = `
+                <div class="spell-info-title" style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 12px; font-size: 1.1rem; text-align: center;">
+                    <strong>${themeKey.toUpperCase()}</strong>
+                </div>
+                <p style="line-height: 1.6; font-size: 14.5px; color: #fff; text-align: left; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin: 0;">
+                    ${themeDescriptions[themeKey]}
+                </p>
+            `;
+            modal.style.display = "flex";
+            document.body.classList.add("spell-help-modal-open");
+        }
     });
+};
+
+const initializeThemeWeightSteppers = () => {
+    const stepperCards = document.querySelectorAll('.theme-card');
+
+    // 1. Tallenna oletusarvot sivuun resetointia varten — источник истины: themeWeights из js/themes.js
+    const inputs = document.querySelectorAll('.theme-weight-input');
+    inputs.forEach(input => {
+        const key = themeKeyForWeightInput(input);
+        const defaultVal = (key && typeof themeWeights !== 'undefined' && themeWeights[key] !== undefined)
+            ? themeWeights[key]
+            : input.value;
+        input.value = defaultVal;
+        input.dataset.defaultValue = defaultVal;
+        input.dataset.savedValue = input.value;
+    });
+
+    // 2. Yksittäisten teemakorttien logiikka (+ ja -)
+    stepperCards.forEach(card => window.bindThemeStepperCard(card));
 
     // 3. Kategorioiden Päällä/Pois -kytkimet
     const categoryHeaders = document.querySelectorAll('.accordion-header');
@@ -196,29 +226,7 @@ const initializeThemeWeightSteppers = () => {
 
     // 5. Säännöt (?) painikkeiden logiikka pysyy ennallaan
     const helpButtons = document.querySelectorAll('.theme-setting-help');
-    helpButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (typeof playClickSound === 'function') playClickSound();
-
-            const themeKey = btn.dataset.themeKey;
-            const modal = document.getElementById('spellHelpModal');
-            const modalBody = document.getElementById('spellHelpModalBody');
-
-            if (modal && modalBody && typeof themeDescriptions !== 'undefined' && themeDescriptions[themeKey]) {
-                modalBody.innerHTML = `
-                    <div class="spell-info-title" style="color: var(--gold); font-family: 'Cinzel', serif; margin-bottom: 12px; font-size: 1.1rem; text-align: center;">
-                        <strong>${themeKey.toUpperCase()}</strong>
-                    </div>
-                    <p style="line-height: 1.6; font-size: 14.5px; color: #fff; text-align: left; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border-left: 3px solid var(--gold); margin: 0;">
-                        ${themeDescriptions[themeKey]}
-                    </p>
-                `;
-                modal.style.display = "flex";
-                document.body.classList.add("spell-help-modal-open");
-            }
-        });
-    });
+    helpButtons.forEach(btn => window.bindThemeHelpBtn(btn));
 };
 
 // Varmistetaan, että kuuntelija on yhä paikallaan
@@ -403,6 +411,10 @@ if (randomTheme === "vapaavalintainen") {
             if (activeSpellsLog.length > 0 && !isMetamorphosisUsedThisTurn) {
                 ruleInstruction.style.display = "block";
                 ruleInstruction.innerHTML = `<span style="color: #e5c158; font-weight: bold; display: block; margin-bottom: 10px;">Aktiiviset taiat: ${activeSpellsLog.join(', ')}</span>`;
+            } else if (typeof window.customThemesApi !== 'undefined' && window.customThemesApi.has(randomTheme)) {
+                // Oma ehto: sääntöä ei tunneta ulkoa — näytetään se suoraan selittäjälle
+                ruleInstruction.style.display = "block";
+                ruleInstruction.textContent = themeDescriptions[randomTheme] || randomTheme;
             } else {
                 ruleInstruction.textContent = "";
             }

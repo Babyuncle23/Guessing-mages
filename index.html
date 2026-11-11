@@ -479,6 +479,29 @@
             </div>
         </div>
     </div>
+
+    <!-- OMAT EHDOT (pelaajan luomat selitysehdot) -->
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <div class="accordion-left">
+            <span class="accordion-arrow">▶</span>
+            <span class="accordion-title">✨ Omat ehdot</span>
+        </div>
+        <div class="category-toggle" onclick="event.stopPropagation()">
+            <button type="button" class="category-toggle-btn active">Päällä</button>
+        </div>
+    </div>
+    <div class="accordion-content">
+        <div id="customThemeForm">
+            <div id="customThemeFormRow">
+                <input type="text" id="customThemeEmoji" maxlength="4" placeholder="✨" aria-label="Emoji (valinnainen)">
+                <input type="text" id="customThemeName" maxlength="30" placeholder="Ehdon nimi *" aria-label="Ehdon nimi">
+            </div>
+            <input type="text" id="customThemeDesc" maxlength="160" placeholder="Sääntö lyhyesti (jos tyhjä, sääntönä on nimi)" aria-label="Ehdon sääntö">
+            <button type="button" id="btnAddCustomTheme">+ Lisää ehto</button>
+            <small id="customThemeError"></small>
+        </div>
+        <div class="themes-grid" id="customThemesGrid"></div>
+    </div>
 </div>
         </div> <!-- Закрываем settingsTab -->
 
@@ -738,6 +761,7 @@
 <script src="js/players.js"></script>
 <script src="js/spells.js"></script>
 <script src="js/rounds.js"></script>
+<script src="js/customthemes.js"></script>
 <script src="js/drawing.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/network.js"></script>

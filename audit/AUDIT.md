@@ -418,3 +418,45 @@ rulettipyörä, jonka sektorit vastaavat asetuksissa päällä olevia teemoja.
   yksi teema = 360°, vieras näkee saman pyörän + sektorit,
   ngDrum piiloutuu ja tyhjenee revealin jälkeen.
 - Регрессия после рулетки: 39+67+45+21+36+44+28+18 = **298 PASS**.
+
+---
+
+## Task: Omat ehdot — пользовательские условия в пуле (megaplan-custom-themes)
+
+Игроки могут создавать свои условия объяснения: **имя + правило + опциональный
+эмодзи**. Кастомы регистрируются в существующих `themes/themeImages/
+themeDescriptions` → автоматически попадают во взвешенный пул, барабан,
+экран объясняющего и guesser-экраны без особой логики.
+
+### Архитектура
+- `js/rounds.js`: глобальные `window.themeSlug`, `bindThemeStepperCard(card)`,
+  `bindThemeHelpBtn(btn)` — вынесены из `initializeThemeWeightSteppers` для
+  динамических карт. `randomizeTheme` показывает правило кастома в
+  `#ruleInstruction` (textContent). Фикс: степперы −/+/blur диспатчат
+  `input` с `bubbles:true` — раньше делегированные save/broadcast их не видели.
+- `js/customthemes.js` (новый): `customThemesApi` —
+  `addTheme/removeTheme/setAll/has/list`, санитизация (имя `\p{L}\p{N} -`≤24,
+  desc ≤160 без `<>`, emoji = 1 графем-кластер), ≤15 кастомов, дубликаты/
+  slug-коллизии, `forbiddenSet`, `refreshAccordion` для maxHeight.
+- `index.html`: аккордеон «✨ Omat ehdot» — форма + `#customThemesGrid`
+  (те же `.themes-grid`/`.theme-card` → визуально неотличимы от встроенных).
+- `js/storage.js`: `customs[]` в payload, `setAll` до восстановления весов.
+- `js/network.js`: `customs[]` в SETTINGS от хоста; на госте `setAll` до
+  применения весов. Хост — источник истины (сервер пропускает SETTINGS
+  только от хоста). `✕` удаляет мгновенно, без подтверждения.
+
+### Проверка
+- `audit/tool/verify10.js` — **40/40**: форма/реестр/валидация/help-модалка/
+  степпер/выпадение кастома в барабане с показом правила/удаление/
+  localStorage-persist/полный host→guest синк (add, вес, delete).
+- Регрессия: verify 39 + verify2 67 + verify3 45 + verify4 21 + verify9 26
+  = **198 PASS**.
+- Скриншот: `ct-settings-390.png`.
+
+### Подводные камни
+- `new Event('input')` без `{bubbles:true}` не доходит до делегированных
+  слушателей — веса, выставленные скриптом, молча не сохранялись/не синкались.
+- Аккордеон `.open`+`maxHeight` (не display) — пересчёт после изменения
+  содержимого обязателен.
+- `themeDescriptions` → innerHTML в help-модале — сетевые/пользовательские
+  строки без стрипа `<>` туда нельзя.
