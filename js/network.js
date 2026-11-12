@@ -24,7 +24,10 @@
         _pongTimer: null,  // puoliksi kuolleen socketin vahti
         _offlineSince: 0,  // katkon alkuaika (badge-tila)
         _sessionTaken: false, // toinen laite/välilehti vei istunnon
-        _resumeIntent: false // auto-REJOIN vain kun käyttäjä painoi "Palaa peliin" (tai reconnect huoneessa)
+        _resumeIntent: false, // auto-REJOIN vain kun käyttäjä painoi "Palaa peliin" (tai reconnect huoneessa)
+        _waitUntil: {},    // pid -> grace-loppuhetki (ms): pelaaja saattaa vielä palata
+        _netTick: null,    // 1 s tikki: wait-laskuri + offline-badgen sekunnit
+        _slowT: null       // hidas ensiyhteys -> "herätetään palvelinta" -vihje
     };
     window.Net = Net;
 
@@ -134,7 +137,14 @@
             return;
         }
         const offlineFor = Net._offlineSince ? Date.now() - Net._offlineSince : 0;
-        if (offlineFor > 30000) {
+        const noNet = typeof navigator !== 'undefined' && navigator.onLine === false;
+        if (noNet) {
+            // Verkko poissa kokonaan — uudelleenyhdistys on turha ennen kuin
+            // verkko palaa; 'online'-tapahtuma käynnistää sen automaattisesti.
+            _badgeState = 'err';
+            b.className = 'err';
+            b.textContent = '📵 Ei verkkoyhteyttä — yhdistetään kun verkko palaa';
+        } else if (offlineFor > 30000) {
             _badgeState = 'err';
             b.className = 'err';
             b.innerHTML = `❌ Ei yhteyttä palvelimeen <button type="button" id="netConnRetry" class="ncb-btn">Yhdistä uudelleen</button>`;
@@ -146,9 +156,81 @@
         } else {
             _badgeState = 'warn';
             b.className = 'warn';
-            b.textContent = '⚠️ Yhteys katkesi — yhdistetään…';
+            b.textContent = `⚠️ Yhteys katkesi (${Math.max(1, Math.floor(offlineFor / 1000))} s) — yhdistetään…`;
         }
         b.style.display = 'flex';
+        ensureNetTick();
+    };
+
+    // ---------- Grace-odotus (pelaaja saattaa palata) ----------
+    // _waitUntil[pid] = paluun määräaika; lähteenä roster.waiting/graceUntil
+    // ja PLAYER_WAITING-tapahtumat. Vuoro ei ohitu odotuksen aikana.
+    const waitBanner = () => {
+        let b = $('netWaitBanner');
+        if (!b) {
+            b = document.createElement('div');
+            b.id = 'netWaitBanner';
+            b.style.display = 'none';
+            document.body.appendChild(b);
+        }
+        return b;
+    };
+    const isWaitingPid = (pid) => !!(pid && Net._waitUntil[pid] > Date.now());
+    const clearWaits = () => { Net._waitUntil = {}; updateWaitBanner(); };
+    const updateWaitBanner = () => {
+        const b = waitBanner();
+        const now = Date.now();
+        const entries = Object.entries(Net._waitUntil).filter(([, t]) => t > now);
+        if (!entries.length || !window.isRoomGame()) {
+            b.style.display = 'none';
+            return;
+        }
+        const names = entries.map(([pid, t]) =>
+            `${rosterName(pid)} (${Math.max(1, Math.ceil((t - now) / 1000))} s)`);
+        b.textContent = `⏳ Odotetaan paluuta: ${names.join(', ')}`;
+        b.style.display = 'flex';
+        ensureNetTick();
+    };
+    // Roster on auktoriteetti odotustiloihin (kattaa myös oman reconnectin)
+    const syncWaits = (players) => {
+        const known = new Set((players || []).map(p => p.id));
+        (players || []).forEach(p => {
+            if (p.waiting && p.graceUntil) Net._waitUntil[p.id] = p.graceUntil;
+            else delete Net._waitUntil[p.id];
+        });
+        // Huoneesta poistunut pelaaja ei ole enää odotuksessa
+        Object.keys(Net._waitUntil).forEach(pid => { if (!known.has(pid)) delete Net._waitUntil[pid]; });
+        updateWaitBanner();
+    };
+
+    // Yksi 1 s tikki ajaa wait-laskuria, offline-badgen sekunteja ja
+    // varmistaa ettei grace-loppu jää huomaamatta jos DISCONNECTED-viesti
+    // meni kuolleeseen sockettiin (oma reconnect).
+    const ensureNetTick = () => {
+        if (Net._netTick) return;
+        Net._netTick = setInterval(() => {
+            const now = Date.now();
+            let expired = false;
+            Object.keys(Net._waitUntil).forEach(pid => {
+                if (Net._waitUntil[pid] <= now) { delete Net._waitUntil[pid]; expired = true; }
+            });
+            updateWaitBanner();
+            if (expired && window.isRoomGame()) netEnsureExplainerAvailable();
+            if ((Net._wantRoom || Net.roomCode) && !Net.connected) updateConnBadge();
+            // Itsestään sammuva: ei työtä kun kaikki kunnossa
+            if (Net.connected && !Object.keys(Net._waitUntil).length) {
+                clearInterval(Net._netTick);
+                Net._netTick = null;
+            }
+        }, 1000);
+    };
+
+    // Vuoron toiminnot vaativat yhteyden — muuten paikallinen tila ajaisi
+    // erilleen ja seuraava snapshot näyttäisi "nollanneen" pelaajan tekemiset.
+    window.netCanAct = () => {
+        if (!window.isRoomGame() || Net.connected) return true;
+        toast('⚠️ Ei yhteyttä — odota kunnes yhteys palaa');
+        return false;
     };
 
     // Näytön sammumisen jälkeinen herätys- ja elvytystarkistus:
@@ -181,7 +263,17 @@
                 Net.ws = new WebSocket(base.replace(/^http/, 'ws'));
             } catch (e) { return reject(e); }
 
+        // Hidas ensiyhteys (free-tier cold start): näytä käyttäjälle
+        // ymmärrettävä vihje ~4 s jälkeen, älä jätä vain "Yhdistetään…"
+        clearTimeout(Net._slowT);
+        Net._slowT = setTimeout(() => {
+            if (!Net.connected && !Net._hadOpen) {
+                setConnStatus('⏳ Herätetään palvelinta — ensimmäinen yhteys voi kestää ~30 s…');
+            }
+        }, 4000);
+
         Net.ws.onopen = () => {
+            clearTimeout(Net._slowT);
             Net.connected = true;
             Net._hadOpen = true;
             Net._reconnectDelay = 2000;
@@ -217,6 +309,7 @@
             emit(m);
         };
         Net.ws.onclose = () => {
+            clearTimeout(Net._slowT);
             Net.connected = false;
             clearInterval(Net._hb);
             clearTimeout(Net._pongTimer);
@@ -318,9 +411,21 @@
                 if (inp) { inp.value = v; inp.dispatchEvent(new Event('input')); }
             });
         }
-        // Hahmovalinta näkyviin jos taikapeli
+        refreshRoomCharPick();
+    };
+
+    // Hahmovalinta aulassa: näkyy kun ollaan huoneessa JA taikapeli päällä.
+    // Isännän oma magicToggle-kytkentä ei kierrä palvelimen kautta takaisin
+    // (SETTINGS lähetetään vain muille) → päivitetään myös paikallisesti.
+    const refreshRoomCharPick = () => {
         const cp = $('roomCharPick');
-        if (cp) cp.style.display = s.magic ? 'block' : 'none';
+        if (!cp) return;
+        const magic = !!($('magicToggle') && $('magicToggle').checked);
+        const show = !!(Net.roomCode && magic);
+        const wasShown = cp.style.display !== 'none';
+        cp.style.display = show ? 'block' : 'none';
+        // Taikapeli pois päältä → vapauta oma varattu hahmo rosterista
+        if (wasShown && !show && Net.roomCode) Net.send({ type: 'CHAR_PICK', char: null });
     };
 
     const collectSettings = () => ({
@@ -334,6 +439,9 @@
 
     window.netBroadcastSettings = () => {
         if (Net.isHost && Net.roomCode) Net.send({ type: 'SETTINGS', settings: collectSettings() });
+        // Isännän omat näkymät (mm. hahmovalinta) eivät saa SETTINGS-echoa —
+        // päivitetään paikallisesti.
+        refreshRoomCharPick();
     };
 
     // Vieraan asetusnäkymä on vain luettavaksi — isäntä hallitsee huoneen
@@ -368,6 +476,7 @@
         document.body.dataset.net = Net.isHost ? 'room-host' : 'room-guest';
         renderRoster();
         updateSettingsLock();
+        refreshRoomCharPick();
     };
 
     // ---------- Pelin käynnistys ----------
@@ -749,8 +858,12 @@
     const netHandleGameOver = () => {
         if (_victoryFired) return;
         _victoryFired = true;
+        Net._waitUntil = {};
+        updateWaitBanner();
         const ngs = $('netGuesserScreen'); if (ngs) ngs.style.display = 'none';
         const card = $('turnSummaryCard'); if (card) card.style.display = 'none';
+        // Varmistetaan ettei edellisen vuoron tulosääni jää kaikumaan voiton päälle
+        if (typeof stopAllSounds === 'function') stopAllSounds();
         if (typeof playAudio === 'function' && typeof sounds !== 'undefined') playAudio(sounds.gameWin);
         setTimeout(() => { if (typeof showVictoryModal === 'function') showVictoryModal(); }, 350);
     };
@@ -882,6 +995,8 @@
     // Aja peli ohi offline-selittäjien vuorojen — ketjuuntuu turvallisesti.
     // Kattaa: selittäjä katosi, myöhemmän vuoron omistaja katosi aikaisemmin,
     // huoneesta poistunut pelaaja (poissa rosterista kokonaan).
+    // POIKKEUS: grace-odotuksessa oleva selittäjä ei ohitu — peli jää
+    // odottamaan paluuta (wait-banner + _netTick vapauttaa kun aika loppuu).
     const netEnsureExplainerAvailable = () => {
         if (!window.isRoomGame() || !gamePlayers.length) return;
         let advanced = false, guard = 0;
@@ -890,6 +1005,12 @@
         while (currentRound <= totalTurns && guard++ < gamePlayers.length + 2) {
             const e = rosterEntry(window.netGetExplainerPid());
             if (e && e.connected) break;
+            if (isWaitingPid(window.netGetExplainerPid())) {
+                // Vuoro säilyy: odotetaan pelaajan paluuta grace-ajan loppuun.
+                updateWaitBanner();
+                ensureNetTick();
+                break;
+            }
             if (playerMode === 4 && netTryRotateTeamMember()) { advanced = true; continue; }
             netSkipOneTurn(announce);
             advanced = true;
@@ -1026,14 +1147,22 @@
                 break;
             }
             case 'PLAYER_WAITING':
+                Net._waitUntil[ev.playerId] = ev.graceUntil || (Date.now() + 90000);
                 toast(`⏳ Pelaajan ${rosterName(ev.playerId)} yhteys katkesi — odotetaan paluuta…`);
                 ngStatus(`⏳ Odotetaan pelaajan ${rosterName(ev.playerId)} paluuta…`);
+                // Jos kyseessä on vuorossa oleva selittäjä, peli jää odottamaan
+                netEnsureExplainerAvailable();
+                updateWaitBanner();
                 break;
             case 'PLAYER_BACK':
+                delete Net._waitUntil[ev.playerId];
+                updateWaitBanner();
                 toast(`✅ ${rosterName(ev.playerId)} palasi peliin!`);
                 netRefreshGuesserScreen();
                 break;
             case 'PLAYER_DISCONNECTED':
+                delete Net._waitUntil[ev.playerId];
+                updateWaitBanner();
                 netEnsureExplainerAvailable();
                 break;
             case 'THEME_ROLLING':
@@ -1156,6 +1285,7 @@
         Net.players = m.players || [];
         Net.isHost = (m.hostId === Net.playerId);
         Net.hostId = m.hostId;
+        syncWaits(m.players);
         updateResumeUI();
         updateRoomCodeChips();
         refreshSoundBtn();
@@ -1170,6 +1300,7 @@
         const wasHost = Net.isHost;
         Net.hostId = m.hostId;
         Net.isHost = (m.hostId === Net.playerId);
+        syncWaits(m.players);
         renderRoster();
         // Isäntä saattoi vaihtua poissaolon takia — päivitä aulan kontrollit
         if ($('roomLobbyView') && $('roomLobbyView').style.display !== 'none') {
@@ -1183,6 +1314,7 @@
     Net.on('SETTINGS', (m) => applySettingsToUI(m.settings));
     Net.on('GAME_STARTED', (m) => {
         Net.game = m.game;
+        clearWaits(); // uusi peli — odotukset nollataan
         if (m.game && m.game.cfg) startRoomGameLocal(m.game.cfg);
     });
     Net.on('ERROR', (m) => {
@@ -1213,6 +1345,8 @@
         clearTimeout(Net._reconnectTimer);
         clearTimeout(Net._pongTimer);
         Net.roomCode = null;
+        Net._waitUntil = {};
+        updateWaitBanner();
         clearSession();
         updateConnBadge();
         updateResumeUI();
@@ -1297,6 +1431,8 @@
             if (typeof playClickSound === 'function') playClickSound();
             Net.myName = ($('roomNameInput').value || 'Pelaaja').trim() || 'Pelaaja';
             showJoinError('');
+            const b = $('btnCreateRoom');
+            if (b) b.disabled = true;
             try {
                 await Net.connect();
                 // Asetukset mukaan huoneen luontiin — myöhässä liittyvät saavat
@@ -1304,6 +1440,8 @@
                 Net.send({ type: 'CREATE_ROOM', name: Net.myName, settings: collectSettings() });
             } catch (e) {
                 showJoinError('Palvelimeen ei saada yhteyttä.');
+            } finally {
+                if (b) b.disabled = false;
             }
         });
 
@@ -1337,11 +1475,15 @@
             if (code.length !== 4) { showJoinError('Anna 4-kirjaiminen huonekoodi.'); return; }
             Net.myName = ($('roomNameInput').value || 'Pelaaja').trim() || 'Pelaaja';
             showJoinError('');
+            const b = $('btnJoinRoom');
+            if (b) b.disabled = true;
             try {
                 await Net.connect();
                 Net.send({ type: 'JOIN_ROOM', roomCode: code, name: Net.myName });
             } catch (e) {
                 showJoinError('Palvelimeen ei saada yhteyttä.');
+            } finally {
+                if (b) b.disabled = false;
             }
         });
 
@@ -1426,6 +1568,12 @@
         window.addEventListener('online', () => {
             Net._reconnectDelay = 2000;
             netWakeCheck();
+        });
+        // Verkon katoaminen → heti selkeä ilmoitus (ei odoteta socket-timeoutia)
+        window.addEventListener('offline', () => {
+            if (!Net._offlineSince) Net._offlineSince = Date.now();
+            updateConnBadge();
+            ensureNetTick();
         });
 
         // ?room=ABCD esitäyttö + automaattinen huonetila + liity-polku auki.

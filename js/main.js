@@ -209,12 +209,14 @@ btn.addEventListener("click", () => {
     playClickSound();
     // Huonepelissä vain vuorossa oleva selittäjä voi arpoa teeman
     if (typeof window.isRoomGame === 'function' && window.isRoomGame() && !window.netIsMyTurn()) return;
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
     randomizeTheme();
 });
 
 btnDisplayWords.addEventListener("click", () => {
     playClickSound();
     if (typeof window.isRoomGame === 'function' && window.isRoomGame() && !window.netIsMyTurn()) return;
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
     if (wordList.style.display === "none") {
         switchToWords();
     } else {
@@ -224,6 +226,7 @@ btnDisplayWords.addEventListener("click", () => {
 
 btnGuessed.addEventListener("click", () => {
     playClickSound();
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
 
     const finishGuessed = (guesserIdx) => {
         // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
@@ -246,6 +249,7 @@ btnGuessed.addEventListener("click", () => {
 
 btnGiveUp.addEventListener("click", () => {
     playClickSound();
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
 
     // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
     wordList.innerHTML = '';
@@ -258,6 +262,7 @@ btnGiveUp.addEventListener("click", () => {
 // RYÖSTÖ: vastustaja arvasi ensin (4+ joukkuemoodi)
 const handleStealClick = () => {
     if (typeof playClickSound === 'function') playClickSound();
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
     const stealIdx = (currentPlayerIndex + 1) % gamePlayers.length;
     wordList.innerHTML = '';
     wordList.style.display = "none";

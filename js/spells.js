@@ -90,6 +90,7 @@ const renderSpellButtonsBeforeWords = () => {
         setSpellBtnContent(spellBtn1, "🃏 KORTTITULVA", p.spells.flood, "+2 lisäsanaa tälle kierrokselle");
         spellBtn1.disabled = p.spells.flood <= 0 || currentActiveTheme === "vapaavalintainen" || activeModifiers.extendToEight;
         spellBtn1.onclick = () => {
+            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
             triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
             activeModifiers.extendToEight = true;
             isMetamorphosisUsedThisTurn = false;
@@ -115,6 +116,7 @@ const renderSpellButtonsBeforeWords = () => {
         setSpellBtnContent(spellBtn1, "🥀 KORTTINÄLKÄ", p.spells.hunger, "Vastustaja saa 2 sanaa vähemmän");
         spellBtn1.disabled = p.spells.hunger <= 0 || pendingCurses.hunger !== -1;
         spellBtn1.onclick = () => {
+            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
             pickCurseTarget('hunger', () => {
                 triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
                 p.spells.hunger--;
@@ -126,6 +128,7 @@ const renderSpellButtonsBeforeWords = () => {
         setSpellBtnContent(spellBtn2, "🌪️ SANAKAAOS", p.spells.chaos, "3 vastustajan sanaa vaikeeksi");
         spellBtn2.disabled = p.spells.chaos <= 0 || pendingCurses.chaos !== -1;
         spellBtn2.onclick = () => {
+            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
             pickCurseTarget('chaos', () => {
                 triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
                 p.spells.chaos--;
@@ -144,6 +147,7 @@ const renderSpellButtonsBeforeWords = () => {
         setSpellBtnContent(spellBtn1, "🌱 KASVUPURKAUS", p.spells.regrowth, "Oikeasta arvauksesta lisävuoro (+50p)");
         spellBtn1.disabled = (p.spells.regrowth <= 0 || p.extraTurnGranted === true || isExtraTurnRound);
         spellBtn1.onclick = () => {
+            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
             triggerSpellAnimation('druid');
             p.extraTurnGranted = true;
             p.spells.regrowth--;
@@ -183,6 +187,7 @@ const renderSpellButtonsAfterWords = () => {
         spellBtn1.disabled = false;
 
         spellBtn1.onclick = () => {
+            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
 
             triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
 

@@ -715,6 +715,15 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     let consumedHunger = false;
     let consumedChaos = false;
 
+    // Viimeisellä vuorolla tulosääntä ei soiteta lainkaan — vain voittoääni
+    // (muuten success/fail/curse kaikuisi gameWinin päälle). Ehto peilaa
+    // alempana olevaa vuorolaskuria: peli loppuu kun viimeinen vuoro päättyy
+    // ilman Yrttitarhurin lisävuoroa.
+    const extraTurnWillTrigger = isGuessed && p.name === "Yrttitarhuri" && p.extraTurnGranted;
+    const willEndGame = !extraTurnWillTrigger &&
+        currentRound === totalTurns &&
+        turnsInCurrentRound === gamePlayers.length - 1;
+
     window.stopTurnTimer();
     if (window.hidePeekWord) window.hidePeekWord();
     const curseBannerEl = document.getElementById('curseBanner');
@@ -737,7 +746,7 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     if (themeBlockEl) themeBlockEl.style.cursor = "default";
 
     if (isGuessed) {
-        playAudio(sounds.success);
+        if (!willEndGame) playAudio(sounds.success);
         
         // 1. Базовые очки за раунд (100 или 50)
         let roundBaseScore = 100;
@@ -771,13 +780,13 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
 
     } else if (stolenIndex >= 0 && stolenIndex < gamePlayers.length) {
         // Ryöstö: vastustaja arvasi ensin — heille +50p, selittäjälle 0p
-        playAudio(sounds.curse);
+        if (!willEndGame) playAudio(sounds.curse);
         gamePlayers[stolenIndex].score += 50;
         if (p.name === "Yrttitarhuri") {
             p.extraTurnGranted = false;
         }
     } else {
-        playAudio(sounds.fail);
+        if (!willEndGame) playAudio(sounds.fail);
         if (p.name === "Yrttitarhuri") {
             p.extraTurnGranted = false;
         }
@@ -820,11 +829,9 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
     }
 
     if (currentRound > totalTurns) {
-        // 1. Принудительно останавливаем звук success, если он всё ещё играет
-        if (sounds.success) {
-            sounds.success.pause();
-            sounds.success.currentTime = 0; // Сбрасываем дорожку в начало
-        }
+        // Edellisen vuoron tulosääni/loitsutehoste ei saa jäädä kaikumaan
+        // voittoäänen päälle (tämän vuoron ääni ei koskaan käynnistynytkään)
+        if (typeof stopAllSounds === 'function') stopAllSounds();
 
         const inRoomGame = typeof window.isRoomGame === 'function' && window.isRoomGame();
 

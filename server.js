@@ -33,7 +33,7 @@ app.get('/healthz', (req, res) => res.send('ok'));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-// roomCode -> { code, hostId, players: Map<pid,{id,name,char,ws,connected}>, settings, game, lastActivity, grace: Map<pid,timeoutId> }
+// roomCode -> { code, hostId, players: Map<pid,{id,name,char,ws,connected}>, settings, game, lastActivity, grace: Map<pid,{t,until}> }
 const rooms = new Map();
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -49,7 +49,9 @@ const send = (ws, obj) => {
 };
 
 const roster = (room) => [...room.players.values()].map(p => ({
-    id: p.id, name: p.name, char: p.char, connected: p.connected, host: p.id === room.hostId
+    id: p.id, name: p.name, char: p.char, connected: p.connected, host: p.id === room.hostId,
+    waiting: room.grace.has(p.id),
+    graceUntil: (room.grace.get(p.id) || {}).until || 0
 }));
 
 const broadcast = (room, obj, exceptPid = null) => {
@@ -71,18 +73,17 @@ const finalizeDisconnect = (room, pid) => {
     }
     if (room.hostId === pid) {
         const next = [...room.players.values()].find(pl => pl.connected);
-        if (next) {
-            room.hostId = next.id;
-            broadcast(room, { type: 'ROSTER', players: roster(room), hostId: room.hostId });
-        }
+        if (next) room.hostId = next.id;
     }
+    // ROSTER kaikille — waiting-lippu putoaa pois myös silloin kun isäntä ei vaihdu
+    broadcast(room, { type: 'ROSTER', players: roster(room), hostId: room.hostId });
 };
 
 // Pelaaja poistuu huoneesta välittömästi (nappi tai uuteen huoneeseen siirtyminen)
 const leaveCurrent = (me) => {
     if (!me || !me.room) return;
     const { room, pid } = me;
-    clearTimeout(room.grace.get(pid));
+    clearTimeout((room.grace.get(pid) || {}).t);
     room.grace.delete(pid);
     room.players.delete(pid);
     if (room.game) {
@@ -110,7 +111,7 @@ wss.on('connection', (ws) => {
             try { p.ws.close(4000); } catch (e) {}
         }
         // Grace-odotus perutaan — pelaaja palasi ajoissa
-        clearTimeout(room.grace.get(p.id));
+        clearTimeout((room.grace.get(p.id) || {}).t);
         room.grace.delete(p.id);
         p.ws = ws;
         p.connected = true;
@@ -245,15 +246,17 @@ wss.on('connection', (ws) => {
         p.connected = false;
         p.ws = null;
         touch(room);
-        broadcast(room, { type: 'ROSTER', players: roster(room), hostId: room.hostId });
         // Grace-aika: ruudun sammuminen / hetkellinen katkos ei kaada vuoroa.
-        // Peliin ilmoitetaan odotuksesta; jos pelaaja ei ehdi takaisin,
-        // finalizeDisconnect lähettää PLAYER_DISCONNECTEDin ja siirtää isännän.
+        // Asetetaan ENNEN roster-lähetystä, jotta waiting-lippu näkyy heti.
+        const until = Date.now() + GRACE_MS;
+        clearTimeout((room.grace.get(pid) || {}).t);
+        room.grace.set(pid, { t: setTimeout(() => finalizeDisconnect(room, pid), GRACE_MS), until });
+        broadcast(room, { type: 'ROSTER', players: roster(room), hostId: room.hostId });
+        // Peliin ilmoitetaan odotuksesta + määräaika (countdown-UI); jos pelaaja ei
+        // ehdi takaisin, finalizeDisconnect lähettää PLAYER_DISCONNECTEDin.
         if (room.game) {
-            broadcast(room, { type: 'EVENT', from: pid, event: { kind: 'PLAYER_WAITING', playerId: pid } });
+            broadcast(room, { type: 'EVENT', from: pid, event: { kind: 'PLAYER_WAITING', playerId: pid, graceUntil: until } });
         }
-        clearTimeout(room.grace.get(pid));
-        room.grace.set(pid, setTimeout(() => finalizeDisconnect(room, pid), GRACE_MS));
     });
 });
 
@@ -273,7 +276,7 @@ setInterval(() => {
     for (const [code, room] of rooms) {
         const anyConnected = [...room.players.values()].some(p => p.connected);
         if (!anyConnected && now - room.lastActivity > ROOM_IDLE_MS) {
-            for (const t of room.grace.values()) clearTimeout(t);
+            for (const g of room.grace.values()) clearTimeout(g.t);
             rooms.delete(code);
         }
     }
