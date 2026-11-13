@@ -88,7 +88,8 @@ const resetCurrentGame = () => {
     usedWordsInThisGame = [];
     isExtraTurnRound = false;
     isMetamorphosisUsedThisTurn = false;
-    currentBonusWordText = "";
+    currentBonusWords = [];
+    currentCursedWords = [];
 
     totalTurns = parseInt(document.getElementById('roundSelect').value) || 10;
     gamePlayers = createPlayers();
@@ -310,6 +311,9 @@ wordList.addEventListener('click', (e) => {
     // 3. ЗАПИСЫВАЕМ ИНДЕКС СЛОВА В ПАМЯТЬ
     selectedWordIndex = parseInt(li.getAttribute('data-index'), 10);
     console.log("Зажато слово с индексом:", selectedWordIndex); // Для проверки в консоли браузера
+
+    // Обновляем кнопку "Arvattu oikein" — покажет превью выплаты с бонусом
+    if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
 
     // Huonepeli: kerro muille että sana on lukittu (sisältöä ei paljasteta)
     if (typeof window.netRelayWordLocked === 'function') window.netRelayWordLocked();

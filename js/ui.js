@@ -24,9 +24,9 @@ const closeSpellHelpModal = document.getElementById("closeSpellHelpModal");
 
 const spellDescriptions = {
     Korttitulva: "🐺 Korttitulva: Laajentaa sanalistaasi kahdella lisäsanalla. Antaa enemmän valinnanvaraa, jos selityksen ehto tuntuu vaikealta.",
-    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin. Rajoitus: Tästä kierroksesta ansaitset 50 pistettä 100 pisteen sijaan.",
+    Sanametamorfoosi: "🌀 Sanametamorfoosi: Vaihtaa näytöllä olevat sanat uusiin — bonussanat päivittyvät ja sanakaaos torjutaan! Palkinto: 50p + mahdollinen bonus.",
     Korttinälkä: "📉 Korttinälkä: Iskee vastustajan seuraavaan vuoroon. Kutistaa hänen sanalistansa kahdella sanalla, mikä vähentää hänen valinnanvaraansa.",
-    Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa osan hänen sanoistaan todennäköisesti oudoimilla sanoilla, joita on vaikeampi selittää.",
+    Sanakaaos: "☿ Sanakaaos: Iskee vastustajan seuraavaan vuoroon. Korvaa kolme hänen sanaansa kovilla kiroussanoilla — ne eivät anna bonuspisteitä.",
     Kasvupurkaus: "🌱 Kasvupurkaus: Jos vastustaja arvaa sanasi oikein, saat heti perään ylimääräisen bonusvuoron! Bonusvuoron onnistumisesta saa 50 pistettä."
 };
 
@@ -93,10 +93,17 @@ document.addEventListener("click", (e) => {
     hideSpellHelpModal();
 });
 
+// Строка счётчика раундов + индикатор текущей бонусной фазы (виден и
+// объясняющему, и угадывающим через #ngRound — «нарастание ставок» к финалу).
+const formatRoundCounter = () => {
+    const v = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
+    return `Kierros: ${currentRound} / ${totalTurns} · ✨+${v}p`;
+};
+
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
 
-    document.getElementById('roundDisplay').textContent = `Kierros: ${currentRound} / ${totalTurns}`;
+    document.getElementById('roundDisplay').textContent = formatRoundCounter();
     const avatarEl = document.getElementById('currentAvatar');
     if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
 
@@ -134,7 +141,17 @@ const updateGuessedButtonsText = () => {
     const isHalfScore = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn) ||
                         (typeof isExtraTurnRound !== 'undefined' && isExtraTurnRound);
 
-    const targetText = isHalfScore ? "Arvattu oikein (+50p)" : "Arvattu oikein (+100p)";
+    // Превью реальной выплаты: если зажато ✨-бонусное слово, показываем сумму
+    let bonusPreview = 0;
+    if (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0 &&
+        typeof generatedWordsList !== 'undefined' && generatedWordsList[selectedWordIndex] &&
+        typeof currentBonusWords !== 'undefined' &&
+        currentBonusWords.includes(generatedWordsList[selectedWordIndex])) {
+        bonusPreview = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
+    }
+
+    const base = isHalfScore ? 50 : 100;
+    const targetText = `Arvattu oikein (+${base + bonusPreview}p)`;
 
     if (mainGuessedBtn) mainGuessedBtn.textContent = targetText;
     if (modalGuessedBtn) modalGuessedBtn.textContent = targetText;
@@ -143,27 +160,28 @@ const updateGuessedButtonsText = () => {
 
 const renderOlList = () => {
     wordList.style.display = "block";
+    const bonusValue = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
     wordList.innerHTML = generatedWordsList.map((w, index) => {
-        let isRare = false;
-        if (typeof currentBonusWordText !== 'undefined' && currentBonusWordText !== "" && w === currentBonusWordText) {
-            isRare = true;
-        }
-
-        if (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn === true) {
-            isRare = false;
-        }
+        const isBonus = typeof currentBonusWords !== 'undefined' && currentBonusWords.includes(w);
+        const isCursed = typeof currentCursedWords !== 'undefined' && currentCursedWords.includes(w);
 // ОБНОВЛЕНО: Текст стал четкой инструкцией
-        const bonusTag = isRare ? `<span class="gold-bonus-badge">✨ +25p (Paina tätä, jos selitit!)</span>` : '';
-        
-        return `<li data-index="${index}" data-rare="${isRare}"><strong>${index + 1}.</strong> ${w} ${bonusTag}</li>`;
+        const bonusTag = isBonus ? `<span class="gold-bonus-badge">✨ +${bonusValue}p (Paina tätä, jos selitit!)</span>` : '';
+        const curseTag = isCursed ? `<span class="curse-badge">💀</span>` : '';
+
+        return `<li data-index="${index}" data-rare="${isBonus}" data-cursed="${isCursed}"><strong>${index + 1}.</strong> ${w} ${bonusTag}${curseTag}</li>`;
     }).join('');
 
     const bonusHint = document.getElementById('bonusHint');
     if (bonusHint) {
-        const meta = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn === true);
-        bonusHint.textContent = meta
-            ? 'Ei bonussanaa tällä vuorolla.'
-            : '✨-merkitty sana arvotaan koko sanakirjasta — usein harvinainen! Selitä se ja saat +25p.';
+        if (typeof currentBonusWords !== 'undefined' && currentBonusWords.length > 0) {
+            bonusHint.textContent = currentBonusWords.length === 1
+                ? `✨ Yksi sana koko sanakirjasta — usein harvinainen! Selitä se ja saat +${bonusValue}p.`
+                : `✨ ${currentBonusWords.length} sanaa koko sanakirjasta — usein harvinaisia! Selitä merkitty ja saat +${bonusValue}p.`;
+        } else if (typeof currentCursedWords !== 'undefined' && currentCursedWords.length > 0) {
+            bonusHint.textContent = '💀 Kirous: kovat sanat — ei bonussanoja tällä vuorolla.';
+        } else {
+            bonusHint.textContent = 'Ei bonussanaa tällä vuorolla.';
+        }
         bonusHint.style.display = 'block';
     }
 

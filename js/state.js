@@ -15,6 +15,10 @@ let isWordListHidden = true;
 let isMetamorphosisUsedThisTurn = false; 
 let isExtraTurnRound = false;
 let selectedWordIndex = -1;
-let currentBonusWordText = "";
+// ✨-помеченные бонусные слова хода (из kaikkisanat). Награда и количество
+// зависят от фазы игры — см. getBonusConfig() в rounds.js.
+let currentBonusWords = [];
+// 💀-проклятые слова Sanakaaos: сложные, но НЕ дают бонусных очков.
+let currentCursedWords = [];
 let activeCondition1 = "";
 let activeCondition2 = "";

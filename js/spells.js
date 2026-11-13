@@ -183,7 +183,7 @@ const renderSpellButtonsAfterWords = () => {
             spellHelpBtn2.style.display = "none";
         }
 
-        setSpellBtnContent(spellBtn1, "🔄 SANAMETAMORFOOSI", p.spells.metamorphosis, "Vaihda kaikki sanat uusiin (palkinto 50p)");
+        setSpellBtnContent(spellBtn1, "🔄 SANAMETAMORFOOSI", p.spells.metamorphosis, "Vaihda kaikki sanat uusiin (50p + bonus)");
         spellBtn1.disabled = false;
 
         spellBtn1.onclick = () => {
@@ -191,37 +191,21 @@ const renderSpellButtonsAfterWords = () => {
 
             triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
 
-            const cleanLetters = new Set();
-
-            let commonCopy = commonWords
-                .map(w => capitalize(w))
-                .filter(w => !usedWordsInThisGame.includes(w));
-
-            generatedWordsList = generatedWordsList.map(() => {
-                let foundWord = "";
-                let subAttempts = 0;
-                while (commonCopy.length > 0 && subAttempts < 100) {
-                    const randIdx = Math.floor(Math.random() * commonCopy.length);
-                    const w = commonCopy[randIdx];
-                    if (!cleanLetters.has(w.charAt(0).toLowerCase())) {
-                        foundWord = w;
-                        cleanLetters.add(w.charAt(0).toLowerCase());
-                        commonCopy.splice(randIdx, 1);
-                        break;
-                    }
-                    commonCopy.splice(randIdx, 1);
-                    subAttempts++;
-                }
-                if (foundWord === "" && commonCopy.length > 0) {
-                    const randIdx = Math.floor(Math.random() * commonCopy.length);
-                    foundWord = commonCopy[randIdx];
-                    commonCopy.splice(randIdx, 1);
-                }
-                return foundWord !== "" ? foundWord : "Taikasana";
-            });
+            // Перегенерация через единый генератор БЕЗ проклятий:
+            // метаморфоза «очищает» список от Sanakaaos (контр-плей в 3p),
+            // бонусные слова пересоздаются по текущей фазе игры.
+            const gen = generateWordList(false);
+            generatedWordsList = gen.words;
+            currentBonusWords = gen.bonusWords;
+            currentCursedWords = [];
+            if (activeModifiers.chaosFourWords) {
+                activeModifiers.chaosFourWords = false;
+                const curseBannerEl = document.getElementById('curseBanner');
+                if (curseBannerEl) curseBannerEl.style.display = 'none';
+            }
 
             generatedWordsList.forEach(w => {
-                if (w !== "Taikasana" && !usedWordsInThisGame.includes(w)) {
+                if (!usedWordsInThisGame.includes(w)) {
                     usedWordsInThisGame.push(w);
                 }
             });
@@ -239,7 +223,7 @@ const renderSpellButtonsAfterWords = () => {
                 "Valitse yksi sana ja selitä se toiselle pelaajalle.";
 
             ruleInstruction.style.display = "block";
-            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat ovat vaihdettu — Puolitettu palkinto (+50p)</span>` + baseInstruction;
+            ruleInstruction.innerHTML = `<span style="color: #e74c3c; font-weight: bold; display: block; margin-bottom: 5px;">AKTIIVINEN TILA: Sanat vaihdettu — peruspalkinto 50p, bonussanat voimassa</span>` + baseInstruction;
 
             if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();
         };

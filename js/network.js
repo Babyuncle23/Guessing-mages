@@ -579,7 +579,9 @@
         if (cur) {
             $('ngExplainer').textContent = `🗣️ Selittää: ${cur.displayName || cur.name}`;
         }
-        $('ngRound').textContent = `Kierros: ${currentRound} / ${totalTurns}`;
+        $('ngRound').textContent = (typeof formatRoundCounter === 'function')
+            ? formatRoundCounter()
+            : `Kierros: ${currentRound} / ${totalTurns}`;
         $('ngScore').innerHTML = gamePlayers.map((pl, i) =>
             `<span>${i === currentPlayerIndex ? '▶ ' : ''}${pl.displayName || pl.name}: <strong>${pl.score}p</strong></span>`
         ).join('<br>');
@@ -764,6 +766,7 @@
             word: info.word,
             endedIndex,
             appliedCurses,
+            bonus: info.bonus || 0,
             scores: gamePlayers.map(p => p.score),
             currentPlayerIndex, currentRound, turnsInCurrentRound,
             isExtraTurnRound,
@@ -786,6 +789,7 @@
         const name = (i) => gamePlayers[i] ? (gamePlayers[i].displayName || gamePlayers[i].name) : '?';
         if (d.result === 'guessed') {
             lines = `✅ <strong>${name(d.endedIndex)}</strong> ansaitsi pisteet.`;
+            if (d.bonus) lines += `<br>✨ Bonussana! +${d.bonus}p`;
             if (d.guesserIndex >= 0) lines += `<br>🎯 <strong>${name(d.guesserIndex)}</strong> arvasi (+50p)!`;
         } else if (d.result === 'stolen') {
             lines = `⚡ <strong>${name(d.stolenIndex)}</strong> arvasi ensin ja ryösti +50p!`;
@@ -955,6 +959,8 @@
         activeCondition2 = '';
         isMetamorphosisUsedThisTurn = false;
         selectedWordIndex = -1;
+        currentBonusWords = [];
+        currentCursedWords = [];
     };
 
     // Yhden vuoron siirtymä ilman pisteytystä — peilaa endRoundin siirtymää.

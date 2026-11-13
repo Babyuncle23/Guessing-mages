@@ -1601,13 +1601,28 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
         filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0px 0px 8px rgba(229, 184, 59, 0.9));
     }
 }
+/* 💀-бейдж проклятого слова (Sanakaaos): сложное слово БЕЗ бонусной награды */
+.curse-badge {
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 9px;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 3px 8px;
+    border: 1px dashed rgba(155, 89, 182, 0.8);
+    border-radius: 8px;
+    color: #c39bd3;
+    filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.85));
+}
+
 .hidden-words li {
     color: transparent !important;
     text-shadow: 0 0 10px rgba(255,255,255,0) !important; /* если использовалось размытие текста */
 }
 
-/* Принудительно гасим бейдж внутри скрытого списка */
-.hidden-words li .gold-bonus-badge {
+/* Принудительно гасим бейджи внутри скрытого списка */
+.hidden-words li .gold-bonus-badge,
+.hidden-words li .curse-badge {
     opacity: 0 !important;
     visibility: hidden !important;
 }

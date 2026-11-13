@@ -275,6 +275,77 @@ const renderThemeRulesHelpButton = () => {
         liveThemeBlock.appendChild(infoBtn);
     }
 };
+// --- ДИНАМИЧЕСКАЯ БОНУСНАЯ ЭКОНОМИКА ("финальный спринт") ---
+// Бонусные слова — это слова из kaikkisanat (полный словарь, обычно редкие),
+// помеченные ✨. Их количество и награда растут к финалу игры по фазам.
+const BONUS_PHASES = [
+    { count: 1, value: 25 },   // первая половина игры
+    { count: 2, value: 50 },   // вторая половина до ~80%
+    { count: 3, value: 100 },  // финальный отрезок (>80% раундов)
+];
+
+// Фаза по прогрессу currentRound / totalTurns: 0 | 1 | 2
+const getBonusPhase = () => {
+    const p = totalTurns > 0 ? currentRound / totalTurns : 0;
+    return p > 0.8 ? 2 : p > 0.5 ? 1 : 0;
+};
+const getBonusConfig = () => BONUS_PHASES[getBonusPhase()];
+
+// Единый генератор списка слов хода — используется и switchToWords,
+// и Sanametamorfoosi (перегенерация списка).
+// withChaos=true  — применяет Sanakaaos: проклятые 💀-слова ВМЕСТО бонусных.
+// withChaos=false — «очищенная» генерация (метаморфоза снимает каос).
+// Возвращает { words, bonusWords, cursedWords }.
+const generateWordList = (withChaos = true) => {
+    let targetCount = 5;
+    if (activeModifiers.extendToEight) targetCount += 2;
+    if (activeModifiers.reduceToThree) targetCount -= 2;
+    targetCount = Math.max(1, targetCount);
+
+    // Слова уже выходившие в этой игре не повторяем (Set — allWords ~76k).
+    const usedSet = new Set(usedWordsInThisGame);
+    let allWordsCopy = allWords
+        .map(w => capitalize(w))
+        .filter(w => !usedSet.has(w))
+        .sort(() => Math.random() - 0.5);
+    let commonWordsCopy = commonWords
+        .map(w => capitalize(w))
+        .filter(w => !usedSet.has(w))
+        .sort(() => Math.random() - 0.5);
+
+    let bonusWords = [];
+    let cursedWords = [];
+
+    if (withChaos && activeModifiers.chaosFourWords) {
+        // Проклятие: до 3 сложных слов без бонусной награды
+        const n = Math.min(3, targetCount, allWordsCopy.length);
+        cursedWords = allWordsCopy.slice(0, n);
+    } else {
+        // Бонусных слов = фаза игры, но всегда оставляем >=1 лёгкое слово
+        const n = Math.min(getBonusConfig().count, Math.max(1, targetCount - 1), allWordsCopy.length);
+        bonusWords = allWordsCopy.slice(0, n);
+    }
+
+    const words = [...bonusWords, ...cursedWords];
+    // Фолбэк: если фильтр usedWords исчерпал частотный пул — берём без фильтра
+    if (words.length < targetCount && commonWordsCopy.length === 0) {
+        commonWordsCopy = [...commonWords].map(w => capitalize(w)).sort(() => Math.random() - 0.5);
+    }
+    let ci = 0;
+    while (words.length < targetCount && ci < commonWordsCopy.length) {
+        const w = commonWordsCopy[ci];
+        if (!words.includes(w)) words.push(w);
+        ci++;
+    }
+
+    // Перемешиваем Фишером-Йетсом — бонусные слова распознаются по тексту
+    for (let i = words.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [words[i], words[j]] = [words[j], words[i]];
+    }
+    return { words, bonusWords, cursedWords };
+};
+
 const randomizeTheme = () => {
     selectedWordIndex = -1;
     const p = gamePlayers[currentPlayerIndex];
@@ -431,7 +502,7 @@ if (randomTheme === "vapaavalintainen") {
                     notices.push("Korttinälkä! Vastustaja kavensi sanalistaasi 2 sanalla.");
                 }
                 if (activeModifiers.chaosFourWords) {
-                    notices.push("Sanakaaos! 3 ensi vuoron sanaasi muutettiin vaikeiksi.");
+                    notices.push("Sanakaaos! 3 sanaasi muutettiin kiroussanoiksi — ei bonusta tällä vuorolla.");
                 }
                 if (notices.length > 0) {
                     curseBanner.innerHTML = `💀 KIROUS AKTIVOITUI: ${notices.join(' ')}`;
@@ -459,57 +530,14 @@ const switchToWords = () => {
     
      // === НАЧАЛО БЛОКА ГЕНЕРАЦИИ СЛОВ ===
   generatedWordsList = [];
-    currentBonusWordText = ""; // Сбрасываем бонусное слово раунда
+    currentBonusWords = [];  // Сбрасываем бонусные слова раунда
+    currentCursedWords = []; // и проклятые (Sanakaaos)
 
-    // Перемешиваем копии оригинальных массивов
-    let allWordsCopy = [...allWords].sort(() => Math.random() - 0.5);
-    let commonWordsCopy = [...commonWords].sort(() => Math.random() - 0.5);
-
-    // Массив для временного хранения слов, которые берутся из kaikkisanat
-    let kaikkiCandidates = [];
-
-    // Вычисляем целевое количество слов на раунд
-    let targetCount = 5;
-    if (activeModifiers.extendToEight) targetCount += 2;
-    if (activeModifiers.reduceToThree) targetCount -= 2;
-    targetCount = Math.max(1, targetCount);
-
-    if (activeModifiers.chaosFourWords) {
-        // 1. РЕЖИМ ХАОСА: Берем 3 уникальных слова из kaikkisanat
-        let idx = 0;
-        while (kaikkiCandidates.length < 3 && idx < allWordsCopy.length) {
-            let w = capitalize(allWordsCopy[idx]);
-            if (!kaikkiCandidates.includes(w)) {
-                kaikkiCandidates.push(w);
-            }
-            idx++;
-        }
-    } else {
-        // 2. ОБЫЧНЫЙ РЕЖИМ: Берем ровно 1 слово из kaikkisanat
-        if (allWordsCopy.length > 0) {
-            kaikkiCandidates.push(capitalize(allWordsCopy[0]));
-        }
-    }
-
-    // Добавляем эти слова в основной список раунда
-    generatedWordsList = [...kaikkiCandidates];
-
-    // Добираем оставшиеся карточки из yleisetsanat, следя, чтобы слова не дублировались в раунде
-    let commonIdx = 0;
-    while (generatedWordsList.length < targetCount && commonIdx < commonWordsCopy.length) {
-        let w = capitalize(commonWordsCopy[commonIdx]);
-        if (!generatedWordsList.includes(w)) {
-            generatedWordsList.push(w);
-        }
-        commonIdx++;
-    }
-
-    // СЛУЧАЙНЫЙ ВЫБОР ЕДИНСТВЕННОГО БОНУСНОГО СЛОВА
-    // Из всех слов, прилетевших из kaikkisanat, выбираем ровно ОДНО случайное
-    if (kaikkiCandidates.length > 0) {
-        let randomChoice = kaikkiCandidates[Math.floor(Math.random() * kaikkiCandidates.length)];
-        currentBonusWordText = randomChoice; // Запоминаем его текст в память!
-    }
+    // Единый генератор: бонусные слова по фазе игры / проклятые при каосе
+    const gen = generateWordList(true);
+    generatedWordsList = gen.words;
+    currentBonusWords = gen.bonusWords;
+    currentCursedWords = gen.cursedWords;
 
     // Сохраняем слова в глобальную историю игры, чтобы они не повторялись в следующих раундах
     generatedWordsList.forEach(w => {
@@ -518,18 +546,13 @@ const switchToWords = () => {
         }
     });
 
-    // Перемешиваем Фишером-Йетсом итоговый список из 5 слов.
-    // Текст бонусного слова сохранен в памяти, так что перемешивание теперь абсолютно безопасно!
-    for (let i = generatedWordsList.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [generatedWordsList[i], generatedWordsList[j]] = [generatedWordsList[j], generatedWordsList[i]];
-    }
-
     renderOlList();
     btnDisplayWords.style.display = "block";
     btnDisplayWords.textContent = "🙈 Piilota sanat";
     isWordListHidden = false;
     renderSpellButtonsAfterWords();
+    // Индикатор бонусной фазы в счётчике раундов — держим актуальным
+    if (typeof updateTurnDisplay === 'function') updateTurnDisplay();
 
     // Käynnistä vuoron ajastin kun sanat on paljastettu
     if (typeof window.startTurnTimer === 'function') window.startTurnTimer();
@@ -714,6 +737,7 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     let triggersExtraTurnNext = false;
     let consumedHunger = false;
     let consumedChaos = false;
+    let bonusEarned = 0; // заработанный бонус за ✨-слово (для ROUND_END-сводки)
 
     // Viimeisellä vuorolla tulosääntä ei soiteta lainkaan — vain voittoääni
     // (muuten success/fail/curse kaikuisi gameWinin päälle). Ehto peilaa
@@ -761,13 +785,16 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
         }
 
         // 2. БОНУС ЗА СЛОЖНОЕ СЛОВО (Строго один раз за раунд!)
-if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWordText !== "") {
+        // Награда зависит от фазы игры: +25 → +50 → +100 ближе к финалу.
+        if (selectedWordIndex !== -1 && currentBonusWords.length > 0) {
             const selectedWordText = generatedWordsList[selectedWordIndex];
-            
-            // Если текст зажатого игроком слова в точности совпал с бонусным текстом текущего раунда
-            if (selectedWordText === currentBonusWordText) {
-                p.score += 25; // Начисляем +25 очков
-                console.log(`[УСПЕХ] Начислено +25 очков за угаданное бонусное слово: ${selectedWordText}`);
+
+            // Если текст зажатого игроком слова есть среди бонусных слов хода
+            if (currentBonusWords.includes(selectedWordText)) {
+                const bonusValue = getBonusConfig().value;
+                p.score += bonusValue;
+                bonusEarned = bonusValue;
+                console.log(`[УСПЕХ] Начислено +${bonusValue} очков за угаданное бонусное слово: ${selectedWordText}`);
             }
         }
 
@@ -850,7 +877,8 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
                 isGuessed, guesserIndex, stolenIndex, endingIndex,
                 word: endedWord,
                 timeout: timedOut,
-                consumedHunger, consumedChaos
+                consumedHunger, consumedChaos,
+                bonus: bonusEarned
             });
         }
         if (timedOut && !inRoomGame && typeof window.netShowSummary === 'function') {
@@ -888,7 +916,8 @@ if (selectedWordIndex !== -1 && !isMetamorphosisUsedThisTurn && currentBonusWord
             isGuessed, guesserIndex, stolenIndex, endingIndex,
             word: endedWord,
             timeout: timedOut,
-            consumedHunger, consumedChaos
+            consumedHunger, consumedChaos,
+            bonus: bonusEarned
         });
     }
     // Yksinpeli: ajan loputtua näytä pieni yhteenvetokortti (huonepelissä hoitaa ROUND_END)
