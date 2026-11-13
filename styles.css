@@ -1098,6 +1098,12 @@ body.spell-help-modal-open {
 .drum-animation.drum-rest { animation: none; }
 .drum-animation.drum-rest .drum-caption { color: var(--gold); opacity: 0.95; }
 
+/* Teeman nimi vain pyörällä levon aikana — ei tekstikaksoiskappaleita.
+   Kun rumpu poistuu (.drum-rest pois), chip + kortti palaavat itsestään.
+   Koskee myös vierasta: #ngDrum.drum-rest → sama sääntö. */
+body:has(.drum-rest) #chipTheme { display: none; }
+body:has(.drum-rest) #themeBlock { display: none; }
+
 .flash-now {
     position: absolute;
     top: 50%;
@@ -3073,23 +3079,43 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
     35% { transform: translateY(-50%) rotate(20deg) scale(1.18); }
     100% { transform: translateY(-50%) rotate(0deg) scale(1); }
 }
+/* .theme-drum-item = ankkuripiste säteellä; .drum-tag (emoji + teeman nimi)
+   asettuu säteen suuntaan rotate(mid+90) ansiosta — voittajan teksti aina vaakasuora */
 .theme-drum-item {
     position: absolute;
     left: 50%;
     top: 50%;
-    font-size: clamp(24px, 6vw, 34px);
-    width: 44px;
-    height: 44px;
-    margin: -22px 0 0 -22px;
+    width: 0;
+    height: 0;
+    margin: 0;
+    z-index: 2;
+    transition: opacity 0.3s;
+}
+.drum-tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
     pointer-events: none;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
-    z-index: 2;
-    transition: opacity 0.3s, font-size 0.3s;
 }
-/* Voittava sektori: kultainen kiila + suuri emojikehä, muut himmenevät */
+.drum-emoji {
+    font-size: clamp(18px, 4.5vw, 24px);
+    line-height: 1;
+    transition: font-size 0.3s;
+}
+.drum-label {
+    font-size: clamp(9px, 2.4vw, 12px);
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #e9e4d8;
+}
+/* Voittava sektori: kultainen kiila + korostettu kyltti, muut himmenevät */
 .theme-drum-wedge {
     position: absolute;
     inset: 0;
@@ -3102,17 +3128,15 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
 .theme-drum-wheel.landed .theme-drum-item { opacity: 0.35; }
 .theme-drum-wheel.landed .theme-drum-item.winner {
     opacity: 1;
-    font-size: 52px;
     z-index: 3;
-    filter: drop-shadow(0 0 12px rgba(229,193,88,0.95));
 }
-.theme-drum-item.winner::after {
-    content: '';
-    position: absolute;
-    inset: -16px;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    box-shadow: 0 0 18px rgba(229,193,88,0.85), inset 0 0 12px rgba(229,193,88,0.3);
+.theme-drum-item.winner .drum-emoji {
+    font-size: clamp(22px, 5.5vw, 30px);
+    filter: drop-shadow(0 0 8px rgba(229,193,88,0.8));
+}
+.theme-drum-item.winner .drum-label {
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(229,193,88,0.7);
 }
 .theme-drum-hub {
     /* Keskitulos pois — ehto näkyy chipissä + voittavan sektorin kuvassa */
@@ -3122,8 +3146,9 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
     display: none; /* tekstikaksoiskappale pois — nimi chipissä */
 }
 @media (max-width: 360px) {
-    .theme-drum-item { font-size: 22px; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
-    .theme-drum-wheel.landed .theme-drum-item.winner { font-size: 40px; }
+    .drum-emoji { font-size: 18px; }
+    .drum-label { font-size: 9px; letter-spacing: 0.4px; }
+    .theme-drum-item.winner .drum-emoji { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .theme-drum-wheel.spinning { animation: none; }

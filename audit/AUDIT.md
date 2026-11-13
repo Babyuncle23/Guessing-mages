@@ -771,3 +771,58 @@ themeDescriptions` → автоматически попадают во взве
 - Скриншоты: `wl-coach.png`, `wl-collapsed.png`, `wl-expanded.png`,
   `wl-selglow.png`, `wl-reveal-hover.png`, `wl-giveup-hold.png`,
   `wl-tool-pill.png`.
+
+## Task 19 — радиальные подписи на секторах колеса
+
+**Запрос**: на секторах колеса показывать и эмодзи (меньше), и текст темы;
+«странное кольцо» вокруг эмодзи-победителя убрать — достаточно подсветки.
+
+### Реализация (`js/ui.js` `themeDrum.mount`, `styles.css`)
+- `.theme-drum-item` — якорь 0×0 на спице `mid`; внутри `.drum-tag`
+  = `[.drum-emoji][.drum-label]` (эмодзи у края, название к центру).
+- Трансформ `rotate(mid) translateY(-R) rotate(90°)` → сумма поворотов
+  `mid+90` кладёт ось +X тега вдоль спицы, чтение rim→hub. При лендинге
+  (`θ = 270 − point`) победная подпись выходит горизонтальной под левым
+  указателем при любом секторе; остальные — наклонные, как на настоящем колесе.
+- `aimPoint`: при `span ≥ 120°` цель = середина сектора (для 1–2 секторов
+  центрированный вид и горизонтальная подпись; узкие сектора — случайная
+  точка как раньше, «реалистичность» сохранена).
+- Эмодзи: `clamp(18–24px)` (было 24–34/52); label `clamp(9–12px)` uppercase.
+- Winner: `.winner::after` кольцо удалено, `font-size:52px` убран;
+  акцент = клин + `label` золотой (`var(--gold)` + glow) + emoji 30px.
+- `data-theme`/`a0`/`a1` сохранены на якоре — verify8 не тронут.
+
+### Проверка
+- verify16 — **52/52** (+ проверки: label на каждом секторе, нет кольца,
+  золотая подпись, горизонтальность у победителя; то же у гостя).
+- verify8 — **20/20**; verify15 **41**, verify17 **42** — регрессия зелёная.
+- Скриншоты: `wr-wheel-rest.png` (1 сектор — подпись горизонтальна),
+  `wr-wedge-multi.png` (5 секторов — радиальные подписи, winner золотой).
+
+## Task 20 — имя темы только на колесе во время wheel-rest
+
+**Запрос**: после Task 19 имя темы снова ×3 (сектор + чип + «Selityksen ehto»).
+Решение: пока колесо на экране — тема живёт только на нём.
+
+### Реализация (styles.css, чистый CSS, 0 строк JS)
+```css
+body:has(.drum-rest) #chipTheme  { display: none; }
+body:has(.drum-rest) #themeBlock { display: none; }
+```
+- `.drum-rest` ставится на `#loader` (локально, rounds.js:407) и `#ngDrum`
+  (гость, network.js) — один селектор покрывает оба случая.
+- Колесо ушло (Näytä sanat / endRound / giveup) → `.drum-rest` снимается →
+  чип и карточка возвращают тему автоматически.
+- vapaavalintainen: колесо весь ход → тема только на колесе весь ход;
+  `#ruleInstruction` вне `#themeBlock` — «keksi oma sana» остаётся.
+- textContent элементов не трогаем — скрыто только отображение.
+- Pelaaja 1 ×3 (chip ▶ / Vuoro: / скорборд ▶) — оставлено осознанно
+  (summary↔detail паттерн, подтверждено пользователем).
+
+### Проверка
+- verify16 — **58/58** (+6: chipTheme display:none при rest + возврат,
+  themeBlock hidden для vapaavalintainen, round+player в чипе остаются).
+- verify15 — **41/41** (чек обновлён: textContent трекает, display:none).
+- verify17 — **42/42**, verify8 — **20/20** — регрессия зелёная.
+- Скриншот `wr-wheel-rest-expanded.png`: тема ровно ×1 (золотая подпись
+  на секторе), чип «1/7 · ▶ Pelaaja 1», в панели нет «Selityksen ehto».

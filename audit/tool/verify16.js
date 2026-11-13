@@ -60,9 +60,16 @@ const wheelState = (page, loaderId, wheelId, hubId) => evl(page, (l, w, h) => {
     const cap = ld ? ld.querySelector('.drum-caption') : null;
     const wedge = wh ? wh.querySelector('.theme-drum-wedge') : null;
     const winEl = wh ? wh.querySelector('.theme-drum-item.winner') : null;
+    const winLab = winEl ? winEl.querySelector('.drum-label') : null;
+    const winLabRect = winLab ? winLab.getBoundingClientRect() : null;
     const ptr = ld ? ld.querySelector('.theme-drum-pointer') : null;
     const wr = wh ? wh.getBoundingClientRect() : null;
     const pr = ptr ? ptr.getBoundingClientRect() : null;
+    const tags = wh ? [...wh.querySelectorAll('.theme-drum-item')].map(el => ({
+        theme: el.dataset.theme,
+        label: el.querySelector('.drum-label') ? el.querySelector('.drum-label').textContent : null,
+        emoji: el.querySelector('.drum-emoji') ? el.querySelector('.drum-emoji').textContent : null
+    })) : [];
     return {
         loader: ld ? getComputedStyle(ld).display : 'MISSING',
         rest: ld ? ld.classList.contains('drum-rest') : false,
@@ -72,6 +79,10 @@ const wheelState = (page, loaderId, wheelId, hubId) => evl(page, (l, w, h) => {
         captionHidden: cap ? getComputedStyle(cap).display === 'none' : false,
         wedge: wedge ? getComputedStyle(wedge).opacity : 'none',
         winnerTheme: winEl ? winEl.dataset.theme : null,
+        winnerRing: winEl ? getComputedStyle(winEl, '::after').content : 'n/a',
+        winnerLabelColor: winLab ? getComputedStyle(winLab).color : null,
+        winnerLabelHorizontal: winLabRect ? winLabRect.width > winLabRect.height : null,
+        tags,
         pointerLeft: pr && wr ? (pr.x + pr.width / 2) < (wr.x + wr.width / 2) : null,
         wheelBleeds: wr ? wr.right > document.documentElement.clientWidth : null
     };
@@ -82,7 +93,11 @@ const panelState = (page) => evl(page, () => ({
     btnDisplay: getComputedStyle(document.getElementById('btnDisplayWords')).display,
     ruleVisible: getComputedStyle(document.getElementById('ruleInstruction')).display,
     ruleText: document.getElementById('ruleInstruction').textContent.slice(0, 60),
-    roundCtl: getComputedStyle(document.getElementById('roundControls')).display
+    roundCtl: getComputedStyle(document.getElementById('roundControls')).display,
+    chipThemeDisplay: getComputedStyle(document.getElementById('chipTheme')).display,
+    chipRoundVisible: getComputedStyle(document.getElementById('chipRound')).display !== 'none',
+    chipTurnText: document.getElementById('chipTurn').textContent,
+    themeBlockDisplay: getComputedStyle(document.getElementById('themeBlock')).display
 }));
 
 (async () => {
@@ -116,6 +131,10 @@ const panelState = (page) => evl(page, () => ({
         check('hub textContent still tracks theme', ws.hub === 'pantomiimi', ws.hub);
         check('winner wedge shown', ws.wedge === '1', ws.wedge);
         check('winner item = rolled theme', ws.winnerTheme === 'pantomiimi', String(ws.winnerTheme));
+        check('every sector has emoji+label', ws.tags.length > 0 && ws.tags.every(t => t.label === t.theme && t.emoji && t.emoji.length > 0), JSON.stringify(ws.tags));
+        check('no winner ring (::after none)', ws.winnerRing === 'none', ws.winnerRing);
+        check('winner label golden', ws.winnerLabelColor === 'rgb(229, 193, 88)', String(ws.winnerLabelColor));
+        check('winner label horizontal under pointer', ws.winnerLabelHorizontal === true);
         check('pointer at wheel left edge', ws.pointerLeft === true);
 
         let ps = await panelState(page);
@@ -123,6 +142,8 @@ const panelState = (page) => evl(page, () => ({
         check('aria-expanded=false', ps.aria === 'false', ps.aria);
         check('Näytä sanat CTA visible while wheel rests', ps.btnDisplay !== 'none', ps.btnDisplay);
         check('chip visible (aria-controls ok)', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
+        check('chip theme hidden during rest (only on wheel)', ps.chipThemeDisplay === 'none', ps.chipThemeDisplay);
+        check('chip keeps round+player during rest', ps.chipRoundVisible === true && /▶/.test(ps.chipTurnText), JSON.stringify(ps));
 
         await tap(page, '#btnDisplayWords'); await sleep(600);
         ws = await wheelState(page, 'loader', 'drumWheel', 'drumHubName');
@@ -132,6 +153,8 @@ const panelState = (page) => evl(page, () => ({
         ps = await panelState(page);
         check('panel still collapsed after words open', ps.collapsed === true);
         check('btnDisplayWords gone', ps.btnDisplay === 'none');
+        check('chip theme back after wheel gone', ps.chipThemeDisplay !== 'none', ps.chipThemeDisplay);
+        check('themeBlock back after wheel gone', ps.themeBlockDisplay !== 'none', ps.themeBlockDisplay);
         await page.close();
 
         // ============ B. vapaavalintainen ============
@@ -145,6 +168,8 @@ const panelState = (page) => evl(page, () => ({
         check('winner = vapaavalintainen', ws.winnerTheme === 'vapaavalintainen', String(ws.winnerTheme));
         ps = await panelState(page);
         check('panel expanded for vapaavalintainen', ps.collapsed === false, JSON.stringify(ps));
+        check('themeBlock hidden while wheel rests (no ehto dup)', ps.themeBlockDisplay === 'none', ps.themeBlockDisplay);
+        check('chip theme hidden for vapaavalintainen', ps.chipThemeDisplay === 'none', ps.chipThemeDisplay);
         check('instruction visible', ps.ruleVisible !== 'none' && /Keksi/i.test(ps.ruleText), `${ps.ruleVisible} ${ps.ruleText}`);
         check('no Näytä sanat button', ps.btnDisplay === 'none', ps.btnDisplay);
         check('round controls visible', ps.roundCtl !== 'none', ps.roundCtl);
@@ -204,6 +229,8 @@ const panelState = (page) => evl(page, () => ({
         check('B: guest caption hidden', gs.captionHidden === true);
         check('B: guest winner wedge', gs.wedge === '1', gs.wedge);
         check('B: guest winner = pantomiimi', gs.winnerTheme === 'pantomiimi', String(gs.winnerTheme));
+        check('B: guest sectors labeled', gs.tags.length > 0 && gs.tags.every(t => t.label === t.theme && t.emoji), JSON.stringify(gs.tags));
+        check('B: guest no winner ring', gs.winnerRing === 'none', gs.winnerRing);
         check('B: guest pointer at left edge', gs.pointerLeft === true);
         check('B: theme card hidden while drum rests', await evl(B, () => getComputedStyle(document.getElementById('ngThemeBlock')).display === 'none'));
 

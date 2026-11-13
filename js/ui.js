@@ -659,8 +659,12 @@ window.themeDrum = (() => {
             el.dataset.a0 = a0;
             el.dataset.a1 = a1;
             const mid = (a0 + a1) / 2;
-            el.style.transform = `rotate(${mid}deg) translateY(-${R}px) rotate(${-mid}deg)`;
-            el.textContent = (typeof themeImages !== 'undefined' && themeImages[s.theme]) || '❓';
+            // Nimikyltti pitkin spokea: emoji reunassa, nimi kohti napaa.
+            // Ulomman rotate(mid) ja sisemmän rotate(90) summa = mid+90 → tagin
+            // lukusuunta rim→hub, joten voittajan teksti on aina vaakasuora.
+            el.style.transform = `rotate(${mid}deg) translateY(-${R}px) rotate(90deg)`;
+            const emoji = (typeof themeImages !== 'undefined' && themeImages[s.theme]) || '❓';
+            el.innerHTML = `<span class="drum-tag"><span class="drum-emoji">${emoji}</span><span class="drum-label">${s.theme}</span></span>`;
             wheelEl.appendChild(el);
             items.push({ el, theme: s.theme, a0, a1, mid });
         });
@@ -717,8 +721,11 @@ window.themeDrum = (() => {
     // Satunnainen pysähdyspiste voittajasektorin sisällä (ei aina täsmälleen
     // keskipisteessä — näyttää aidolta). Marginaali > OVER+GAP ettei
     // värähtely heitä osoitinta viereiseen sektoriin.
+    // Leveällä sektorilla (≥120°) osutaan keskipisteeseen: sillä keskimäinen
+    // asento osoittimen alla näyttää oikeammalta ja nimikyltti pysyy vaakassa.
     const aimPoint = (it) => {
         const span = it.a1 - it.a0;
+        if (span >= 120) return (it.a0 + it.a1) / 2;
         const margin = Math.min(span * 0.2, 14); // ≥ OVER+GAP turvassa
         const lo = it.a0 + margin, hi = it.a1 - margin;
         return lo + Math.random() * Math.max(0, hi - lo);

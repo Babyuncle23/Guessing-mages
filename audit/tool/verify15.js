@@ -54,6 +54,7 @@ const panelState = (page) => evl(page, () => ({
     aria: document.getElementById('turnChip').getAttribute('aria-expanded'),
     controls: document.getElementById('turnChip').getAttribute('aria-controls'),
     chipTheme: document.getElementById('chipTheme').textContent,
+    chipThemeDisplay: getComputedStyle(document.getElementById('chipTheme')).display,
     chipTurn: document.getElementById('chipTurn').textContent,
     pill: getComputedStyle(document.getElementById('btnToolCanvas')).display,
     btnDisplay: getComputedStyle(document.getElementById('btnDisplayWords')).display
@@ -97,7 +98,8 @@ const startGameAndRoll = async (page, weightId) => {
         check('panel collapsed during wheel-rest (task16)', ps.collapsed === true, JSON.stringify(ps));
         check('aria-expanded=false while wheel rests', ps.aria === 'false', ps.aria);
         check('aria-controls -> turnPanelBody', ps.controls === 'turnPanelBody', ps.controls);
-        check('chip shows theme name', /PANTOMIIMI/i.test(ps.chipTheme), ps.chipTheme);
+        // Task 20: teema vain pyörällä levon aikana — chipissä teksti tallennettu mutta piilossa
+        check('chip theme hidden during rest, textContent tracks', /PANTOMIIMI/i.test(ps.chipTheme) && ps.chipThemeDisplay === 'none', `${ps.chipTheme} ${ps.chipThemeDisplay}`);
         check('chip shows current player', /▶/.test(ps.chipTurn) && ps.chipTurn.length > 2, ps.chipTurn);
         check('Näytä sanat CTA visible pre-open', ps.btnDisplay !== 'none', ps.btnDisplay);
 
