@@ -31,9 +31,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await page.screenshot({ path: path.join(OUT, 'wr-wheel-rest.png') });
 
     // 2) Harmonikka auki pyörän alla — kortti näkyy edelleen tappauksella
-    await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
+    await page.evaluate(() => document.getElementById('btnInfoToggle').click()); await sleep(450);
     await page.screenshot({ path: path.join(OUT, 'wr-wheel-rest-expanded.png') });
-    await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
+    await page.evaluate(() => document.getElementById('btnInfoToggle').click()); await sleep(450);
 
     // 3) Sanat auki — pyörä poissa, tuttu näkymä
     await page.evaluate(() => document.getElementById('btnDisplayWords').click()); await sleep(600);

@@ -1,11 +1,11 @@
 // verify8.js — teemaruletti: sektorit suhteessa painoihin, pyörä pysähtyy
 // voittajaan, sama ruletti näkyy arvaajalla.
-// Запуск: node verify8.js  (сам поднимает server.js на :8080)
+// Запуск: node verify8.js  (сам поднимает server.js на свой порт)
 const puppeteer = require('puppeteer-core');
 const { spawn } = require('child_process');
 const path = require('path');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8484';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => {
@@ -46,7 +46,7 @@ const setWeights = (page, map) => evl(page, (m) => {
 }, map);
 
 (async () => {
-    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8080' }, stdio: 'pipe' });
+    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8484' }, stdio: 'pipe' });
     {
         const t0 = Date.now(); let up = false;
         while (Date.now() - t0 < 10000 && !up) {

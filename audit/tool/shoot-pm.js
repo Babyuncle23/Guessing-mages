@@ -45,7 +45,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     });
     await sleep(200);
     // выбранное слово сквозь туман + окно мышью
-    await page.evaluate(() => document.querySelectorAll('#wordList li')[2].click());
+    await page.evaluate(() => window.selectWordLi(document.querySelectorAll('#wordList li')[2]));
     await sleep(150);
     await page.evaluate(() => {
         const el = document.getElementById('wordList');

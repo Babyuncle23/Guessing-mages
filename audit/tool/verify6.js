@@ -5,7 +5,7 @@ const puppeteer = require('puppeteer-core');
 const { spawn } = require('child_process');
 const path = require('path');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8481';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => {
@@ -58,7 +58,7 @@ const reloadWait = async (page) => {
 (async () => {
     const srv = spawn('node', ['server.js'], {
         cwd: path.join(__dirname, '..', '..'),
-        env: { ...process.env, ARK_GRACE_MS: '4000', ARK_HB_MS: '1000', PORT: '8080' },
+        env: { ...process.env, ARK_GRACE_MS: '4000', ARK_HB_MS: '1000', PORT: '8481' },
         stdio: 'pipe'
     });
     {

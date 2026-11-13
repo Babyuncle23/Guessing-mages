@@ -231,3 +231,113 @@ verify16 58/58 (новые проверки дубля), verify15 41, verify17 4
 ## Проверка
 verify16 61/61, verify15 41, verify14 37, verify17 42, verify8 20,
 verify3 43+2(старое). Скриншоты обновлены.
+
+---
+
+# Task 22: ✓-жест выбора, единые карточки, статичная панель, сетевой аудит
+
+## ✓-жест (выбор слова)
+- Тап-выбор **отключён** (`window.TAP_SELECT_ENABLED=false`), код
+  оставлен как бэкап — вернуть = поставить `true` (файл или консоль).
+- Жест: зажал → весь список + ✓ на строке под пальцем → ведёшь →
+  ✓ перепрыгивает → отпустил на строке = выбор. Отмена: увести палец
+  со строк/касание отменено.
+- **`touch-action:none`**: раньше вертикальный драг скроллил список
+  (контент едет с пальцем — ✓ стоит на месте). Теперь ✓ ездит по
+  строкам; скролл — **edge autoscroll**: палец у края → список течёт
+  под палец, нижние слова достижимы одним жестом.
+- Галочки: все строки 28% ✓ при reveal (зоны выбора видны), armed —
+  яркая увеличенная ✓ + золотой фон, selected — стабильная ✓.
+
+## Единый визуал (infocard)
+Канон `0.03/soft-border/12px` применён ко всем: themeBlock (фиолет убран),
+ruleInstruction (была дыра), bonusHint (голый текст), char/theme/mode
+карточки, ngThemeBlock, i-бейдж. Стартовый экран однороден.
+
+## Панель: без аккордеона, аватар только магам, над колесом
+- Аккордеон удалён — панель всегда открыта, шеврон скрыт.
+- `.player-block.no-avatar` прячет `.avatar-wrapper` если `img ∉ charImages`
+  (дебаффы — только магия, прячутся вместе с блоком).
+- `.turn-panel` — единая карточка (chip=шапка, тело без внутренних карт),
+  `#loader{order:2}` → панель всегда над колесом.
+- `#themeBlock` скрыт и во время слов (тема в чипе).
+
+## Сетевой аудит
+- verify6 падал 8/44 — **не игра, а конфликт портов**: тест ждал grace 4с,
+  но :8080 занят дев-сервером (grace 90с). Разведены порты 8481-8486.
+- Lobby/join/roll/wheel-mirror/WORDS_OPEN/WORD_LOCKED/drawing+emoji
+  stream/scoring/summary/next-turn/reconnect/grace-skip/host-migration —
+  всё проверено автотестами; слова гостям не утекают (только lock-флаг).
+
+## Проверка
+Все наборы зелёные (см. AUDIT Task 22); verify3 — 43 + 2 старых
+emoji-фейла (дрейф, не регрессия).
+
+# Task 23: ❓-гармошка, весь ✨-UI убран, sticky «Näytä sanat», chip-текст, теги в ободе
+
+## ❓-гармошка (имена игроков + объяснения скрыты)
+- `#turnChip` — `<div>` (не кнопка): aria и шеврон удалены.
+- `#btnInfoToggle` — круглый `?` (`aria-expanded`/`aria-controls`),
+  `setTurnPanelCollapsed` — настоящий сеттер; все программные вызовы
+  держат панель **закрытой** (vapaavalintainen-авто-открытие убрано).
+- Под гармошкой: `.player-block` (счёт+аватар), `#themeBlock`, `#ruleInstruction`.
+- `roomCodeChip`+`btnLeaveInGame` вынесены в `#turnChipRow` — видимы
+  без открытия гармошки. Текст `🚪🏃 Poistu` (бежит К двери).
+  `ngLeaveBtn` → `🚪🏃`.
+
+## Весь ✨-UI удалён (механика жива — молча)
+- `#roundDisplay` (✨+25p), `#bonusHint`, `formatBonusCounter`,
+  `hideBonusHint`, `.gold-bonus-badge` со слов, bonusPreview на кнопке,
+  `· ✨+Zp` в formatRoundCounter (ngRound тоже), `✨ Bonussana!` в summary.
+- `currentBonusWords`/`data-rare`/начисление очков — не тронуты.
+
+## Мелочи
+- `.chip-round` без рамки-пилюли — `1/7` просто текст.
+- `#btnDisplayWords` — клейкий нижний бар (fixed, градиент+blur+safe-area);
+  `#gameContainer:not(.words-active)` получает `padding-bottom:80px`.
+- `themeDrum.mount.fitTags()` — тег сектора зажат внутрь обода:
+  `Ri ≤ wheelR−tagW/2−18px`, длинные имена ужимают шрифт (min 7px).
+  Покрывает и гостевое `#ngDrumWheel`.
+
+## Порты тестов
+- verify5: spawn без `PORT` — сервер никогда не вставал на 8483 → env fix.
+- verify3: 8080→8484 — независимость от dev-сервера.
+
+## Проверка
+verify16 **67/67** · 15 **42** · 14 **34** · 4 **21** · 17 **56** ·
+11 **34** · 5 **36**; verify3: 43 + 2 старых emoji (не регрессия).
+
+### Task 23 — уточнение (фидбек)
+- **❓ убран с экрана колеса**: `#gameContainer:not(.words-active)
+  #btnInfoToggle{display:none}` — во время колеса гармошки нет.
+  Вместо неё `#chipTurn` показывает **компактный счёт справа**
+  (`▶ Pelaaja 1 0p · Pelaaja 2 0p`, `margin-left:auto`) — видно чей ход.
+  Во время слов chipTurn скрыт, данные под ❓.
+- **`+25p`-бейдж возвращён на строки слов** — из списка убирать не надо
+  было. CSS + keyframes + hidden-words-гашение восстановлены. Остальные
+  ✨-удаления сохранены (строка в панели, хинт, превью, ngRound, summary).
+- **`🎭 …` плейсхолдер убран**: `chipTheme` скрыт пока нет
+  `currentActiveTheme` — стартовый экран без лишнего эмодзи.
+- Тесты: verify16 **70/70**, verify15 **43/43**, verify14 **34/34**,
+  verify4 **21/21**.
+
+### Task 24 — кнопка при спине, счёт с двоеточием, vapaa-карточка
+- **«Aloita kierros» во время спина**: `#btn` скрывался только после
+  остановки колеса (setTimeout) — теперь `btn.style.display='none'`
+  сразу в начале `randomizeTheme` (rounds.js ~393): swap кнопка→колесо
+  в одном кадре. В `network.js:576` добавлен `drumUp`-guard — раньше
+  `netRefreshGuesserScreen` мог вернуть кнопку в середине спина.
+- **Счёт в чипе**: `Pelaaja 1 200p` читался как «1 200». Теперь
+  `▶ Pelaaja 1: ` + золотой `<b class="chip-score">200p</b>` —
+  DOM-узлами (имена пользовательские, без innerHTML).
+- **vapaavalintainen**: инструкция «keksi oma sana» была в ❓-гармошке,
+  но ❓ скрыт на экране колеса, а `words-active` для этой темы не
+  наступает — инструкция была недостижима весь ход. Добавлена
+  `#vapaaRuleCard` (info-card) — показывается только для этой темы.
+  **order:4** — flex-карта контейнера: panel(1)→loader(2)→spells(3)→
+  карточка(4)→wordList(5)→controls(6)→btn(7): под колесом, над
+  кнопками Arvattu/Luovutan.
+- Тесты: verify16 **79/79** (+9 чеков), verify17 **56/56**,
+  verify15 **43/43**, verify14 **34/34**, verify4 **21/21**.
+- Скрины: `audit/vapaa-spin.png` (спин без кнопки),
+  `vapaa-rest.png` (колесо→карточка→кнопки).

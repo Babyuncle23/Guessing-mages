@@ -5,8 +5,8 @@ const { spawn } = require('child_process');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080/index.html';
-const ROOT = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8484/index.html';
+const ROOT = 'http://127.0.0.1:8484';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 let pass = 0, fail = 0;
@@ -56,14 +56,14 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
 }, id);
 
 (async () => {
-    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), stdio: 'pipe' });
+    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8484' }, stdio: 'pipe' });
     srv.stdout.on('data', d => process.env.VERBOSE && console.log('[srv]', String(d)));
     // Ждём готовности сервера по /healthz (до 10 с), а не фиксированный слип
     {
         const t0 = Date.now();
         let up = false;
         while (Date.now() - t0 < 10000 && !up) {
-            try { const r = await fetch('http://127.0.0.1:8080/healthz'); up = r.ok; } catch (e) { /* ещё не поднялся */ }
+            try { const r = await fetch('http://127.0.0.1:8484/healthz'); up = r.ok; } catch (e) { /* ещё не поднялся */ }
             if (!up) await sleep(250);
         }
         if (!up) throw new Error('server.js did not start within 10s');
@@ -146,7 +146,7 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
             Net.on('EVENT', m => window.__evlog.push(m.event.kind + ':' + (m.event.action || '-')));
         });
         // lock a NON-bonus word so scoring is deterministic
-        await A.evaluate(() => document.querySelector('#wordList li[data-rare="false"]').click()); await sleep(300);
+        await A.evaluate(() => window.selectWordLi(document.querySelector('#wordList li[data-rare="false"]'))); await sleep(300);
         await tap(A, '#themeBlock'); await sleep(700);
         check('A drawing modal open', await evl(A, () => document.getElementById('drawingModalOverlay').style.display === 'flex'));
         check('B guesser canvas opened', await evl(B, () => document.getElementById('ngCanvas').style.display === 'block'));
@@ -218,7 +218,7 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
         await tap(B, '#btn'); await sleep(3400);
         check('A got emoji theme', await evl(A, () => document.getElementById('ngTheme').textContent.toUpperCase().includes('EMOJI')));
         await tap(B, '#btnDisplayWords'); await sleep(500);
-        await B.evaluate(() => document.querySelector('#wordList li').click()); await sleep(300);
+        await B.evaluate(() => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(300);
         await tap(B, '#themeBlock'); await sleep(600);
         check('A emoji view opened', await evl(A, () => document.getElementById('ngEmojiView').style.display === 'block'));
         await B.evaluate(() => {

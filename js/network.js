@@ -572,8 +572,10 @@
         // Pelin päätyttyä arvaajan näyttö ei saa palata peittämään voittomodaalia
         ngShow(!mine && currentRound <= totalTurns);
         if (mine) {
-            // Oman vuoron normaalinakyma: varmista etta kontrollit nakyvat oikein
-            btn.style.display = currentActiveTheme ? 'none' : 'block';
+            // Oman vuoron normaalinakyma: varmista etta kontrollit nakyvat oikein.
+            // Pyörän pyöriessä/levatessa "Aloita kierros" ei saa palautua.
+            const drumUp = (typeof drumAnim !== 'undefined' && drumAnim && getComputedStyle(drumAnim).display !== 'none');
+            btn.style.display = (currentActiveTheme || drumUp) ? 'none' : 'block';
         }
         // Selittäjän nimi vain tulostaulun ▶-merkissä — ei ngExplainer-kaksoiskappaletta
         $('ngRound').textContent = (typeof formatRoundCounter === 'function')
@@ -787,7 +789,6 @@
         const name = (i) => gamePlayers[i] ? (gamePlayers[i].displayName || gamePlayers[i].name) : '?';
         if (d.result === 'guessed') {
             lines = `✅ <strong>${name(d.endedIndex)}</strong> ansaitsi pisteet.`;
-            if (d.bonus) lines += `<br>✨ Bonussana! +${d.bonus}p`;
             if (d.guesserIndex >= 0) lines += `<br>🎯 <strong>${name(d.guesserIndex)}</strong> arvasi (+50p)!`;
         } else if (d.result === 'stolen') {
             lines = `⚡ <strong>${name(d.stolenIndex)}</strong> arvasi ensin ja ryösti +50p!`;
@@ -938,7 +939,7 @@
         if (themeDisplay) themeDisplay.textContent = '';
         if (themeImage) themeImage.style.display = 'none';
         document.getElementById('gameContainer').classList.remove('words-active');
-        if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
+        if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true);
         const btc = $('btnToolCanvas'); if (btc) btc.style.display = 'none';
         const oldHint = $('themeDrawingHint'); if (oldHint) oldHint.remove();
         const oldInfo = $('themeInfoHelpBtn'); if (oldInfo) oldInfo.remove();

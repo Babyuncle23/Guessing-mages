@@ -87,7 +87,7 @@ async function attempt(browser, which) {
     await shot(A, 't3-07-explainer-words.png', which);
     await shot(C, 't3-08-guesser-words-open.png', which);
 
-    await A.evaluate(() => document.querySelector('#wordList li[data-rare="false"]').click()); await sleep(300);
+    await A.evaluate(() => window.selectWordLi(document.querySelector('#wordList li[data-rare="false"]'))); await sleep(300);
     await tap(A, '#themeBlock'); await sleep(700);
     await A.evaluate(() => {
         const c = document.getElementById('drawingModalCanvas');

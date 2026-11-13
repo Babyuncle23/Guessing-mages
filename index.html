@@ -522,17 +522,18 @@
     <!-- VUOROPANEELI: harmonikka — sanojen aikana oletuksena kiinni, jättää tilaa listalle -->
     <div id="turnPanel" class="turn-panel">
         <div id="turnChipRow">
-            <button id="turnChip" type="button" aria-expanded="true" aria-controls="turnPanelBody">
+            <div id="turnChip">
                 <span id="chipRound" class="chip-round" style="display:none"></span>
-                <span id="chipTheme">🎭 …</span>
+                <span id="chipTheme" style="display:none"></span>
                 <span id="chipTurn"></span>
-                <span class="chip-chevron">▾</span>
-            </button>
+            </div>
             <button id="btnToolCanvas" type="button" class="chip-tool-btn" style="display: none;" title="Avaa piirtoalusta / emoji-taulu">🎨 Avaa</button>
+            <button type="button" id="roomCodeChip" class="room-code-chip" title="Huonekoodi — kopioi napauttamalla">----</button>
+            <button type="button" id="btnLeaveInGame" class="net-leave-chip" title="Poistu huoneesta">🚪🏃 Poistu</button>
+            <button id="btnInfoToggle" type="button" class="chip-info-btn" aria-expanded="false" aria-controls="turnPanelBody" title="Pisteet ja ohjeet">?</button>
         </div>
-        <div id="turnPanelBody" class="turn-panel-body">
+        <div id="turnPanelBody" class="turn-panel-body collapsed">
             <div id="playerTurn" class="player-turn-container" style="display: none;">
-                <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
 <div class="player-block">
     <!-- Переносим имя ИГРОКА сюда, к волку -->
     <div class="avatar-wrapper">
@@ -546,8 +547,6 @@
     <!-- Справа остаются только очки команд -->
     <div>
         <div id="scoreDisplay" class="score-display">Pisteet: 0 - 0</div>
-        <button type="button" id="roomCodeChip" class="room-code-chip" title="Huonekoodi — kopioi napauttamalla">----</button>
-        <button type="button" id="btnLeaveInGame" class="net-leave-chip" title="Poistu huoneesta">🚪 Poistu</button>
     </div>
 </div>
             </div>
@@ -559,8 +558,6 @@
                 <div id="themeDisplay" class="theme-text"></div>
                 <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
             </div>
-
-            <p id="bonusHint" class="bonus-hint" style="display: none;">✨-merkityt sanat arvotaan koko sanakirjasta — usein harvinaisia! Selitä merkitty ja saat bonuspisteitä.</p>
 
             <div id="ruleInstruction" class="rule-instruction"></div>
         </div>
@@ -578,6 +575,8 @@
     <div id="customWordBlock" style="display: none; margin: 15px 0;">
         <input type="text" id="customWordInput" placeholder="Kirjoita oma sana tähän...">
     </div>
+
+    <div id="vapaaRuleCard" class="rule-instruction" style="display: none; text-align: center; margin-top: 8px;"></div>
 
 <div id="spellContainer" style="display: none; margin: 10px 0; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative;">
     <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
@@ -607,8 +606,8 @@
         <div id="wordMask" style="display: none;"></div>
         <div id="selGlow" style="display: none;"></div>
         <div id="wordGrain" style="display: none;"></div>
-        <div id="wordMaskHint" style="display: none;">🤫 Kosketa — näet sanat</div>
-        <div id="veilCoach" style="display: none;">🤫 Kosketa listaa<br>näet kaikki sanat</div>
+        <div id="wordMaskHint" style="display: none;">🤫 Pidä + vedä ✓ — valitset sanan</div>
+        <div id="veilCoach" style="display: none;">🤫 Pidä pohjassa — näet sanat<br>Vedä ✓-merkkiin — valitset</div>
     </div>
     <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
@@ -673,7 +672,7 @@
                 <button type="button" id="ngRoomCode" class="room-code-chip" title="Huonekoodi — kopioi napauttamalla">----</button>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-                <button type="button" id="ngLeaveBtn" class="net-leave-chip" title="Poistu huoneesta">🚪</button>
+                <button type="button" id="ngLeaveBtn" class="net-leave-chip" title="Poistu huoneesta">🚪🏃</button>
                 <div class="modal-age-badge" style="position:static;">12+</div>
             </div>
         </div>
@@ -683,7 +682,7 @@
         </div>
         <div id="ngTimerSec" style="display:none; text-align:right; font-size:11px; color:var(--text-muted); margin:0 2px 8px 0;"></div>
         <!-- Selittäjän nimi näkyy vain ngScore ▶ -merkissä — ei duplikaattia -->
-        <div id="ngThemeBlock" style="display:none; text-align:center; padding:14px; border:1px solid var(--soft-border); border-radius:14px; background:rgba(255,255,255,0.03); margin-bottom:10px;">
+        <div id="ngThemeBlock" style="display:none; text-align:center; padding:12px; border:1px solid var(--soft-border); border-radius:12px; background:rgba(255,255,255,0.03); margin-bottom:10px;">
             <small class="zone-badge-title">Selityksen ehto</small>
             <div id="ngTheme" class="theme-text"></div>
             <div id="ngThemeEmoji" style="font-size:38px;"></div>

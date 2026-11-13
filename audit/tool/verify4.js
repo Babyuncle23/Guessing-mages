@@ -79,14 +79,14 @@ const checkOverflow = async (p, label) => {
     ok('A9 CREATE_ROOM works via fallback (code=' + wsOk + ')', /^[A-Z]{4}$/.test(wsOk));
     await p.close();
 
-    // ---------- B. bonusHint жизненный цикл ----------
+    // ---------- B. ✨-UI удалён + ❓-гармошка (task 23) ----------
     p = await b.newPage();
     await p.setViewport({ width: 390, height: 844 });
     await p.goto(BASE + '/', { waitUntil: 'networkidle2' });
     await p.evaluate(() => wordsReady.catch(() => {}));
     await new Promise(r => setTimeout(r, 900));
-    st = await p.evaluate(() => getComputedStyle(document.getElementById('bonusHint')).display);
-    ok('B1 bonusHint hidden before words', st === 'none');
+    st = await p.evaluate(() => !document.getElementById('bonusHint') && !document.getElementById('roundDisplay'));
+    ok('B1 bonusHint + roundDisplay absent from DOM', st === true);
 
     await p.evaluate(() => { setPlayerMode(2); document.getElementById('startGameBtn').click(); });
     await new Promise(r => setTimeout(r, 700));
@@ -94,20 +94,26 @@ const checkOverflow = async (p, label) => {
     await new Promise(r => setTimeout(r, 3600));
     await p.evaluate(() => document.getElementById('btnDisplayWords').click());
     await new Promise(r => setTimeout(r, 600));
-    st = await p.evaluate(() => {
-        const h = document.getElementById('bonusHint');
-        return { disp: getComputedStyle(h).display, txt: h.textContent, rare: !!document.querySelector('#wordList li[data-rare="true"]') };
-    });
-    ok('B2 bonusHint visible with words', st.disp !== 'none');
-    ok('B3 hint mentions koko sanakirjasta + +25p', /koko sanakirjasta/.test(st.txt) && /\+25p/.test(st.txt));
-    ok('B4 rare word marked in list', st.rare);
-    await checkOverflow(p, '390px words open + bonusHint');
+    st = await p.evaluate(() => ({
+        rare: !!document.querySelector('#wordList li[data-rare="true"]'),
+        badge: (document.querySelector('.gold-bonus-badge') || {}).textContent || '',
+        collapsed: document.getElementById('turnPanelBody').classList.contains('collapsed'),
+        aria: document.getElementById('btnInfoToggle').getAttribute('aria-expanded')
+    }));
+    ok('B2 rare word still generated (mechanic alive)', st.rare);
+    ok('B3 gold-bonus-badge +25p on word', /\+25p/.test(st.badge), st.badge);
+    ok('B4 info accordion collapsed during words', st.collapsed === true && st.aria === 'false');
+    await checkOverflow(p, '390px words open + ❓ accordion');
 
-    // hint hides when words cleared / turn ends
-    await p.evaluate(() => { const g = document.getElementById('btnGuessed'); if (g) g.click(); });
-    await new Promise(r => setTimeout(r, 800));
-    st = await p.evaluate(() => getComputedStyle(document.getElementById('bonusHint')).display);
-    ok('B5 bonusHint hidden after turn ends', st === 'none');
+    // ❓-гармошка открывается
+    await p.evaluate(() => document.getElementById('btnInfoToggle').click());
+    await new Promise(r => setTimeout(r, 400));
+    st = await p.evaluate(() => ({
+        collapsed: document.getElementById('turnPanelBody').classList.contains('collapsed'),
+        aria: document.getElementById('btnInfoToggle').getAttribute('aria-expanded'),
+        scoreH: document.getElementById('scoreDisplay').getBoundingClientRect().height
+    }));
+    ok('B5 ❓ opens accordion (score visible)', st.collapsed === false && st.aria === 'true' && st.scoreH > 10);
 
     // ---------- C. profanity-фильтр + кап 76000 ----------
     const c = await p.evaluate(async () => {

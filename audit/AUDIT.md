@@ -857,3 +857,178 @@ body:has(.drum-rest) #themeBlock { display: none; }
   verify17 — **42/42**, verify8 — **20/20**.
 - Скриншоты: `wr-wheel-rest-expanded.png` (имя ×1, 1/7 ×1, аватар-only),
   `wr-wedge-multi.png` (стрелка за ободом).
+
+## Task 22 — ✓-жест вместо тапа, единые карточки, статичная панель, аватар только у магов, сетевой аудит
+
+**Запрос**: выбор слова жестом (✓ под пальцем перепрыгивает по строкам,
+отпускание = выбор), тап убрать с бэкапом в файлах; унифицировать вид
+карточек (themeBlock/i/✨-hint/ruleInstruction + стартовый экран);
+полный баг-чек сети; затем — аватары только при taikahahmot, секцию
+без аккордеона, вся инфа одним контейнером над колесом.
+
+### ✓-жест (замена тап-выбора)
+- `js/main.js`: `window.selectWordLi(li)` — общий коммит-путь
+  (selectedWordIndex, стили, selGlow, выплата, `netRelayWordLocked`).
+  `window.TAP_SELECT_ENABLED = false` — бэкап-флаг: при `true` старый
+  click-обработчик снова активен (в файле или в консоли).
+- `js/ui.js` `initPrivacyMask`: aim-автомат — touchstart/move/end,
+  `elementFromPoint` → `.check-armed` на строке под пальцем, touchend
+  коммитит, touchcancel/выход наружу — нет. Мышь: mousedown+drag.
+- **`touch-action:none` на `#wordList`** — вертикальный драг двигает
+  ✓ по строкам, а не скроллит список (источник «сложно достать нижние
+  слова»). Скролл во время жеста = edge autoscroll: палец у верхнего/
+  нижнего края (46px) → rAF-скролл 2–9px/кадр, строки текут под палец,
+  ✓ перепрыгивает; нижний край считается от верха sticky-бара.
+- `li::before` = ✓ справа (28% при reveal, яркая+увеличенная на
+  armed, стабильная на selected). `li::after` занят «Piilotettu».
+- Подсказки: hint «🤫 Pidä + vedä ✓ — valitset sanan», coach v2
+  (localStorage `veilCoachV2`, старый ключ заменён).
+
+### Единый info-card + статичная панель
+- Канон: `rgba(255,255,255,0.03)` + `1px var(--soft-border)` + `12px`.
+  Переведены: `#themeBlock` (фиолет убран), `.rule-instruction`
+  (была «дыра»), `.bonus-hint` (был голый текст), `.char-card`,
+  `.mode-option`, `.theme-card`, `#ngThemeBlock`, `.theme-rules-badge-btn`.
+- **Аккордеон удалён полностью**: панель всегда развёрнута, шеврон
+  скрыт, `setTurnPanelCollapsed` — no-op-expand для старых вызовов.
+- **Аватар только при taikahahmot**: `hasChar = img ∈ charImages`
+  (🐺💀🌿); без персонажа `.player-block.no-avatar` прячет
+  `.avatar-wrapper` (debuff-иконки живут только в магии).
+- **Один контейнер над колесом**: `.turn-panel` — карточка (chip =
+  шапка без рамки, тело без внутренней карты), `#loader{order:2}`.
+- `#themeBlock` скрыт и в `words-active` (тема в чипе — дедуп);
+  в words-active ужаты паддинги контейнера и панели.
+
+### Сетевой аудит — найденный баг был в тесте
+- **verify6 (8 фейлов reconnect/host-migration)**: тест поднимал
+  server.js на :8080 с `ARK_GRACE_MS=4000`, но порт занят дев-сервером
+  (grace 90с) → DISCONNECTED не приходил. Не баг игры — конфликт
+  портов. Разведены порты: verify6→8481, 7→8482, 5→8483, 8→8484,
+  9→8485, 14→8486 (14 делил 8478 с 15). После фикса **verify6 44/44**.
+- verify11: `li.click()` → `selectWordLi` + `round reset` читал
+  `roundDisplay` (теперь ✨-only) → переведён на `chipRound`. 34/34.
+- Все клики выбора слова в тестах/шутерах → `window.selectWordLi`.
+
+### Проверка
+- verify17 — **56/56** (+14: arm/move/commit, tap off, бэкап-флаг,
+  touch-action:none, edge autoscroll + armed-коммит).
+- Полная регрессия зелёная: verify 39, 2 — 67, 4 — 21, 5 — 36, 6 — 44,
+  7 — 28, 8 — 20, 9 — 26, 10 — 40, 11 — 34, 12 — 41, 13 — 32, 14 — 37,
+  15 — 41, 16 — 60, 17 — 56. verify3: 43 + 2 предсуществующих emoji.
+- Скриншоты `gest-*.png`: fog+coach, armed ✓ под пальцем, selGlow,
+  единый контейнер над колесом, стартовый экран.
+
+## Task 23 — ❓-infoharmonikka, ✨-UI pois, sticky «Näytä sanat», chip-teksti, rumpu-tagit reunojen sisällä
+
+### ❓-infoharmonikka (pelaajat + ohjeet piilossa)
+- `#turnChipRow` on nyt staattinen otsikkorivi: `#turnChip` ei ole enää
+  nappi (`<button>`→`<div>`; aria/▾-chevron poistettu DOMista).
+- `#btnInfoToggle` — pyöreä ❓-ikoni (`aria-expanded`, `aria-controls=
+  turnPanelBody`) chip-rivin lopussa; `setTurnPanelCollapsed(c)` on taas
+  oikea setteri, ja KAIKKI ohjelmalliset kutsut pitävät paneelin kiinni
+  (vapaavalintainen-autoavaus poistettu — käyttäjä halusi aina kiinni).
+- Paneelin sisällä: `.player-block` (pistetaulu+avatar), `#themeBlock`,
+  `#ruleInstruction` — näkyvät vain ❓-tapilla.
+- Huoneen chipit (`roomCodeChip` + `btnLeaveInGame`) siirretty
+  `.player-block`ista `#turnChipRow`hin — näkyvät AINA huonepelissä
+  ilman harmonikan avausta. Poistu-teksti `🚪🏃 Poistu` (juoksee
+  oveen päin). `ngLeaveBtn` sama `🚪🏃`.
+- `#turnChipRow` `flex-wrap:wrap` — ei ahtaudu 320px-ruuduilla.
+
+### ✨-bonus-UI poistettu kokonaan (mekaniikka jää — pisteet lasketaan hiljaa)
+- Poistettu: `#roundDisplay` (`✨+25p`-rivi), `#bonusHint`, `formatBonusCounter`,
+  `hideBonusHint`, `.gold-bonus-badge`-span sanariveiltä, bonusPreview
+  `updateGuessedButtonsText`issä (nappi aina `+100p`/`+50p` peruspanos),
+  `· ✨+Zp`-loppu `formatRoundCounter`ista (→ `#ngRound` menetti senkin),
+  `✨ Bonussana!`-rivi huonesummarystä.
+- `.gold-bonus-badge`-CSS + keyframet poistettu; `.bonus-hint`-säännöt pois.
+- `currentBonusWords`/`data-rare`/scoring (`p.score += bonusValue`) —
+  koskemattomia: bonus maksetaan "hiljaa" kuten käyttäjä valitsi.
+
+### Pienemmät siistimiset
+- `.chip-round` menetti pilleri-reunansa — `1/7` on pelkkää tekstiä
+  chipin osana (ei nappia napin sisällä).
+- `#btnDisplayWords` → `position:fixed; bottom:0` alapalkki (sama
+  gradientti/blur/safe-area kuin `.round-controls-block`), kortin
+  alareunaan. `#gameContainer:not(.words-active){padding-bottom:80px}`
+  varaa tilaa. `#gameContainer`-etuliite (spec 200) voittaa
+  "himmennetty nappi" -ryhmän (spec 100) riippumatta järjestyksestä.
+- `themeDrum.mount` → `fitTags()`: rAF-luupissa (kunnes pyörä näkyvä)
+  mitataan jokaisen `.drum-tag`in leveys ja siirretään ankkuria kohti
+  napaa (`Ri = min(R, wheelR−tagW/2−18px)`); liian pitkälle tekstille
+  fontti kutistuu (min 7px). Ulkoreuna ei koskaan ylitä vannetta —
+  ei leikkaantuvia emojeja/tekstejä. Koskee myös `#ngDrumWheel`-vierasta.
+- `#turnChipRow`-pienet chipit: huonekoodi+Poistu aina rivissä.
+
+### Porttijako jatkettu
+- `verify5`: spawn ilman `PORT`ia → palvelin ei koskaan noussut 8483:lle
+  (meni oletukselle). Lisätty `PORT: '8483'` — syy miksi verify5
+  "yhtäkkiä" kaatui.
+- `verify3`: `8080`→`8484` + `PORT`-env (riippuvuus dev-palvelimesta pois).
+
+### Проверка
+- verify16 — **67/67** (+7 uutta: ❓-toggle, sticky, chipRound-border,
+  sparkleGone, tagsInside myös vieraalla).
+- verify15 — **42/42**, verify14 — **34/34**, verify4 — **21/21**,
+  verify17 — **56/56**, verify11 — **34/34**, verify5 — **36/36**.
+- verify3: 43 + samat 2 vanhaa emoji-virhettä (ei regressio,
+  oma portti 8484 vahvistaa).
+- Kuvat: `gest-wheel-rest-cards.png` (chip+❓+sticky), `gest-info-open.png`
+  (pistetaulu auki), `gest-fog.png` (lista+sticky-ohjaimet).
+
+### Task 23 — tarkennus (käyttäjän palaute)
+- **❓-nappi ei kuulu rumpunäyttöön**: `#gameContainer:not(.words-active)
+  #btnInfoToggle { display:none }` — pyörän aikana ei harmonikkaa.
+  Sen sijaan `#chipTurn` näyttää **kompaktin pistetaulun oikeassa
+  reunassa** (`▶ Pelaaja 1 0p · Pelaaja 2 0p`, `margin-left:auto`) —
+  "mitä pelaajaa" näkyy aina. Sanojen aikana chipTurn piilotetaan
+  (`words-active #chipTurn{display:none}`) ja tiedot ovat ❓-takana.
+- **`+25p`-boksi palautettu sanariveille** — käyttäjä: sitä ei pitänyt
+  poistaa *listasta*. `.gold-bonus-badge`-span + CSS + keyframet +
+  `.hidden-words`-himmennyssääntö palautettu. Muut ✨-poistot säilyvät
+  (rivi paneelissa, hint, preview, ngRound-loppu, summary-rivi).
+- **`🎭 …`-paikkamerkki pois ennen arvontaa**: `chipTheme` on
+  `display:none` kun `currentActiveTheme` on tyhjä — ei enää
+  "pantomiimi-ikoni ja kaksoispiste" aloitusnäytöllä.
+- Testit: verify16 **70/70**, verify15 **43/43**, verify14 **34/34**,
+  verify4 **21/21**.
+
+## Task 24 — "Aloita kierros" pois pyörityksestä, luettava pistetaulu, vapaa-kortti
+
+### Ongelmat
+- `#btn` ("Aloita kierros") piiloutui vasta `setTimeout`:ssä pyörän
+  pysähdyttyä (`rounds.js` ~447) — koko pyörityksen (~2 s) + lepohetken
+  alussa napin teksti roikkui pyörän alla.
+- Kompakti pistetaulu `Pelaaja 1 200p` — nimen numero ja pisteet
+  sulautuivat yhdeksi luvuksi ("1 200").
+- **vapaavalintainen**: ohje "Keksi oma sana…" oli ❓-harmonikan sisällä,
+  mutta ❓ piilotetaan rumpunäytöllä — eikä `words-active` koskaan
+  tule → ohje oli tavoittamaton koko vuoron ajan.
+- `#vapaaRuleCard` tarvitsi flex-orderin: `#gameContainer` on
+  order-järjestetty (paneli 1 → loader 2 → spells 3 → wordList 5 →
+  controls 6 → #btn 7) — order:0-elementti hyppäsi näytön yläreunaan.
+
+### Toteutus
+- `js/rounds.js`: `btn.style.display='none'` siirretty `randomizeTheme`n
+  alkuun (heti kun `drumAnim` näytetään) — nappi↔pyörä-vaihto samassa
+  framessa, ei nytkähdystä. Nappi palaa vain vuoron päättyessä.
+- `js/network.js:576`: `netRefreshGuesserScreen` sai palauttaa napin
+  kesken pyörityksen (`currentActiveTheme` vielä tyhjä). Lisätty
+  `drumUp`-vahti: `btn` piilossa kun `currentActiveTheme` TAI rumpu näkyy.
+- `js/ui.js`: `#chipTurn` rakennetaan DOM-solmuina (ei innerHTML —
+  nimet ovat käyttäjän syöttämiä): `▶ Pelaaja 1: ` +
+  `<b class="chip-score">0p</b>`. Kaksoispiste erottaa nimen numeron.
+- `styles.css`: `.chip-score { color:var(--gold); font-weight:700 }`;
+  `#vapaaRuleCard { order:4 }` — pyörän alla, nappien (order 6) yläpuolella.
+- `index.html`: `#vapaaRuleCard` (`.rule-instruction`-info-kortti) —
+  täytetään vain vapaavalintainen-haarassa, piilotetaan kaikissa
+  reset-poluissa (`_vrc0/_vrc1/_vrc2`).
+
+### Tarkistus
+- verify16 — **79/79** (+9: nappi pois spinin ajaksi JA levossa,
+  `Nimi: Np`-muoto, kultainen chip-score, vapaa-kortti näkyy/sijainti
+  pyörän alla/poistuu luovutuksessa, ei napin duplikaattia).
+- verify17 — **56/56**, verify15 — **43/43**, verify14 — **34/34**,
+  verify4 — **21/21**.
+- Kuvat: `vapaa-spin.png` (ei nappia pyörityksessä), `vapaa-rest.png`
+  (pyörä → vapaa-kortti → Arvattu/Luovutan-napit).

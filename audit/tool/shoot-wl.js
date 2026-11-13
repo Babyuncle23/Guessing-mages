@@ -42,12 +42,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await page.screenshot({ path: path.join(OUT, 'wl-collapsed.png') });
 
     // 2) Harmonikka auki (chipRound-badge näkyy chipissä)
-    await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
+    await page.evaluate(() => document.getElementById('btnInfoToggle').click()); await sleep(450);
     await page.screenshot({ path: path.join(OUT, 'wl-expanded.png') });
-    await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
+    await page.evaluate(() => document.getElementById('btnInfoToggle').click()); await sleep(450);
 
     // 3) Lukittu sana: kultainen hehku verhon läpi (teksti piilossa)
-    await page.evaluate(() => document.querySelectorAll('#wordList li')[2].click()); await sleep(300);
+    await page.evaluate(() => window.selectWordLi(document.querySelectorAll('#wordList li')[2])); await sleep(300);
     await page.screenshot({ path: path.join(OUT, 'wl-selglow.png') });
 
     // 4) Hover -> koko lista näkyy (+ sticky-palkki alhaalla)

@@ -93,25 +93,22 @@ document.addEventListener("click", (e) => {
     hideSpellHelpModal();
 });
 
-// Строка счётчика раундов + индикатор текущей бонусной фазы (виден и
-// объясняющему, и угадывающим через #ngRound — «нарастание ставок» к финалу).
-const formatRoundCounter = () => {
-    const v = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
-    return `Kierros: ${currentRound} / ${totalTurns} · ✨+${v}p`;
-};
-
-// Paneelissa kierrosluku näkyy jo chipissä — täällä vain bonusvaiheen panos.
-const formatBonusCounter = () => {
-    const v = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
-    return `✨+${v}p`;
-};
+// Строка счётчика раундов (виден и объясняющему — чип "X/Y",
+// и угадывающим через #ngRound). Бонусная фаза из UI убрана — очки
+// начисляются молча, без ✨-индикаторов.
+const formatRoundCounter = () => `Kierros: ${currentRound} / ${totalTurns}`;
 
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
 
-    document.getElementById('roundDisplay').textContent = formatBonusCounter();
     const avatarEl = document.getElementById('currentAvatar');
-    if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
+    const pl = gamePlayers[currentPlayerIndex];
+    // Avatari vain valituilla taikahahmoilla — peruspelin generikko-ikonit
+    // eivät kanna informaatiota, joten koko avatar-lohko piilotetaan.
+    const hasChar = !!pl.img && Object.values(charImages).includes(pl.img);
+    if (avatarEl) avatarEl.textContent = hasChar ? pl.img : '';
+    const playerBlock = document.querySelector('.player-block');
+    if (playerBlock) playerBlock.classList.toggle('no-avatar', !hasChar);
 
     // Pelaajan nimi vain tulostaulussa — ei "Vuoro: Nimi" -kaksoiskappaletta
 
@@ -136,14 +133,38 @@ const updateTurnDisplay = () => {
     // Вызываем функцию обновления текста, так как она теперь объявлена снаружи
     updateGuessedButtonsText();
 
-    // Tiivis tilannekortti (chip): ehto + vuorossa oleva pelaaja
+    // Tiivis tilannekortti (chip): ehto + tiivis pistetaulu oikealla.
     const chipT = document.getElementById('chipTheme');
     if (chipT) {
-        const emoji = (typeof themeImages !== 'undefined' && currentActiveTheme)
-            ? (themeImages[currentActiveTheme] || '🎭') : '🎭';
-        chipT.textContent = currentActiveTheme ? `${emoji} ${currentActiveTheme.toUpperCase()}` : '🎭 …';
+        // Ei "🎭 …"-paikkamerkkiä ennen arvontaa — ehtoa ei vielä ole
+        if (currentActiveTheme) {
+            const emoji = (typeof themeImages !== 'undefined') ? (themeImages[currentActiveTheme] || '🎭') : '🎭';
+            chipT.textContent = `${emoji} ${currentActiveTheme.toUpperCase()}`;
+            chipT.style.display = '';
+        } else {
+            chipT.textContent = '';
+            chipT.style.display = 'none';
+        }
     }
-    // chipTurn jätetään tyhjäksi: pelaajan nimi vain tulostaulussa (▶)
+    // Kompakti pistetaulu chipin oikeassa reunassa — "mitä pelaajaa"
+    // näkyy rumpunäytöllä ilman ❓-harmonikan avausta. Sanojen aikana
+    // se piilotetaan CSS:llä (tiedot ovat sitten ❓-harmonikassa).
+    const chipTurnEl = document.getElementById('chipTurn');
+    if (chipTurnEl) {
+        // "Nimi: NNOp" — kaksoispiste erottaa nimen numeron pisteistä,
+        // jotta "Pelaaja 1 200p" ei lue yhtenä lukuna. DOM-solmujen kautta
+        // (ei innerHTML) — nimet ovat käyttäjän syöttämiä.
+        chipTurnEl.textContent = '';
+        gamePlayers.forEach((pl, idx) => {
+            if (idx) chipTurnEl.appendChild(document.createTextNode(' · '));
+            if (idx === currentPlayerIndex) chipTurnEl.appendChild(document.createTextNode('▶ '));
+            chipTurnEl.appendChild(document.createTextNode(`${pl.name}: `));
+            const b = document.createElement('b');
+            b.className = 'chip-score';
+            b.textContent = `${pl.score}p`;
+            chipTurnEl.appendChild(b);
+        });
+    }
     const chipR = document.getElementById('chipRound');
     if (chipR) {
         const m = formatRoundCounter().match(/(\d+)\s*\/\s*(\d+)/);
@@ -166,17 +187,8 @@ const updateGuessedButtonsText = () => {
     const isHalfScore = (typeof isMetamorphosisUsedThisTurn !== 'undefined' && isMetamorphosisUsedThisTurn) ||
                         (typeof isExtraTurnRound !== 'undefined' && isExtraTurnRound);
 
-    // Превью реальной выплаты: если зажато ✨-бонусное слово, показываем сумму
-    let bonusPreview = 0;
-    if (typeof selectedWordIndex !== 'undefined' && selectedWordIndex >= 0 &&
-        typeof generatedWordsList !== 'undefined' && generatedWordsList[selectedWordIndex] &&
-        typeof currentBonusWords !== 'undefined' &&
-        currentBonusWords.includes(generatedWordsList[selectedWordIndex])) {
-        bonusPreview = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
-    }
-
     const base = isHalfScore ? 50 : 100;
-    const targetText = `Arvattu oikein (+${base + bonusPreview}p)`;
+    const targetText = `Arvattu oikein (+${base}p)`;
 
     if (mainGuessedBtn) mainGuessedBtn.textContent = targetText;
     if (modalGuessedBtn) modalGuessedBtn.textContent = targetText;
@@ -189,26 +201,11 @@ const renderOlList = () => {
     wordList.innerHTML = generatedWordsList.map((w, index) => {
         const isBonus = typeof currentBonusWords !== 'undefined' && currentBonusWords.includes(w);
         const isCursed = typeof currentCursedWords !== 'undefined' && currentCursedWords.includes(w);
-// ОБНОВЛЕНО: Текст стал четкой инструкцией
-        const bonusTag = isBonus ? `<span class="gold-bonus-badge">✨ +${bonusValue}p (Paina tätä, jos selitit!)</span>` : '';
+        const bonusTag = isBonus ? `<span class="gold-bonus-badge">✨ +${bonusValue}p (Valitse tätä, jos selitit!)</span>` : '';
         const curseTag = isCursed ? `<span class="curse-badge">💀</span>` : '';
 
         return `<li data-index="${index}" data-rare="${isBonus}" data-cursed="${isCursed}"><strong>${index + 1}.</strong> ${w} ${bonusTag}${curseTag}</li>`;
     }).join('');
-
-    const bonusHint = document.getElementById('bonusHint');
-    if (bonusHint) {
-        if (typeof currentBonusWords !== 'undefined' && currentBonusWords.length > 0) {
-            bonusHint.textContent = currentBonusWords.length === 1
-                ? `✨ Yksi sana koko sanakirjasta — usein harvinainen! Selitä se ja saat +${bonusValue}p.`
-                : `✨ ${currentBonusWords.length} sanaa koko sanakirjasta — usein harvinaisia! Selitä merkitty ja saat +${bonusValue}p.`;
-        } else if (typeof currentCursedWords !== 'undefined' && currentCursedWords.length > 0) {
-            bonusHint.textContent = '💀 Kirous: kovat sanat — ei bonussanoja tällä vuorolla.';
-        } else {
-            bonusHint.textContent = 'Ei bonussanaa tällä vuorolla.';
-        }
-        bonusHint.style.display = 'block';
-    }
 
     if (typeof updateGuessedButtonsText === 'function') {
         updateGuessedButtonsText();
@@ -217,17 +214,11 @@ const renderOlList = () => {
     if (typeof refreshPrivacyMask === 'function') refreshPrivacyMask();
 };
 
-window.hideBonusHint = () => {
-    const h = document.getElementById('bonusHint');
-    if (h) h.style.display = 'none';
-};
-
 const clearWordsBeforeTurn = () => {
     if (typeof wordList !== 'undefined') {
         wordList.innerHTML = '';
         wordList.style.display = "none";
     }
-    window.hideBonusHint();
 };
 
 // Family-friendly toggle removed; images replaced by emojis.
@@ -381,24 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
     bindHoldToPeek(document.getElementById('btnPeekEmoji'));
 });
 
-// --- VUOROPANEELI: harmonikka yläpalkille (sanojen aikana kiinni oletuksena) ---
+// --- VUOROPANEELI: info-harmonikka ❓-napin takana.
+// Pistetaulu + ohjeet ovat oletuksena piilossa — pelaaja avaa ❓-napista.
+// Ohjelmalliset kutsut pitävät paneelin kiinni (ei automaattista avautumista).
 const turnPanelBody = document.getElementById('turnPanelBody');
-const turnChip = document.getElementById('turnChip');
 const btnToolCanvas = document.getElementById('btnToolCanvas');
+const btnInfoToggle = document.getElementById('btnInfoToggle');
 
 const setTurnPanelCollapsed = (collapsed) => {
-    if (!turnPanelBody || !turnChip) return;
-    turnPanelBody.classList.toggle('collapsed', collapsed);
-    turnChip.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (!turnPanelBody) return;
+    turnPanelBody.classList.toggle('collapsed', !!collapsed);
+    if (btnInfoToggle) btnInfoToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
 };
 window.setTurnPanelCollapsed = setTurnPanelCollapsed;
 
-if (turnChip) {
-    turnChip.addEventListener('click', () => {
-        if (typeof playClickSound === 'function') playClickSound();
-        setTurnPanelCollapsed(!turnPanelBody.classList.contains('collapsed'));
-    });
-}
+btnInfoToggle?.addEventListener('click', () => {
+    if (typeof playClickSound === 'function') playClickSound();
+    setTurnPanelCollapsed(!turnPanelBody.classList.contains('collapsed'));
+});
 
 // Piirto-/emoji-työkalun pikapainike — vain kun ehto vaatii työkalun JA sanat auki
 const updateToolPill = () => {
@@ -438,7 +429,7 @@ let veilCoachShown = false;
 
 const dismissVeilCoach = () => {
     if (!veilCoach || veilCoach.style.display === 'none') return;
-    try { localStorage.setItem('veilCoachV1', '1'); } catch (e) {}
+    try { localStorage.setItem('veilCoachV2', '1'); } catch (e) {}
     veilCoach.classList.add('veil-coach-out');
     setTimeout(() => { veilCoach.style.display = 'none'; }, 550);
 };
@@ -480,7 +471,7 @@ const refreshPrivacyMask = () => {
     // Kerran näytettävä ohjepilvi — katoaa ekan eleen tai 4 s jälkeen
     if (on && !veilCoachShown && veilCoach) {
         let seen = false;
-        try { seen = localStorage.getItem('veilCoachV1') === '1'; } catch (e) {}
+        try { seen = localStorage.getItem('veilCoachV2') === '1'; } catch (e) {}
         if (!seen) {
             veilCoachShown = true;
             veilCoach.style.display = 'block';
@@ -503,32 +494,133 @@ const initPrivacyMask = () => {
         if (wordListWrap) wordListWrap.classList.remove('revealing');
     };
 
+    // ✓-ele: sormen alla oleva rivi saa rastin — vedä haluamallesi riville ja
+    // vapauta = sana lukittuu. UX-hienosäätö:
+    //  • touch-action:none: veto EI scrollaa listaa — rasti liikkuu riveillä,
+    //    alimmat rivit tavoittuvat reunavyöhykkeen autoscrollilla.
+    //  • Rasti seuraa aina sormen alla olevaa riviä — myös scrollin aikana.
+    //  • Vapautus listan ulkopuolella / keskeytys ei valitse mitään.
+    const EDGE_ZONE = 46;     // px listan reunoista jossa autoscroll käynnistyy
+    let armedLi = null, aiming = false;
+    let lastX = 0, lastY = 0, edgeRaf = 0;
+
+    const armAt = (x, y) => {
+        const under = document.elementFromPoint(x, y);
+        const li = under ? under.closest('#wordList li') : null;
+        if (li === armedLi) return;
+        if (armedLi) armedLi.classList.remove('check-armed');
+        armedLi = li;
+        if (armedLi) armedLi.classList.add('check-armed');
+    };
+    const disarm = () => {
+        if (armedLi) armedLi.classList.remove('check-armed');
+        armedLi = null;
+    };
+
+    // Alareunan "tähtäysalue" päättyy sticky-palkin yläreunaan — sen alla
+    // olevaa sormea ei voi suunnata piilossa oleviin riveihin.
+    const aimBottom = () => {
+        const rc = document.getElementById('roundControls');
+        const wb = wordList.getBoundingClientRect().bottom;
+        if (rc && getComputedStyle(rc).position === 'fixed' && rc.getClientRects().length) {
+            return Math.min(wb, rc.getBoundingClientRect().top);
+        }
+        return wb;
+    };
+
+    const edgeStep = () => {
+        if (!aiming) { edgeRaf = 0; return; }
+        const r = wordList.getBoundingClientRect();
+        const bottom = aimBottom();
+        let dir = 0, depth = 0;
+        if (lastY < r.top + EDGE_ZONE) { dir = -1; depth = r.top + EDGE_ZONE - lastY; }
+        else if (lastY > bottom - EDGE_ZONE) { dir = 1; depth = lastY - (bottom - EDGE_ZONE); }
+        if (!dir) { edgeRaf = 0; return; }
+        wordList.scrollTop += dir * Math.max(2, Math.min(9, depth / 5));
+        armAt(lastX, lastY); // rivit liikkuivat sormen alle — rasti mukana
+        edgeRaf = requestAnimationFrame(edgeStep);
+    };
+    const ensureEdge = () => { if (!edgeRaf) edgeRaf = requestAnimationFrame(edgeStep); };
+
+    const aimStart = (x, y) => {
+        aiming = true;
+        lastX = x; lastY = y;
+        armAt(x, y);
+        ensureEdge();
+    };
+    const aimMove = (x, y) => {
+        if (!aiming) return;
+        lastX = x; lastY = y;
+        armAt(x, y);
+        ensureEdge();
+    };
+    const aimEnd = (commit) => {
+        if (!aiming) return;
+        aiming = false;
+        if (edgeRaf) { cancelAnimationFrame(edgeRaf); edgeRaf = 0; }
+        if (commit && armedLi && typeof window.selectWordLi === 'function') {
+            window.selectWordLi(armedLi);
+        }
+        disarm();
+    };
+
+    // Natiivi scroll: sisältö virtaa sormen alta — rasti seuraa mukana
+    wordList.addEventListener('scroll', () => {
+        if (aiming) armAt(lastX, lastY);
+    }, { passive: true });
+
     // Kosketus: koko lista näkyy sormen alla, irtautuessa verho palaa
-    wordList.addEventListener('touchstart', () => {
+    wordList.addEventListener('touchstart', (e) => {
         touchActiveUntil = Date.now() + 700;
         revealOn();
+        const t = e.touches[0];
+        if (t) aimStart(t.clientX, t.clientY);
     }, { passive: true });
-    wordList.addEventListener('touchmove', () => {
+    wordList.addEventListener('touchmove', (e) => {
         touchActiveUntil = Date.now() + 700;
         revealOn();
+        const t = e.touches[0];
+        if (t) aimMove(t.clientX, t.clientY);
     }, { passive: true });
-    const touchEnd = () => {
+    wordList.addEventListener('touchend', (e) => {
         touchActiveUntil = Date.now() + 700;
         revealOff();
-    };
-    wordList.addEventListener('touchend', touchEnd, { passive: true });
-    wordList.addEventListener('touchcancel', touchEnd, { passive: true });
+        const t = e.changedTouches[0];
+        if (t) armAt(t.clientX, t.clientY); // rivi irrotuspisteessä ratkaisee
+        aimEnd(true);
+    }, { passive: true });
+    wordList.addEventListener('touchcancel', () => {
+        touchActiveUntil = Date.now() + 700;
+        revealOff();
+        aimEnd(false); // keskeytetty kosketus ei valitse
+    }, { passive: true });
 
-    // Hiiri: hover paljastaa koko listan
+    // Hiiri: hover paljastaa listan; vedä painikkeella = sama ✓-ele
+    let mouseDown = false;
+    wordList.addEventListener('mousedown', (e) => {
+        if (Date.now() < touchActiveUntil) return; // synteettinen hiiri touchin perästä
+        mouseDown = true;
+        aimStart(e.clientX, e.clientY);
+    });
     wordList.addEventListener('mouseenter', () => {
         if (Date.now() < touchActiveUntil) return;
         revealOn();
     });
-    wordList.addEventListener('mousemove', () => {
+    wordList.addEventListener('mousemove', (e) => {
         if (Date.now() < touchActiveUntil) return; // synteettiset tapahtumat touchin jälkeen
         revealOn();
+        if (mouseDown) aimMove(e.clientX, e.clientY);
     });
-    wordList.addEventListener('mouseleave', revealOff);
+    document.addEventListener('mouseup', (e) => {
+        if (!mouseDown) return;
+        mouseDown = false;
+        armAt(e.clientX, e.clientY); // vapautuspiste ratkaisee
+        aimEnd(true);
+    });
+    wordList.addEventListener('mouseleave', () => {
+        revealOff();
+        disarm(); // kursori pois — rasti katoaa, mutta veto jatkuu takaisin tullessa
+    });
 
     // Itsenäinen suoja: verho seuraa listan tilaa riippumatta siitä,
     // mikä koodipolku listaa muutti (metamorfoosi, huonepeli, endRound…).
@@ -674,6 +766,39 @@ window.themeDrum = (() => {
             items.push({ el, theme: s.theme, a0, a1, mid });
         });
         wheelEl.style.background = `conic-gradient(${stops.join(', ')})`;
+
+        // Nimikyltit pysyvät vanteen sisällä: pitkät teemat siirtävät ankkuria
+        // kohti napaa (tai kutistavat fonttia), jottei emoji/teksti leikkaannu.
+        let fitTries = 0;
+        const fitTags = () => {
+            const wheelR = wheelEl.clientWidth / 2;
+            if (!wheelR) { // pyörä vielä piilossa — yritä seuraavalla framella
+                if (++fitTries < 60) requestAnimationFrame(fitTags);
+                return;
+            }
+            const maxOuter = wheelR - 18; // vanne + emojin kasvumarginaali (winner)
+            items.forEach(({ el, mid }) => {
+                const tag = el.querySelector('.drum-tag');
+                const label = el.querySelector('.drum-label');
+                if (!tag) return;
+                // Liian pitkä kyltti: pienennä tekstiä kunnes mahtuu säteelle
+                if (label) {
+                    let fs = parseFloat(getComputedStyle(label).fontSize) || 12;
+                    while (tag.offsetWidth > wheelR - 30 && fs > 7) {
+                        fs -= 1;
+                        label.style.fontSize = `${fs}px`;
+                    }
+                }
+                const tagW = tag.offsetWidth;
+                // Ankkuri: ulkoreuna ≤ vanteen sisäreuna, sisäreuna ≥ keskipiste
+                const rFit = Math.min(R, maxOuter - tagW / 2);
+                const rUse = Math.max(tagW / 2 + 6, rFit);
+                if (Math.abs(rUse - R) > 0.5) {
+                    el.style.transform = `rotate(${mid}deg) translateY(-${rUse}px) rotate(90deg)`;
+                }
+            });
+        };
+        requestAnimationFrame(fitTags);
 
         const drum = wheelEl.closest('.theme-drum');
         const ctx = {

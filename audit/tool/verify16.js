@@ -86,23 +86,39 @@ const wheelState = (page, loaderId, wheelId, hubId) => evl(page, (l, w, h) => {
         winnerLabelHorizontal: winLabRect ? winLabRect.width > winLabRect.height : null,
         tagClear: winTagRect && pr ? winTagRect.left > pr.right : null,
         tags,
+        tagsInside: wh ? [...wh.querySelectorAll('.theme-drum-item')].every(el => {
+            const m = (el.style.transform || '').match(/translateY\(-?([\d.]+)px\)/);
+            const tag = el.querySelector('.drum-tag');
+            if (!m || !tag) return false;
+            return parseFloat(m[1]) + tag.offsetWidth / 2 <= wh.clientWidth / 2 - 1;
+        }) : null,
         pointerLeft: pr && wr ? (pr.x + pr.width / 2) < (wr.x + wr.width / 2) : null,
         wheelBleeds: wr ? wr.right > document.documentElement.clientWidth : null
     };
 }, loaderId, wheelId, hubId);
 const panelState = (page) => evl(page, () => ({
     collapsed: document.getElementById('turnPanelBody').classList.contains('collapsed'),
-    aria: document.getElementById('turnChip').getAttribute('aria-expanded'),
+    aria: (document.getElementById('btnInfoToggle') || { getAttribute: () => null }).getAttribute('aria-expanded'),
+    infoBtnAriaControls: (document.getElementById('btnInfoToggle') || { getAttribute: () => null }).getAttribute('aria-controls'),
+    infoBtnDisplay: (document.getElementById('btnInfoToggle') ? getComputedStyle(document.getElementById('btnInfoToggle')).display : 'MISSING'),
+    chipTurnDisplay: getComputedStyle(document.getElementById('chipTurn')).display,
     btnDisplay: getComputedStyle(document.getElementById('btnDisplayWords')).display,
+    btnPos: getComputedStyle(document.getElementById('btnDisplayWords')).position,
     ruleVisible: getComputedStyle(document.getElementById('ruleInstruction')).display,
     ruleText: document.getElementById('ruleInstruction').textContent.slice(0, 60),
     roundCtl: getComputedStyle(document.getElementById('roundControls')).display,
     chipThemeDisplay: getComputedStyle(document.getElementById('chipTheme')).display,
     chipRoundVisible: getComputedStyle(document.getElementById('chipRound')).display !== 'none',
+    chipRoundNoBorder: getComputedStyle(document.getElementById('chipRound')).borderTopWidth === '0px',
     chipTurnText: document.getElementById('chipTurn').textContent,
+    chipScoreEl: !!document.querySelector('#chipTurn .chip-score'),
+    chipScoreColor: document.querySelector('#chipTurn .chip-score') ? getComputedStyle(document.querySelector('#chipTurn .chip-score')).color : 'none',
+    btnMainDisplay: getComputedStyle(document.getElementById('btn')).display,
+    vapaaCardDisplay: (document.getElementById('vapaaRuleCard') ? getComputedStyle(document.getElementById('vapaaRuleCard')).display : 'MISSING'),
+    vapaaCardText: (document.getElementById('vapaaRuleCard') ? document.getElementById('vapaaRuleCard').textContent.slice(0, 60) : ''),
     themeBlockDisplay: getComputedStyle(document.getElementById('themeBlock')).display,
     scoreMarker: /▶/.test(document.getElementById('scoreDisplay').textContent),
-    roundLabel: document.getElementById('roundDisplay').textContent
+    sparkleGone: !document.getElementById('roundDisplay') && !document.getElementById('bonusHint') && !document.querySelector('.gold-bonus-badge')
 }));
 
 (async () => {
@@ -124,7 +140,16 @@ const panelState = (page) => evl(page, () => ({
         // ============ A. Pyörä lepää kunnes Näytä sanat ============
         console.log('== A. Wheel rests until Näytä sanat (local) ==');
         let page = await newPage(browser);
-        await startGameAndRoll(page, 'theme-weight-pantomiimi');
+        await forceTheme(page, 'theme-weight-pantomiimi');
+        await tap(page, '#startGameBtn'); await sleep(400);
+        await tap(page, '#btn'); await sleep(500); // kesken pyörityksen
+        const mid = await evl(page, () => ({
+            btn: getComputedStyle(document.getElementById('btn')).display,
+            loader: getComputedStyle(document.getElementById('loader')).display,
+            btnText: document.getElementById('btn').textContent
+        }));
+        check('no Aloita kierros while spinning', mid.btn === 'none' && mid.loader === 'block', JSON.stringify(mid));
+        await sleep(3400); // anna pyörän laskeutua
 
         let ws = await wheelState(page, 'loader', 'drumWheel', 'drumHubName');
         check('wheel stays visible after landing', ws.loader === 'block', ws.loader);
@@ -141,17 +166,24 @@ const panelState = (page) => evl(page, () => ({
         check('winner label golden', ws.winnerLabelColor === 'rgb(229, 193, 88)', String(ws.winnerLabelColor));
         check('winner label horizontal under pointer', ws.winnerLabelHorizontal === true);
         check('winner tag not under pointer', ws.tagClear === true);
+        check('all sector tags inside wheel rim', ws.tagsInside === true);
         check('pointer at wheel left edge', ws.pointerLeft === true);
 
         let ps = await panelState(page);
-        check('panel collapsed during wheel-rest', ps.collapsed === true, JSON.stringify(ps));
-        check('aria-expanded=false', ps.aria === 'false', ps.aria);
+        check('info accordion collapsed by default (❓)', ps.collapsed === true && ps.aria === 'false', JSON.stringify(ps));
+        check('❓ controls turnPanelBody', ps.infoBtnAriaControls === 'turnPanelBody');
         check('Näytä sanat CTA visible while wheel rests', ps.btnDisplay !== 'none', ps.btnDisplay);
-        check('chip visible (aria-controls ok)', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
+        check('Näytä sanat sticky at bottom', ps.btnPos === 'fixed', ps.btnPos);
+        check('chip visible', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
         check('chip theme hidden during rest (only on wheel)', ps.chipThemeDisplay === 'none', ps.chipThemeDisplay);
-        check('chip keeps round badge only (no player dup)', ps.chipRoundVisible === true && ps.chipTurnText === '', JSON.stringify(ps));
-        check('scoreboard has ▶ turn marker', ps.scoreMarker === true);
-        check('roundDisplay = bonus only (no Kierros dup)', /^✨\+\d+p$/.test(ps.roundLabel.trim()), ps.roundLabel);
+        check('chip keeps round badge + compact score right', ps.chipRoundVisible === true && /▶/.test(ps.chipTurnText), JSON.stringify(ps));
+        check('compact score format "Nimi: Np"', /▶ .+: \d+p · .+: \d+p/.test(ps.chipTurnText), ps.chipTurnText);
+        check('chip-score element + gold', ps.chipScoreEl === true && ps.chipScoreColor === 'rgb(229, 193, 88)', ps.chipScoreColor);
+        check('no Aloita kierros during wheel rest', ps.btnMainDisplay === 'none', ps.btnMainDisplay);
+        check('vapaa card hidden for normal theme', ps.vapaaCardDisplay === 'none', ps.vapaaCardDisplay);
+        check('chipRound plain text (no pill border)', ps.chipRoundNoBorder === true);
+        check('no ❓ on wheel screen (score is out)', ps.infoBtnDisplay === 'none', ps.infoBtnDisplay);
+        check('all ✨-bonus UI removed', ps.sparkleGone === true);
 
         await tap(page, '#btnDisplayWords'); await sleep(600);
         ws = await wheelState(page, 'loader', 'drumWheel', 'drumHubName');
@@ -159,10 +191,20 @@ const panelState = (page) => evl(page, () => ({
         check('drum-rest cleared', ws.rest === false);
         check('words visible', await evl(page, () => document.getElementById('wordList').children.length > 0 && getComputedStyle(document.getElementById('wordList')).display !== 'none'));
         ps = await panelState(page);
-        check('panel still collapsed after words open', ps.collapsed === true);
+        check('panel still collapsed after words open', ps.collapsed === true && ps.aria === 'false');
+        check('❓ appears during words (accordion available)', ps.infoBtnDisplay !== 'none', ps.infoBtnDisplay);
+        check('compact score hidden during words (in ❓)', ps.chipTurnDisplay === 'none', ps.chipTurnDisplay);
+        // ❓-гармошка: тап раскрывает счёт и объяснения
+        await tap(page, '#btnInfoToggle'); await sleep(350);
+        ps = await panelState(page);
+        check('❓ opens info accordion', ps.collapsed === false && ps.aria === 'true', JSON.stringify(ps));
+        check('scoreboard has ▶ turn marker', ps.scoreMarker === true);
+        await tap(page, '#btnInfoToggle'); await sleep(350);
+        ps = await panelState(page);
+        check('❓ closes info accordion', ps.collapsed === true && ps.aria === 'false');
         check('btnDisplayWords gone', ps.btnDisplay === 'none');
         check('chip theme back after wheel gone', ps.chipThemeDisplay !== 'none', ps.chipThemeDisplay);
-        check('themeBlock back after wheel gone', ps.themeBlockDisplay !== 'none', ps.themeBlockDisplay);
+        check('themeBlock hidden during words (theme in chip only)', ps.themeBlockDisplay === 'none', ps.themeBlockDisplay);
         await page.close();
 
         // ============ B. vapaavalintainen ============
@@ -175,17 +217,26 @@ const panelState = (page) => evl(page, () => ({
         check('hub textContent = vapaavalintainen', ws.hub === 'vapaavalintainen', ws.hub);
         check('winner = vapaavalintainen', ws.winnerTheme === 'vapaavalintainen', String(ws.winnerTheme));
         ps = await panelState(page);
-        check('panel expanded for vapaavalintainen', ps.collapsed === false, JSON.stringify(ps));
+        check('panel collapsed for vapaavalintainen (❓ always closed)', ps.collapsed === true && ps.aria === 'false', JSON.stringify(ps));
         check('themeBlock hidden while wheel rests (no ehto dup)', ps.themeBlockDisplay === 'none', ps.themeBlockDisplay);
         check('chip theme hidden for vapaavalintainen', ps.chipThemeDisplay === 'none', ps.chipThemeDisplay);
-        check('instruction visible', ps.ruleVisible !== 'none' && /Keksi/i.test(ps.ruleText), `${ps.ruleVisible} ${ps.ruleText}`);
+        check('instruction populated behind ❓', /Keksi/i.test(ps.ruleText), ps.ruleText);
+        check('vapaa rule card visible under wheel', ps.vapaaCardDisplay !== 'none' && /Keksi/i.test(ps.vapaaCardText), JSON.stringify({ d: ps.vapaaCardDisplay, t: ps.vapaaCardText }));
+        check('vapaa card below wheel, above controls', await evl(page, () => {
+            const card = document.getElementById('vapaaRuleCard').getBoundingClientRect();
+            const wheel = document.getElementById('loader').getBoundingClientRect();
+            const ctl = document.getElementById('roundControls').getBoundingClientRect();
+            return card.top >= wheel.bottom - 4 && card.bottom <= ctl.top + 4;
+        }));
         check('no Näytä sanat button', ps.btnDisplay === 'none', ps.btnDisplay);
+        check('no Aloita kierros (vapaa)', ps.btnMainDisplay === 'none', ps.btnMainDisplay);
         check('round controls visible', ps.roundCtl !== 'none', ps.roundCtl);
 
         await evl(page, () => window._devConfirmGiveUp()); await sleep(800);
         ws = await wheelState(page, 'loader', 'drumWheel', 'drumHubName');
         check('wheel cleared after give up', ws.loader === 'none', ws.loader);
         check('drum-rest cleared after giveup', ws.rest === false);
+        check('vapaa card cleared after giveup', await evl(page, () => getComputedStyle(document.getElementById('vapaaRuleCard')).display === 'none'));
         check('next-round button back', await evl(page, () => document.getElementById('btn').style.display === 'block'));
         await page.close();
 
@@ -238,6 +289,7 @@ const panelState = (page) => evl(page, () => ({
         check('B: guest winner wedge', gs.wedge === '1', gs.wedge);
         check('B: guest winner = pantomiimi', gs.winnerTheme === 'pantomiimi', String(gs.winnerTheme));
         check('B: guest sectors labeled', gs.tags.length > 0 && gs.tags.every(t => t.label === t.theme && t.emoji), JSON.stringify(gs.tags));
+        check('B: guest sector tags inside wheel rim', gs.tagsInside === true);
         check('B: guest no winner ring', gs.winnerRing === 'none', gs.winnerRing);
         check('B: guest pointer at left edge', gs.pointerLeft === true);
         check('B: theme card hidden while drum rests', await evl(B, () => getComputedStyle(document.getElementById('ngThemeBlock')).display === 'none'));

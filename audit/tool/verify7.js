@@ -1,11 +1,11 @@
 // verify7.js — ääni- ja reclaim-syuit: rumpu arvaajilla, ääni oletuksena vain
 // isännällä + toggle, huonekoodi-chipit, reclaim nimellä.
-// Запуск: node verify7.js  (сам поднимает server.js на :8080 с быстрым grace)
+// Запуск: node verify7.js  (сам поднимает server.js на свой порт с быстрым grace)
 const puppeteer = require('puppeteer-core');
 const { spawn } = require('child_process');
 const path = require('path');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8482';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => {
@@ -55,7 +55,7 @@ const joinViaForm = async (page, name, code) => {
 (async () => {
     const srv = spawn('node', ['server.js'], {
         cwd: path.join(__dirname, '..', '..'),
-        env: { ...process.env, ARK_GRACE_MS: '4000', ARK_HB_MS: '1000', PORT: '8080' },
+        env: { ...process.env, ARK_GRACE_MS: '4000', ARK_HB_MS: '1000', PORT: '8482' },
         stdio: 'pipe'
     });
     {

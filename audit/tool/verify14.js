@@ -10,7 +10,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const PORT = 8478;
+const PORT = 8486;
 const BASE = `http://127.0.0.1:${PORT}`;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -112,9 +112,9 @@ const listStats = (page) => evl(page, () => ({
         check('5 слов в списке', st.total === 5, st.total);
         check('ровно 1 ✨-слово (фаза 0)', st.rare === 1, st.rare);
         check('минимум 1 небонусное слово', st.notRare >= 1, st.notRare);
-        check('бейдж +25p', st.badge.includes('+25p'), st.badge);
-        check('хинт: koko sanakirjasta + +25p (verify4-parity)', /koko sanakirjasta/.test(st.hint) && /\+25p/.test(st.hint), st.hint);
-        check('индикатор бонуса ✨+25p (без Kierros-дубля)', st.roundLabel.includes('✨+25p') && !/Kierros/.test(st.roundLabel), st.roundLabel);
+        check('бейдж +25p виден на слове', st.badge.includes('+25p'), st.badge);
+        check('хинт удалён из UI', st.hint === '', st.hint);
+        check('roundDisplay удалён из UI', st.roundLabel === '', st.roundLabel);
         check('currentBonusWords ⊆ списка', await evl(page, () =>
             currentBonusWords.length === 1 && currentBonusWords.every(w =>
                 [...document.querySelectorAll('#wordList li')].some(li => li.textContent.includes(w)))),
@@ -126,14 +126,12 @@ const listStats = (page) => evl(page, () => ({
         st = await listStats(page);
         check('3 ✨-слова (фаза 2)', st.rare === 3, st.rare);
         check('≥1 лёгкое слово остаётся', st.notRare >= 1, st.notRare);
-        check('бейдж +100p', st.badge.includes('+100p'), st.badge);
-        check('хинт +100p', /\+100p/.test(st.hint), st.hint);
-        check('индикатор бонуса ✨+100p (без Kierros-дубля)', st.roundLabel.includes('✨+100p') && !/Kierros/.test(st.roundLabel), st.roundLabel);
+        check('бейдж +100p на слове, хинт/индикатор удалены (фаза 2)', st.badge.includes('+100p') && st.hint === '' && st.roundLabel === '', st.badge);
 
         // Phase 1 для полноты
         await setPhaseAndRegen(page, 6, 10); await sleep(400);
         st = await listStats(page);
-        check('фаза 1: 2 ✨-слова +50p', st.rare === 2 && st.badge.includes('+50p'), `${st.rare}/${st.badge}`);
+        check('фаза 1: 2 ✨-слова +50p бейдж', st.rare === 2 && st.badge.includes('+50p'), `${st.rare}/${st.badge}`);
 
         // ============ D. Sanakaaos: проклятые слова без бонуса ============
         console.log('== D. Sanakaaos ==');
@@ -142,11 +140,10 @@ const listStats = (page) => evl(page, () => ({
         st = await listStats(page);
         check('3 💀-проклятых слова', st.cursed === 3, st.cursed);
         check('0 ✨-бонусных слов при каосе', st.rare === 0 && st.bonusArr.length === 0, `${st.rare}/${JSON.stringify(st.bonusArr)}`);
-        check('хинт «ei bonussanoja»', /ei bonussanoja/.test(st.hint), st.hint);
         // Проклятое слово угадано → только базовые 100, без бонуса
         const curIdxD = await evl(page, () => currentPlayerIndex);
         const sBeforeD = await evl(page, () => gamePlayers[currentPlayerIndex].score);
-        await evl(page, () => document.querySelector('#wordList li[data-cursed="true"]').click()); await sleep(250);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li[data-cursed="true"]'))); await sleep(250);
         await tap(page, '#btnGuessed'); await sleep(500);
         const sAfterD = await evl(page, (i) => gamePlayers[i].score, curIdxD);
         check('проклятое слово: +100 без бонуса', sAfterD - sBeforeD === 100, `${sBeforeD}→${sAfterD}`);
@@ -186,9 +183,9 @@ const listStats = (page) => evl(page, () => ({
         await evl(page, () => { selectedWordIndex = -1; updateGuessedButtonsText(); });
         const btnTxt50 = await evl(page, () => document.getElementById('btnGuessed').textContent);
         check('кнопка после морфа: +50p база', btnTxt50.includes('+50p'), btnTxt50);
-        await evl(page, () => document.querySelector('#wordList li[data-rare="true"]').click()); await sleep(250);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li[data-rare="true"]'))); await sleep(250);
         const btnTxtBonus = await evl(page, () => document.getElementById('btnGuessed').textContent);
-        check('превью выплаты с бонусом: +75p (50+25)', btnTxtBonus.includes('+75p'), btnTxtBonus);
+        check('бонус не отражается на кнопке (✨-UI убран): +50p база', btnTxtBonus.includes('+50p'), btnTxtBonus);
 
         // ============ F. endRound: выплаты по фазам ============
         console.log('== F. Scoring ==');
@@ -206,9 +203,9 @@ const listStats = (page) => evl(page, () => ({
         await tap(page, '#btnDisplayWords'); await sleep(400);
         await setPhaseAndRegen(page, 9, 10); await sleep(300);
         const sBefore = await evl(page, () => gamePlayers[0].score);
-        await evl(page, () => document.querySelector('#wordList li[data-rare="true"]').click()); await sleep(250);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li[data-rare="true"]'))); await sleep(250);
         const btnTxt200 = await evl(page, () => document.getElementById('btnGuessed').textContent);
-        check('фаза 2: превью +200p на кнопке', btnTxt200.includes('+200p'), btnTxt200);
+        check('фаза 2: кнопка показывает базу +100p (превью бонуса убрано)', btnTxt200.includes('+100p'), btnTxt200);
         await tap(page, '#btnGuessed'); await sleep(500);
         const sAfter = await evl(page, () => gamePlayers[0].score);
         check('фаза 2: бонусное слово = +200 (100+100)', sAfter - sBefore === 200, `${sBefore}→${sAfter}`);
@@ -217,7 +214,7 @@ const listStats = (page) => evl(page, () => ({
         await evl(page, () => { switchToWords(); }); await sleep(300);
         const sBefore2 = await evl(page, () => gamePlayers[currentPlayerIndex].score);
         const curIdx = await evl(page, () => currentPlayerIndex);
-        await evl(page, () => document.querySelector('#wordList li[data-rare="false"]').click()); await sleep(250);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li[data-rare="false"]'))); await sleep(250);
         await tap(page, '#btnGuessed'); await sleep(500);
         const sAfter2 = await evl(page, (i) => gamePlayers[i].score, curIdx);
         check('небонусное слово = +100 без бонуса', sAfter2 - sBefore2 === 100, `${sBefore2}→${sAfter2}`);

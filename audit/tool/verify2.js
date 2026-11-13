@@ -186,7 +186,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         await roll(page);
         await revealWords(page);
         // select a word
-        await page.click('#wordList li'); await sleep(200);
+        await page.evaluate(() => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(200);
         const selWord = await page.evaluate(() => generatedWordsList[selectedWordIndex]);
         check('word selected', selWord !== undefined && selWord.length > 0, selWord);
         await page.click('#btnToolCanvas'); await sleep(500);
@@ -211,7 +211,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         const th = await page.evaluate(() => currentActiveTheme);
         check('emoji theme rolled', th === 'vain emojit', th);
         await revealWords(page);
-        await page.click('#wordList li'); await sleep(200);
+        await page.evaluate(() => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(200);
         await page.click('#btnToolCanvas'); await sleep(400);
         check('emoji modal open', await page.evaluate(() => document.getElementById('emojiModalOverlay').style.display === 'flex'));
         // type mixed input -> letters/digits stripped

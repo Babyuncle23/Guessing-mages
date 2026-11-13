@@ -51,8 +51,8 @@ const maskState = (page) => evl(page, () => ({
 }));
 const panelState = (page) => evl(page, () => ({
     collapsed: document.getElementById('turnPanelBody').classList.contains('collapsed'),
-    aria: document.getElementById('turnChip').getAttribute('aria-expanded'),
-    controls: document.getElementById('turnChip').getAttribute('aria-controls'),
+    aria: (document.getElementById('btnInfoToggle') || { getAttribute: () => null }).getAttribute('aria-expanded'),
+    controls: (document.getElementById('btnInfoToggle') || { getAttribute: () => null }).getAttribute('aria-controls'),
     chipTheme: document.getElementById('chipTheme').textContent,
     chipThemeDisplay: getComputedStyle(document.getElementById('chipTheme')).display,
     chipTurn: document.getElementById('chipTurn').textContent,
@@ -94,30 +94,42 @@ const startGameAndRoll = async (page, weightId) => {
         await startGameAndRoll(page, 'theme-weight-pantomiimi');
 
         let ps = await panelState(page);
-        // Task 16: pyörä jää näkyviin → harmonikka pysyy kiinni (paitsi vapaavalintainen)
-        check('panel collapsed during wheel-rest (task16)', ps.collapsed === true, JSON.stringify(ps));
-        check('aria-expanded=false while wheel rests', ps.aria === 'false', ps.aria);
-        check('aria-controls -> turnPanelBody', ps.controls === 'turnPanelBody', ps.controls);
+        // Task 23: ❓-infoharmonikka — oletuksena kiinni kaikissa vaiheissa
+        check('info accordion collapsed by default (❓)', ps.collapsed === true && ps.aria === 'false', JSON.stringify(ps));
+        check('❓ aria-controls -> turnPanelBody', ps.controls === 'turnPanelBody', ps.controls);
         // Task 20: teema vain pyörällä levon aikana — chipissä teksti tallennettu mutta piilossa
         check('chip theme hidden during rest, textContent tracks', /PANTOMIIMI/i.test(ps.chipTheme) && ps.chipThemeDisplay === 'none', `${ps.chipTheme} ${ps.chipThemeDisplay}`);
-        check('chip has no player name (scoreboard ▶ only)', ps.chipTurn === '', ps.chipTurn);
+        check('chip shows compact score right (pelajat)', /▶ .+: \d+p · .+: \d+p/.test(ps.chipTurn), ps.chipTurn);
+        check('❓ hidden on wheel screen', await evl(page, () => getComputedStyle(document.getElementById('btnInfoToggle')).display === 'none'));
         check('Näytä sanat CTA visible pre-open', ps.btnDisplay !== 'none', ps.btnDisplay);
+        // Task 22: avatari piilossa ilman taikahahmoa
+        check('no avatar block in basic game', await evl(page, () => {
+            const b = document.querySelector('.player-block');
+            const aw = document.querySelector('.avatar-wrapper');
+            return b.classList.contains('no-avatar') && getComputedStyle(aw).display === 'none';
+        }));
 
         await tap(page, '#btnDisplayWords'); await sleep(500);
         ps = await panelState(page);
-        check('panel collapsed after words open', ps.collapsed === true, JSON.stringify(ps));
-        check('aria-expanded=false while collapsed', ps.aria === 'false', ps.aria);
+        check('panel still collapsed after words open', ps.collapsed === true && ps.aria === 'false', JSON.stringify(ps));
         check('btnDisplayWords gone after open', ps.btnDisplay === 'none', ps.btnDisplay);
         check('no "Piilota sanat" text anywhere visible', await evl(page, () => !/Piilota sanat/i.test(document.body.innerText)));
-        check('chip stays visible when collapsed', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
+        check('chip stays visible', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
 
+        // Chip ei ole harmonikka — klikki ei tee mitään, chevron poistettu DOMista
         await tap(page, '#turnChip'); await sleep(350);
         ps = await panelState(page);
-        check('chip click expands panel', ps.collapsed === false && ps.aria === 'true', JSON.stringify(ps));
-        check('expanded body has content height', await evl(page, () => document.getElementById('turnPanelBody').getBoundingClientRect().height > 50));
-        await tap(page, '#turnChip'); await sleep(350);
+        check('chip click does NOT toggle (chip is static)', ps.collapsed === true, JSON.stringify(ps));
+        check('no chevron element in DOM', await evl(page, () => !document.querySelector('.chip-chevron')));
+
+        // ❓-napin klikki avaa/sulkee info-harmonikan
+        await tap(page, '#btnInfoToggle'); await sleep(350);
         ps = await panelState(page);
-        check('chip click collapses panel', ps.collapsed === true && ps.aria === 'false', JSON.stringify(ps));
+        check('❓ opens info accordion', ps.collapsed === false && ps.aria === 'true', JSON.stringify(ps));
+        check('scoreboard visible inside accordion', await evl(page, () => document.getElementById('turnPanelBody').getBoundingClientRect().height > 50));
+        await tap(page, '#btnInfoToggle'); await sleep(350);
+        ps = await panelState(page);
+        check('❓ closes info accordion', ps.collapsed === true && ps.aria === 'false');
 
         check('pill hidden for non-tool theme', ps.pill === 'none', ps.pill);
         await page.close();
@@ -231,7 +243,7 @@ const startGameAndRoll = async (page, weightId) => {
         await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 }); await sleep(200);
 
         // Valinta toimii
-        await evl(page, () => document.querySelector('#wordList li').click()); await sleep(200);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(200);
         check('word selectable through mask', await evl(page, () => !!document.querySelector('#wordList li.selected-word')));
 
         // Bonus/kirot-badge säilyy listassa

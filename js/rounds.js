@@ -357,10 +357,10 @@ const randomizeTheme = () => {
     btnDisplayWords.style.display = "none";
     roundControls.style.display = 'none';
     wordList.style.display = "none";
-    window.hideBonusHint && window.hideBonusHint();
 
     // TYHJENNETÄÄN OHJETEKSTI VAIN JOS SIITÄ EI OLE SUOJAVIESTIÄ (Tämä estää ylikirjoituksen alussa)
     ruleInstruction.textContent = "";
+    const _vrc0 = document.getElementById('vapaaRuleCard'); if (_vrc0) _vrc0.style.display = 'none';
 
     themeDisplay.textContent = "";
     themeImage.style.display = "none";
@@ -391,6 +391,9 @@ const randomizeTheme = () => {
 
     drumAnim.style.display = "block";
     drumAnim.classList.remove('drum-rest');
+    // Piilota "Aloita kierros" heti kun pyörä käynnistyy — ei roikkunutta
+    // painiketta pyörityksen aikana. Vaihto nappi→pyörä tapahtuu samassa framessa.
+    btn.style.display = "none";
     if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true); // kolmio-chip näkyy, pyörä saa näyttämön
     playAudio(sounds.drum);
     const drumCtx = (typeof window.themeDrum === 'object')
@@ -447,15 +450,15 @@ if (soundUrl) {
 
             btn.style.display = "none";
             updateTurnDisplay();
-            // Harmonikka pysyy kiinni — pyörä näyttää tuloksen. Aukeaa vain
-            // vapaavalintaisessa, koska ohje "keksi oma sana" pitää nähdä.
-            if (typeof setTurnPanelCollapsed === 'function' && randomTheme === "vapaavalintainen") {
-                setTurnPanelCollapsed(false);
-            }
+            // Info-harmonikka pysyy kiinni aina — ohjeet ovat ❓-napin takana.
 
 if (randomTheme === "vapaavalintainen") {
     ruleInstruction.style.display = "block";
     ruleInstruction.textContent = "✨ Keksi täysin oma sana mielessäsi ja selitä se toiselle pelaajalle ilman valmista listaa.";
+    // Sama ohje näkyvänä korttina pyörän alla — ❓-harmonikka ei ole
+    // tavoitettavissa (sanoja ei avata → words-active ei tule koskaan).
+    const vrc = document.getElementById('vapaaRuleCard');
+    if (vrc) { vrc.textContent = ruleInstruction.textContent; vrc.style.display = 'block'; }
     
     btnDisplayWords.style.display = "none";
     roundControls.style.display = 'flex';
@@ -540,6 +543,7 @@ const switchToWords = () => {
     
     // --- ДОБАВЬТЕ ЭТУ СТРОЧКУ СЮДА ---
     ruleInstruction.textContent = ""; // Полностью очищаем старый текст перед выводом новых правил раунда
+    const _vrc1 = document.getElementById('vapaaRuleCard'); if (_vrc1) _vrc1.style.display = 'none';
     // ---------------------------------
     
      // === НАЧАЛО БЛОКА ГЕНЕРАЦИИ СЛОВ ===
@@ -841,12 +845,12 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     wordList.style.display = "none";
     wordList.classList.remove("hidden-words");
     isWordListHidden = true;
-    window.hideBonusHint && window.hideBonusHint();
     btnDisplayWords.style.display = "none";
     btnDisplayWords.textContent = "Näytä sanat (vain selittäjälle)";
     ruleInstruction.textContent = "";
+    const _vrc2 = document.getElementById('vapaaRuleCard'); if (_vrc2) _vrc2.style.display = 'none';
     spellContainer.style.display = "none";
-    if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
+    if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true);
     const _btc = document.getElementById('btnToolCanvas'); if (_btc) _btc.style.display = 'none';
 
     if (themeDisplay) themeDisplay.textContent = "";

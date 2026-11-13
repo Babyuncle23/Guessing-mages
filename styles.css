@@ -423,6 +423,43 @@ button:disabled, .spell-btn:disabled {
     font-weight: bold;
 }
 
+/* ✓-ele: rasti oikeassa reunassa — seuraa sormen alla olevaa riviä,
+   vapautus lukitsee sanan (padding-right jättää tilan rastille) */
+/* #wordListWrap-etuasema voittaa myöhemmät #wordList li -tiivistysmääritykset */
+#wordListWrap #wordList li {
+    padding-right: 40px !important;
+}
+#wordList li::before {
+    content: '✓';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    font-weight: bold;
+    font-size: 15px;
+    color: var(--gold);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease, text-shadow 0.15s ease;
+}
+#wordListWrap.revealing #wordList li::before {
+    opacity: 0.28;
+}
+#wordList li.check-armed {
+    background: rgba(229, 193, 88, 0.09) !important;
+    border-color: rgba(229, 193, 88, 0.45) !important;
+}
+#wordListWrap #wordList li.check-armed::before {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.25);
+    text-shadow: 0 0 10px rgba(229, 193, 88, 0.95), 0 0 4px rgba(229, 193, 88, 0.6);
+}
+#wordListWrap #wordList li.selected-word::before {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    text-shadow: 0 0 6px rgba(229, 193, 88, 0.7);
+}
+
 /* --- YKSITYISYYSVERHO: sanojen "sumu" + yhden rivin lukuikkuna --- */
 #wordListWrap {
     position: relative;
@@ -430,11 +467,14 @@ button:disabled, .spell-btn:disabled {
     width: 100%;
 }
 
-/* Pitkän painalluksen tekstivalinta ei saa "valottaa" sanoja verhon alta */
+/* Pitkän painalluksen tekstivalinta ei saa "valottaa" sanoja verhon alta.
+   touch-action:none: sormen veto ei scrollaa listaa — ✓-rasti liikkuu
+   riveillä; listaa vieritetään vain reunavyöhykkeen autoscrollilla. */
 #wordList {
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+    touch-action: none;
 }
 
 /* Sumu: peittää koko listan — kosketus/hover paljastaa kaiken kerralla */
@@ -548,13 +588,10 @@ button:disabled, .spell-btn:disabled {
     display: none !important;
 }
 
-/* Kierros-badge chipissä: "3/7" näkyy aina ilman harmonikan avaamista */
+/* Kierroslaskuri chipissä: "3/7" pelkkänä tekstinä — ei sisäkkäistä pilleriä */
 .chip-round {
     font-size: 11px;
     color: var(--text-muted);
-    border: 1px solid var(--soft-border);
-    border-radius: 8px;
-    padding: 1px 7px;
     margin-right: 6px;
     flex-shrink: 0;
 }
@@ -576,6 +613,12 @@ button:disabled, .spell-btn:disabled {
 /* Varaa tilaa palkille, jotta viimeinen sana ei jää sen alle */
 #gameContainer.words-active #wordListWrap {
     padding-bottom: 78px;
+}
+
+/* Sanojen aikana teema näkyy chipissä — teemakortti piiloon (ei tuplaa,
+   paneeli pysyy litteänä ja sanalistalle jää tilaa) */
+#gameContainer.words-active #themeBlock {
+    display: none !important;
 }
 
 /* LUOVUTUKSEN PITKÄ PAINALLUS: vahinkotapaus ei päättäydä vuoroa */
@@ -613,9 +656,27 @@ button:disabled, .spell-btn:disabled {
 }
 
 /* --- VUOROPANEELI: harmonikka + tiivis tilannekortti (chip) --- */
+/* Yhtenäinen vuorotieto-kortti: chip + tulostaulu + bonus samassa pinnassa.
+   order 1 + loader order 2 → kortti pysyy aina rummun YLÄPUOLELLA. */
 .turn-panel {
     order: 1;
     width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--soft-border);
+    border-radius: 12px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+}
+#loader {
+    order: 2;
+}
+/* Vapaavalintainen-ohje rummun alla, ennen toimintonappeja (order 6) */
+#vapaaRuleCard {
+    order: 4;
+}
+/* Chipistä tulee kortin otsikkorivi — ei omaa reunaa/taustaa */
+#turnPanelBody {
+    margin-top: 2px;
 }
 
 #turnChipRow {
@@ -623,6 +684,7 @@ button:disabled, .spell-btn:disabled {
     align-items: center;
     gap: 6px;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 #turnChip {
@@ -633,13 +695,12 @@ button:disabled, .spell-btn:disabled {
     align-items: center;
     gap: 8px;
     margin: 0 !important;
-    padding: 7px 12px !important;
+    padding: 2px 4px !important;
     font-size: 12.5px !important;
-    background: rgba(229, 193, 88, 0.07);
-    border: 1px solid var(--soft-border) !important;
-    border-radius: 10px;
+    background: transparent !important; /* osa yhtenäistä vuorotieto-korttia */
+    border: none !important;
     color: #e2daf0;
-    cursor: pointer;
+    cursor: default; /* ei enää harmonikka — chip on staattinen tila-ilmaisin */
     text-align: left;
 }
 
@@ -663,17 +724,14 @@ button:disabled, .spell-btn:disabled {
     flex-shrink: 1;
     min-width: 0;
     font-size: 11.5px;
+    margin-left: auto; /* kompakti pistetaulu aina oikeassa reunassa */
 }
 
-.chip-chevron {
+#chipTurn .chip-score {
     color: var(--gold);
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
+    font-weight: 700;
 }
 
-#turnChip[aria-expanded="false"] .chip-chevron {
-    transform: rotate(-90deg);
-}
 
 /* Piirto/emoji-työkalun pikapainike — näkyy vain sellaisilla ehdoilla */
 .chip-tool-btn {
@@ -692,15 +750,70 @@ button:disabled, .spell-btn:disabled {
     animation: pulse 2s infinite;
 }
 
-/* Harmonikan runko: collapsed -> max-height 0 */
+/* Info-harmonikka: pistetaulu + ohjeet ❓-napin takana — oletuksena kiinni */
 .turn-panel-body {
     overflow: hidden;
     max-height: 900px;
-    transition: max-height 0.25s ease;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease;
 }
-
 .turn-panel-body.collapsed {
     max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+}
+
+/* ❓-info-nappi chipin rivissä — sama visuaalinen kieli kuin muut pyöreät apukuvakkeet */
+.chip-info-btn {
+    flex-shrink: 0;
+    width: 24px !important;
+    min-width: 24px;
+    height: 24px;
+    min-height: 24px;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--soft-border) !important;
+    color: var(--gold);
+    font-size: 13px !important;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+.chip-info-btn[aria-expanded="true"] {
+    background: rgba(229, 193, 88, 0.15);
+    border-color: rgba(229, 193, 88, 0.5) !important;
+}
+@media (hover: hover) {
+    .chip-info-btn:hover {
+        background: rgba(229, 193, 88, 0.08);
+        color: #fff;
+    }
+}
+.chip-info-btn:active {
+    transform: scale(0.94);
+}
+
+/* Huoneen chipit siirtyivät chipin riviin — ei pystysuuntaista marginaalia */
+#turnChipRow .room-code-chip,
+#turnChipRow .net-leave-chip {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+/* Rumpunäytöllä (ei sanoja auki) ❓-harmonikan sijaan näytetään kompakti
+   pistetaulu chipin oikeassa reunassa — "mitä pelaajaa" ei saa piiloutua. */
+#gameContainer:not(.words-active) #btnInfoToggle { display: none !important; }
+#gameContainer.words-active #chipTurn { display: none; }
+
+/* Avatari vain taikahahmoilla: generikko-ikonit piilossa koko lohkossa */
+.player-block.no-avatar .avatar-wrapper {
+    display: none !important;
+}
+.player-block.no-avatar {
+    min-height: 0 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -725,14 +838,16 @@ button:disabled, .spell-btn:disabled {
 }
 
 #turnPanelBody .player-turn-container {
-    /* bleed margin-left:-30px/calc(100%+60px) предназначен для краёв карточки —
-       внутри harmonikka overflow:hidden обрезает его */
+    /* Sama pinta kuin yhtenäinen vuorotieto-kortti — ei sisäistä korttia */
     width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
-    margin-top: 8px !important;
-    margin-bottom: 4px !important;
-    padding: 8px 10px !important;
+    margin-top: 4px !important;
+    margin-bottom: 2px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
 }
 
 #turnPanelBody .rule-instruction {
@@ -740,8 +855,7 @@ button:disabled, .spell-btn:disabled {
     margin: 4px 0 !important;
 }
 
-#turnPanelBody .bonus-hint {
-    font-size: 11px !important;
+#turnPanelBody #ruleInstruction {
     margin: 4px 0 !important;
 }
 
@@ -749,6 +863,16 @@ button:disabled, .spell-btn:disabled {
 #gameContainer.words-active {
     min-height: calc(100dvh - 34px);
     gap: 8px !important;
+    padding-top: 14px !important;  /* ulkokortin 30px tilat sanalistalle */
+    padding-bottom: 14px !important;
+}
+
+/* Vuorotieto-kortti litistyy sanojen ajaksi */
+#gameContainer.words-active .turn-panel {
+    padding: 6px 8px;
+}
+#gameContainer.words-active .player-block {
+    margin-top: 2px !important;
 }
 
 #gameContainer.words-active #wordListWrap {
@@ -840,8 +964,8 @@ button:disabled, .spell-btn:disabled {
     width: 100% !important;
     padding: 12px 14px !important; /* Hieman enemmän ilmaa reunoille */
     border-radius: 12px !important;
-    background: rgba(255,255,255,0.02) !important;
-    border: 1px solid rgba(255,255,255,0.05) !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid var(--soft-border) !important;
     transition: all 0.25s ease !important;
     cursor: pointer !important;
     text-align: left !important;
@@ -1067,23 +1191,40 @@ body.spell-help-modal-open {
     overflow: hidden;
 }
 
-#btnDisplayWords {
+/* Näytä sanat — tarttuva alapalkki ennen sanojen avausta (sama kieli kuin
+   round-controls-block): kortin reunasta irtautuva, peukalolla tavoitettava.
+   #gameContainer-etuliite voittaa myöhemmän "himmennetyn nappi" -ryhmän. */
+#gameContainer #btnDisplayWords {
     /* УБЕРИТЕ ОТСЮДА display: none, пусть им управляет только JS */
     align-items: center !important;
     justify-content: center !important;
-    width: 100% !important;         
-    max-width: 100% !important;
-    margin-top: 12px !important;    
-    margin-bottom: 8px !important;  
-    padding: 10px 16px !important;  
-    font-size: 13px !important;
-    order: 4 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 !important;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 20 !important;
+    border-radius: 14px 14px 0 0 !important;
+    border-bottom: none !important;
+    background: linear-gradient(to top, rgba(13, 10, 24, 0.97) 70%, rgba(13, 10, 24, 0.88)) !important;
+    backdrop-filter: blur(6px);
+}
+
+/* Varaa tilaa tarttuvalle painikkeelle, ettei se peitä rumpua/sisältöä */
+#gameContainer:not(.words-active) {
+    padding-bottom: 80px;
 }
 
 /* Добавим точечный эффект при нажатии (актуально для телефонов), чтобы кнопка физически откликалась */
-#btnDisplayWords:active {
-    background: rgba(229, 193, 88, 0.15) !important;
-    transform: scale(0.98);
+#gameContainer #btnDisplayWords:active {
+    background: linear-gradient(to top, rgba(13, 10, 24, 0.97) 70%, rgba(13, 10, 24, 0.88)) !important;
+    border-color: var(--gold) !important;
+    border-bottom: none !important;
+    color: #fff !important;
+    transform: translateX(-50%) scale(0.99) !important;
 }
 /* --- RUMPUNÄYTTÖ JA ANIMAATIOT --- */
 .drum-animation {
@@ -1486,10 +1627,11 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 
 
 /* --- УМНОЕ СКРЫТИЕ ПУСТОГО БЛОКА ТЕМЫ --- */
+/* Yhtenäinen infokortti: sama pinta kuin muilla UI-korteilla (ei violettia) */
 #themeBlock {
-    display: block; 
-    background: rgba(91, 33, 182, 0.05) !important; 
-    border: 1px solid rgba(91, 33, 182, 0.15) !important; 
+    display: block;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--soft-border) !important;
     border-radius: 12px;
     padding: 6px 12px !important;     /* Сильно сжали внутренние отступы (было 12px 15px) */
     margin-bottom: 8px !important;    /* Уменьшили внешний отступ до следующего блока до 8px */
@@ -1700,16 +1842,18 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 /* ==========================================
    1. ИНСТРУКЦИЯ (Максимально чистая, без лишних рамок и фонов)
    ========================================== */
+/* Yhtenäinen infokortti: sääntöohje näyttää samalta kuin teemakortti/vihjeet */
 .container .rule-instruction, 
 .rule-instruction,
 .container.words-active .theme-text {
     font-size: 12.5px !important;       /* Чуть уменьшили для аккуратности */
     color: var(--text-muted) !important; /* Мягкий, не кричащий цвет текста */
-    background: transparent !important;  /* Полностью прозрачный фон */
-    border: none !important;            /* Убрали рамку, чтобы не дробить интерфейс */
-    padding: 4px 0 !important;          /* Минимальные отступы */
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--soft-border) !important;
+    border-radius: 12px !important;
+    padding: 8px 12px !important;
     margin: 8px 0 !important;
-    border-radius: 0 !important;
+    line-height: 1.4;
 }
 
 /* ==========================================
@@ -1767,8 +1911,8 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     font-weight: bold !important;
     font-family: 'Comfortaa', sans-serif !important;
     background: rgba(255, 255, 255, 0.03) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: rgba(255, 255, 255, 0.4) !important; /* Приглушенный белый цвет текста */
+    border: 1px solid var(--soft-border) !important;
+    color: var(--text-muted) !important;
     cursor: pointer !important;
     box-sizing: border-box;
     /* Уникальное имя анимации, чтобы не ломать лоадер Noniin */
@@ -2028,9 +2172,9 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 }
 
 .theme-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--soft-border);
-    border-radius: 14px;
+    border-radius: 12px;
     /* Сузили боковые отступы внутри карточки, чтобы длинным словам хватило места */
     padding: 12px 6px; 
     display: flex;
@@ -2368,8 +2512,8 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     align-items: flex-start;
     gap: 2px;
     background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
+    border: 1px solid var(--soft-border);
+    border-radius: 12px;
     padding: 10px 14px;
     cursor: pointer;
     text-align: left;
@@ -2753,15 +2897,6 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     border-color: var(--gold);
     color: var(--gold);
     background: rgba(229,193,88,0.1);
-}
-
-/* --- Bonussanan selite sanalistan alla --- */
-.bonus-hint {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-    line-height: 1.4;
-    text-align: center;
 }
 
 /* Huonepelissä vieras ei näe yhden puhelimen asetuksia */

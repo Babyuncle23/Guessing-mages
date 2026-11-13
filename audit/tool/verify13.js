@@ -132,7 +132,7 @@ const myNum = (s) => parseFloat(s || '-999'); // legacy (ei enää käytössä T
         check('touchend: mask back', st.mask === 'block', st.mask);
 
         // valinta toimii verhon läpi
-        await evl(page, () => document.querySelector('#wordList li').click()); await sleep(200);
+        await evl(page, () => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(200);
         check('word still selectable through mask', await evl(page, () => !!document.querySelector('#wordList li.selected-word')));
 
         // ============ B. Verho seuraa listan tilaa ============

@@ -244,7 +244,6 @@ btnGuessed.addEventListener("click", () => {
         // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
         wordList.innerHTML = '';
         wordList.style.display = "none";
-        window.hideBonusHint && window.hideBonusHint();
         endRound(true, guesserIdx);
     };
 
@@ -268,7 +267,6 @@ const doGiveUp = () => {
     // Очищаем HTML и скрываем список, чтобы следующий игрок не видел старые слова
     wordList.innerHTML = '';
     wordList.style.display = "none";
-    window.hideBonusHint && window.hideBonusHint();
 
     endRound(false);
 };
@@ -343,10 +341,11 @@ document.getElementById('btnChangeSettings')?.addEventListener('click', () => {
     document.getElementById('victoryModal').style.display = 'none';
     document.getElementById('characterModal').style.display = 'flex';
 });
-// 4. Sanakorttien klikkauskuuntelija (Lukitsee valitun sanan)
-wordList.addEventListener('click', (e) => {
-    const li = e.target.closest('li');
+// 4. Sanan lukitus — yhteinen polku (✓-ele + tap-varaus TAP_SELECT_ENABLED:lla)
+window.selectWordLi = (li) => {
     if (!li) return;
+    const idx = parseInt(li.getAttribute('data-index'), 10);
+    if (selectedWordIndex === idx) return; // jo lukittu — ei tuplatoistoa
 
     if (typeof playClickSound === 'function') playClickSound();
     
@@ -363,7 +362,7 @@ wordList.addEventListener('click', (e) => {
     li.style.setProperty('border', '1px solid var(--gold)', 'important');
     
     // 3. ЗАПИСЫВАЕМ ИНДЕКС СЛОВА В ПАМЯТЬ
-    selectedWordIndex = parseInt(li.getAttribute('data-index'), 10);
+    selectedWordIndex = idx;
     console.log("Зажато слово с индексом:", selectedWordIndex); // Для проверки в консоли браузера
 
     // Kultainen hehku verhon läpi lukitun rivin kohdalla (teksti ei näy)
@@ -374,6 +373,14 @@ wordList.addEventListener('click', (e) => {
 
     // Huonepeli: kerro muille että sana on lukittu (sisältöä ei paljasteta)
     if (typeof window.netRelayWordLocked === 'function') window.netRelayWordLocked();
+};
+
+// БЭКАП: старый тап-выбор. Вернуть — поставить true (в файле или в консоли).
+window.TAP_SELECT_ENABLED = window.TAP_SELECT_ENABLED ?? false;
+wordList.addEventListener('click', (e) => {
+    if (!window.TAP_SELECT_ENABLED) return;
+    const li = e.target.closest('li');
+    if (li) window.selectWordLi(li);
 });
 
 window.addEventListener('DOMContentLoaded', () => {

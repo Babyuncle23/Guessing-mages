@@ -1,10 +1,10 @@
 // verify5.js — сьют опционального таймера: настройка, тик, таймаут, room-синк
-// Запуск: node verify5.js  (сам поднимает server.js на :8080)
+// Запуск: node verify5.js  (сам поднимает server.js на свой порт)
 const puppeteer = require('puppeteer-core');
 const { spawn } = require('child_process');
 const path = require('path');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8483';
 let pass = 0, fail = 0;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const check = (name, ok, extra = '') => {
@@ -41,7 +41,7 @@ const setTimer = (page, secs) => page.evaluate((s) => {
 }, secs);
 
 (async () => {
-    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), stdio: 'pipe' });
+    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8483' }, stdio: 'pipe' });
     {
         const t0 = Date.now(); let up = false;
         while (Date.now() - t0 < 10000 && !up) {
@@ -106,7 +106,7 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         check('3s timer armed again', await evl(p, () => document.getElementById('turnTimer').style.display === 'block'));
         // Лочим слово — иначе таймаут-сводка намеренно не показывает слово
         // (netShowSummary: "ei valittu -> ei tyhjää riviä", см. verify11)
-        await evl(p, () => document.querySelector('#wordList li').click()); await sleep(200);
+        await evl(p, () => window.selectWordLi(document.querySelector('#wordList li'))); await sleep(200);
         const whoWas = await evl(p, () => currentPlayerIndex);
         await sleep(4000);
         check('timeout auto-ends turn', await evl(p, (w) => currentPlayerIndex !== w, whoWas), '');

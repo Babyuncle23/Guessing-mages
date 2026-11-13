@@ -233,7 +233,7 @@ const drumThemes = (wheelId) => `JSON.stringify([...document.querySelectorAll('#
         await sleep(600);
         await guest.evaluate(() => {
             const li = document.querySelector('#wordList li');
-            if (li) li.click();
+            if (li) window.selectWordLi(li);
         });
         await sleep(300);
         await guest.evaluate(() => document.getElementById('btnGuessed').click());
@@ -299,7 +299,7 @@ const drumThemes = (wheelId) => `JSON.stringify([...document.querySelectorAll('#
             host.evaluate(() => ({
                 game: window.isRoomGame && window.isRoomGame(),
                 modal: document.getElementById('victoryModal').style.display,
-                round: document.getElementById('roundDisplay').textContent,
+                round: document.getElementById('chipRound').textContent,
             })),
             guest.evaluate(() => ({
                 game: window.isRoomGame && window.isRoomGame(),

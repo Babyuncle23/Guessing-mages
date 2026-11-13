@@ -91,7 +91,7 @@ async function shot(page, name) {
         await shot(page, '04-theme-rolled.png');      // theme + "Näytä sanat" button
         await page.click('#btnDisplayWords');
         await sleep(400);
-        await page.click('#wordList li');             // lock first word (selected highlight)
+        await page.evaluate(() => window.selectWordLi(document.querySelector('#wordList li')));             // lock first word (selected highlight)
         await sleep(250);
         await shot(page, '05-word-list.png');
         await page.close();
@@ -169,7 +169,7 @@ async function shot(page, name) {
         // lock the bonus word (gold badge) if present, else first word
         await page.evaluate(() => {
             const rare = document.querySelector('#wordList li[data-rare="true"]');
-            (rare || document.querySelector('#wordList li')).click();
+            window.selectWordLi(rare || document.querySelector('#wordList li'));
         });
         await sleep(200);
         await page.click('#btnGuessed');

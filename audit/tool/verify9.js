@@ -1,12 +1,12 @@
 // audit/tool/verify9.js — megaplan-canvas-space: канвасу больше, кнопкам меньше.
 // Замеряет хедер/канвас/низ drawingModalOverlay и emojiModalOverlay
 // на 360×800, 320×720 и landscape 780×360 + скриншоты.
-// Запуск: node verify9.js  (сам поднимает server.js на :8080)
+// Запуск: node verify9.js  (сам поднимает server.js на свой порт)
 const { spawn } = require('child_process');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const BASE = 'http://127.0.0.1:8080';
+const BASE = 'http://127.0.0.1:8485';
 const OUT = path.join(__dirname, '..', 'screenshots');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -65,7 +65,7 @@ const noOverflow = (m, label) => {
 };
 
 (async () => {
-    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), stdio: 'pipe' });
+    const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8485' }, stdio: 'pipe' });
     let up = false;
     for (let i = 0; i < 20; i++) {
         await sleep(500);
