@@ -924,7 +924,6 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
         ruleInstruction.textContent = "🌱 Kasvupurkaus: saat uuden vuoron, koska arvaus onnistui!";
     }
 
-    updateTurnDisplay();
     roundControls.style.display = 'none';
     btn.style.display = "block";
     btn.disabled = false;
@@ -934,6 +933,8 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     activeCondition1 = "";
     activeCondition2 = "";
     isMetamorphosisUsedThisTurn = false;
+    // NACH den Resets aufrufen — sonst bleibt der alte Ehto-Name im Chip hängen
+    updateTurnDisplay();
 
     // Huonepeli: lähetä lopputulos muille puhelimille
     if (typeof window.netAfterEndRound === 'function') {

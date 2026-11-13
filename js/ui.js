@@ -136,8 +136,11 @@ const updateTurnDisplay = () => {
     // Tiivis tilannekortti (chip): ehto + tiivis pistetaulu oikealla.
     const chipT = document.getElementById('chipTheme');
     if (chipT) {
-        // Ei "🎭 …"-paikkamerkkiä ennen arvontaa — ehtoa ei vielä ole
-        if (currentActiveTheme) {
+        // Ei "🎭 …"-paikkamerkkiä ennen arvontaa — ehtoa ei vielä ole.
+        // Ehto näytetään vain AKTIIVISEN vuoron aikana (#btn piilossa) —
+        // arvatun/päättyneen kierroksen jälkeen chipissä ei saa lukea vanhaa ehtoa.
+        const roundActive = btn && btn.style.display === 'none';
+        if (currentActiveTheme && roundActive) {
             const emoji = (typeof themeImages !== 'undefined') ? (themeImages[currentActiveTheme] || '🎭') : '🎭';
             chipT.textContent = `${emoji} ${currentActiveTheme.toUpperCase()}`;
             chipT.style.display = '';

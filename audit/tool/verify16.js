@@ -237,6 +237,7 @@ const panelState = (page) => evl(page, () => ({
         check('wheel cleared after give up', ws.loader === 'none', ws.loader);
         check('drum-rest cleared after giveup', ws.rest === false);
         check('vapaa card cleared after giveup', await evl(page, () => getComputedStyle(document.getElementById('vapaaRuleCard')).display === 'none'));
+        check('chip theme cleared after round end', await evl(page, () => getComputedStyle(document.getElementById('chipTheme')).display === 'none'));
         check('next-round button back', await evl(page, () => document.getElementById('btn').style.display === 'block'));
         await page.close();
 

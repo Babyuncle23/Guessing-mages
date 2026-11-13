@@ -706,6 +706,7 @@ button:disabled, .spell-btn:disabled {
 
 #chipTheme {
     font-weight: bold;
+    font-size: 14px; /* hieman isompi — ehdon nimi luettavaksi puhelimella */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
