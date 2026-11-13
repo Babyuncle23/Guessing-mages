@@ -648,6 +648,11 @@ const initPrivacyMask = () => {
     // subtree:true — myös lukitun sanan class-vaihdot (selGlow).
     const mo = new MutationObserver(refreshPrivacyMask);
     mo.observe(wordList, { attributes: true, attributeFilter: ['style', 'class'], childList: true, subtree: true });
+    // Hehku mitataan class-mutaation hetkellä, kun li:n `transition: all .2s`
+    // on vielä kesken (font-weight/border) — korjataan kun transition päättyy.
+    wordList.addEventListener('transitionend', (e) => {
+        if (e.target.classList && e.target.classList.contains('selected-word')) updateSelGlow();
+    });
     window.addEventListener('resize', () => requestAnimationFrame(updateSelGlow));
     window.addEventListener('scroll', () => requestAnimationFrame(updateSelGlow), { passive: true });
     refreshPrivacyMask();

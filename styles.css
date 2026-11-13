@@ -1651,13 +1651,18 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
 }
 
 /* --- СТИЛЬ ДЛЯ БЛОКА ЗАКЛИНАНИЙ (Когда JS делает его видимым) --- */
+/* order:1 — зона способностей попадает в группу «над колесом»: по DOM-порядку
+   среди order-1 (turnPanel → themeBlock → spellContainer) она встаёт ровно над
+   #loader (order:2). ВАЖНО: spellContainer обязан оставаться в DOM ПОСЛЕ
+   themeBlock — иначе order:1 не сработает. Плавающая пилюля #btnDisplayWords
+   (fixed bottom:60px) больше не перекрывает кнопки спеллов. */
 #spellContainer {
     background: rgba(0, 0, 0, 0.2) !important; 
     border: 1px solid rgba(255, 255, 255, 0.04) !important; 
     border-radius: 12px;
     margin-top: 5px !important;
     margin-bottom: 8px !important;
-    order: 3 !important;
+    order: 1 !important;
 }
 
 .zone-badge-title {

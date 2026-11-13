@@ -1032,3 +1032,32 @@ body:has(.drum-rest) #themeBlock { display: none; }
   verify4 — **21/21**.
 - Kuvat: `vapaa-spin.png` (ei nappia pyörityksessä), `vapaa-rest.png`
   (pyörä → vapaa-kortti → Arvattu/Luovutan-napit).
+
+## Task 25 — способности над колесом (order-фикс пилюли)
+
+### Ongelma
+`#btnDisplayWords` (`fixed; bottom:60px; z-20`) перекрывал кнопки
+фазы-1 спеллов: `#spellContainer` имел `order:3` и рендерился ПОД
+колесом (order 2) — прямо в зону пилюли. Измерено: spell row 720–765px
+vs pill 722–784px, `elementFromPoint` → пилюля.
+
+### Toteutus
+- `styles.css`: `#spellContainer { order: 3 → 1 }` — зона входит в
+  «над колесом»-группу; по DOM-порядку (turnPanel → themeBlock →
+  spellContainer) встаёт ровно над `#loader`. Колесо не дёргается
+  при появлении спеллов (`#loader { margin-top:auto }`).
+- Инвариант зафиксирован комментарием: spellContainer должен быть в
+  DOM после themeBlock, иначе order:1 не сработает.
+- Новая order-карта: paneli/theme/spells 1 → loader 2 → vapaa 4 →
+  wordList 5 → controls 6 → #btn 7.
+- **Встречный фикс (pre-existing)**: `#selGlow` измерял `li` в момент
+  class-мутации — `transition: all .2s` ещё шёл → hehku vanheni 2px.
+  `updateSelGlow` вызывается теперь и по `transitionend` выбранной
+  строки (`initPrivacyMask`); раньше verify17 падал детерминированно
+  (`h=123 vs 121`), теперь 56/56.
+
+### Tarkistus
+- verify19 — **21/21** (хит-тесты спеллов над колесом, пилюля
+  кликабельна над нижним краем, фаза 2, без-магии, комната).
+- Регрессия: verify16 — **80/80**, verify17 — **56/56**,
+  verify18 — **34/34**.
