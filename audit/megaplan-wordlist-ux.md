@@ -341,3 +341,14 @@ verify16 **67/67** · 15 **42** · 14 **34** · 4 **21** · 17 **56** ·
   verify15 **43/43**, verify14 **34/34**, verify4 **21/21**.
 - Скрины: `audit/vapaa-spin.png` (спин без кнопки),
   `vapaa-rest.png` (колесо→карточка→кнопки).
+
+### Task 24b — «Näytä sanat» als schwebende Pille
+- Problem: fixierte Vollbreiten-Bar am unteren Rand (`bottom:0`) →
+  Daumen/Jest-Gestenzone, unbequem und optisch am Rand geklebt.
+- Jetzt: `bottom:calc(60px+safe-area)`, `border-radius:999px`,
+  `width:calc(100%-40px)`, Gold-Border + Schatten+Blur — schwebt
+  ~25px über dem unteren Radbogen (margin-top:auto drückt das Rad
+  ans Containerende), voll sichtbar und nicht vom Rand abgeschnitten.
+- Reserve-Padding 80→20px, damit das Rad unter die Pille reichen kann.
+- verify16 weiterhin **79/79** (`btnPos=fixed` unverändert).
+- Screenshot: `audit/pill-rest.png`.
