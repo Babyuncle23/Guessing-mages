@@ -423,6 +423,74 @@ button:disabled, .spell-btn:disabled {
     font-weight: bold;
 }
 
+/* --- YKSITYISYYSVERHO: sanojen "sumu" + yhden rivin lukuikkuna --- */
+#wordListWrap {
+    position: relative;
+    order: 5;
+    width: 100%;
+}
+
+/* Pitkän painalluksen tekstivalinta ei saa "valottaa" sanoja verhon alta */
+#wordList {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Sumu: peittää koko listan, ikkuna leikataan mask-gradientilla kohdassa --my */
+#wordMask {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: 10px;
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 6px, transparent 6px 12px),
+        rgba(13, 10, 24, 0.95);
+    mask-image: linear-gradient(to bottom,
+        black calc(var(--my, -999px) - 36px),
+        transparent calc(var(--my, -999px) - 24px),
+        transparent calc(var(--my, -999px) + 24px),
+        black calc(var(--my, -999px) + 36px));
+    -webkit-mask-image: linear-gradient(to bottom,
+        black calc(var(--my, -999px) - 36px),
+        transparent calc(var(--my, -999px) - 24px),
+        transparent calc(var(--my, -999px) + 24px),
+        black calc(var(--my, -999px) + 36px));
+}
+
+/* Kevyt "sanan hajoaminen": hieno rakeisuus rikkoo merkkien ääriviivoja kauempaa katsottuna */
+#wordGrain {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    border-radius: 10px;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='2' cy='2.5' r='1' fill='white' fill-opacity='.6'/%3E%3Ccircle cx='6' cy='6' r='.7' fill='white' fill-opacity='.45'/%3E%3C/svg%3E");
+}
+
+/* Korkean kontrastin / läpinäkymättömyyden pyytäjälle rakeisuus poistuu — teksti pysyy puhtaana */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+    #wordGrain {
+        display: none !important;
+    }
+}
+
+#wordMaskHint {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
 .rule-instruction {
     font-size: 1rem;
     color: var(--text-muted);

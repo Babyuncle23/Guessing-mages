@@ -460,3 +460,60 @@ themeDescriptions` → автоматически попадают во взве
   содержимого обязателен.
 - `themeDescriptions` → innerHTML в help-модале — сетевые/пользовательские
   строки без стрипа `<>` туда нельзя.
+
+---
+
+## Task 13: Yksityisyysverho — «privacy-туман» на списке слов
+
+Цифровой аналог экрана-приватника (как у врачей): список слов объясняющего
+всегда покрыт «туманом», читается через полноширинную полосу-«линейку» под
+пальцем/курсором + тонкий стиппл-слой, дробящий буквы на дистанции. Модель
+угроз — СЛУЧАЙНЫЙ взгляд (игра на честности); слова по-прежнему в DOM.
+Режим всегда включён — без тумблера, настроек и сетевых сообщений.
+
+### Архитектура
+- `index.html`: `#wordListWrap {position:relative}` вокруг `#wordList`;
+  сиблинги `#wordMask` (туман+окно), `#wordGrain` (зерно), `#wordMaskHint`
+  («🤫 Vedä sormella — vain yksi sana näkyy»), все `pointer-events:none`.
+- `styles.css`: окно = `mask-image`/`-webkit-mask-image` `linear-gradient`
+  через `var(--my)` — `black` снаружи (туман), `transparent` внутри
+  (полоса ±24px + фейд ±12px); `--my:-999px` = окна нет. `#wordGrain` —
+  inline SVG-точки, `opacity:.12`; отключается при `prefers-contrast: more` /
+  `prefers-reduced-transparency`. `#wordList` получил `user-select:none`.
+- `js/ui.js`: `initPrivacyMask()` — touch (`-10px` сдвиг выше пальца) и
+  mouse (hover) ставят `--my` относительно ректа МАСКИ; `touchend`/
+  `mouseleave` → `-999px`; синтетические mouse после тача гасит флаг
+  `touchActiveUntil` (700 мс). MutationObserver на `#wordList`
+  (style/class/childList) → `refreshPrivacyMask()` синхронизирует видимость
+  трёх слоёв со ВСЕМИ путями изменения списка (renderOlList, clearWordsBeforeTurn,
+  endRound, toggleWordVisibility, network.js, метаморфоза, Sanakaaos).
+
+### Сетевой аспект
+Ноль зависимостей от сети/протокола: маска живёт на устройстве объясняющего
+рядом со словами — при обрыве ws продолжает работать; у угадывающих слоёв
+нет в принципе (слова и раньше не уходили в сеть).
+
+### Проверка
+- `audit/tool/verify13.js` — **29/29**: видимость слоёв, градиент, --my по
+  touch/mouse (учёт сдвига −10 и margin-коробки wrapper'а), выбор слова
+  сквозь маску, hidden-words, перерендер, endRound, prefers-contrast,
+  room-режим (маска только у объясняющего), оффлайн-устойчивость, 0 ошибок.
+- Скриншоты `audit/screenshots/pm-*.png` (shoot-pm.js).
+- Регрессия: verify 39 + verify2 67 + verify4 21 + verify6 44 + verify7 28 +
+  verify8 18 + verify9 26 + verify10 40 + verify11 34 + verify12 41 = все зелёные.
+  **Известные предсуществующие провалы** (не связаны с задачей, дрейф после
+  Task 11): verify3 — 2 FAIL (emoji-тема у гостя: `netGetThemeWeights` теперь
+  берёт cfg.weights хоста, а не DOM гостя); verify5 — 1 FAIL («summary reveals
+  the word»: Task 11 намеренно прячет слово при отсутствии выбора).
+  Подтверждено прогоном на чистом HEAD (git stash).
+
+### Подводные камни
+- `mask-image` градиент: `black` = туман виден, `transparent` = дырка —
+  полярность легко перепутать (поймано скриншотом, не тестами).
+- `--my` отсчитывается от ректа `#wordMask` (= `#wordListWrap`), который
+  включает margin-коробку `<ol>` — flex-item не пропускает margin-collapse
+  наружу; координаты считать строго от `maskRect`.
+- `touchmove` passive + без preventDefault — список скроллится, полоса
+  остаётся под пальцем; `pointercancel`-проблем обходимся без Pointer Events.
+- MutationObserver-колбэки отрабатывают до следующего кадра — мигания нет;
+  прямой вызов `refreshPrivacyMask()` в `renderOlList` — подстраховка.

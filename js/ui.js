@@ -170,6 +170,8 @@ const renderOlList = () => {
     if (typeof updateGuessedButtonsText === 'function') {
         updateGuessedButtonsText();
     }
+    // Yksityisyysverho heti päälle — MutationObserver varmistaa myös muut polut
+    if (typeof refreshPrivacyMask === 'function') refreshPrivacyMask();
 };
 
 window.hideBonusHint = () => {
@@ -332,6 +334,82 @@ document.addEventListener('DOMContentLoaded', () => {
     bindHoldToPeek(document.getElementById('btnPeekDraw'));
     bindHoldToPeek(document.getElementById('btnPeekEmoji'));
 });
+
+// --- PRIVACY MASK: sanat luetaan yhden rivin ikkunasta, muu lista "sumussa" ---
+// Puhtaasti paikallinen efekti: ei relay-viestejä, ei asetuksia — toimii myös
+// verkkokatkon aikana. Vastakohta satunnaiselle vilkaisulle, ei varsinainen
+// salaus (sanat ovat silti DOMissa, kuten ennenkin).
+const wordMask = document.getElementById('wordMask');
+const wordGrain = document.getElementById('wordGrain');
+const wordMaskHint = document.getElementById('wordMaskHint');
+let privacyPointerInside = false;
+let touchActiveUntil = 0;
+
+const setMaskWindowY = (clientY) => {
+    if (!wordMask) return;
+    const r = wordMask.getBoundingClientRect();
+    const y = Math.min(Math.max(clientY - r.top, 0), r.height);
+    wordMask.style.setProperty('--my', y + 'px');
+};
+
+const hideMaskWindow = () => {
+    if (wordMask) wordMask.style.setProperty('--my', '-999px');
+};
+
+const refreshPrivacyMask = () => {
+    if (!wordMask || typeof wordList === 'undefined' || !wordList) return;
+    const on = wordList.children.length > 0 &&
+               wordList.style.display !== 'none' &&
+               !wordList.classList.contains('hidden-words');
+    wordMask.style.display = on ? 'block' : 'none';
+    if (wordGrain) wordGrain.style.display = on ? 'block' : 'none';
+    if (wordMaskHint) wordMaskHint.style.display = (on && !privacyPointerInside) ? 'flex' : 'none';
+    if (!on) hideMaskWindow();
+};
+window.refreshPrivacyMask = refreshPrivacyMask;
+
+const initPrivacyMask = () => {
+    if (!wordMask || !wordList) return;
+
+    // Kosketus: ikkuna hieman sormen yläpuolella (sormi ei peitä sanaa)
+    wordList.addEventListener('touchstart', (e) => {
+        touchActiveUntil = Date.now() + 700;
+        privacyPointerInside = true;
+        setMaskWindowY(e.changedTouches[0].clientY - 10);
+        refreshPrivacyMask();
+    }, { passive: true });
+    wordList.addEventListener('touchmove', (e) => {
+        touchActiveUntil = Date.now() + 700;
+        setMaskWindowY(e.changedTouches[0].clientY - 10);
+    }, { passive: true });
+    const touchEnd = () => {
+        privacyPointerInside = false;
+        hideMaskWindow();
+        refreshPrivacyMask();
+    };
+    wordList.addEventListener('touchend', touchEnd, { passive: true });
+    wordList.addEventListener('touchcancel', touchEnd, { passive: true });
+
+    // Hiiri: ikkuna seuraa kursoria ilman painallusta
+    wordList.addEventListener('mousemove', (e) => {
+        if (Date.now() < touchActiveUntil) return; // synteettiset mouse-tapahtumat touchin jälkeen
+        privacyPointerInside = true;
+        setMaskWindowY(e.clientY);
+        refreshPrivacyMask();
+    });
+    wordList.addEventListener('mouseleave', () => {
+        privacyPointerInside = false;
+        hideMaskWindow();
+        refreshPrivacyMask();
+    });
+
+    // Itsenäinen suoja: verho seuraa listan tilaa riippumatta siitä,
+    // mikä koodipolku listaa muutti (metamorfoosi, huonepeli, endRound…)
+    const mo = new MutationObserver(refreshPrivacyMask);
+    mo.observe(wordList, { attributes: true, attributeFilter: ['style', 'class'], childList: true });
+    refreshPrivacyMask();
+};
+initPrivacyMask();
 
 // --- "KUKA ARVASI?" -MODAALI (3 pelaajan vapaa kaikkien peli) ---
 // callback(guesserIndex) kutsutaan valinnan jälkeen; Peruuta -> callback(-1)

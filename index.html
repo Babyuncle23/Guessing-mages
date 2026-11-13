@@ -582,7 +582,13 @@
 
     <!-- SANALISTA JA OHJEET -->
   <!-- SANALISTA JA OHJEET -->
-    <ol id="wordList" style="display: none;"></ol>
+    <!-- Yksityisyysverho: sanat luetaan yhden rivin ikkunasta sormen/kursorin alla -->
+    <div id="wordListWrap">
+        <ol id="wordList" style="display: none;"></ol>
+        <div id="wordMask" style="display: none;"></div>
+        <div id="wordGrain" style="display: none;"></div>
+        <div id="wordMaskHint" style="display: none;">🤫 Vedä sormella — vain yksi sana näkyy</div>
+    </div>
     <p id="bonusHint" class="bonus-hint" style="display: none;">✨-merkitty sana arvotaan koko sanakirjasta — usein harvinainen! Selitä se ja saat +25p.</p>
 
     <div id="ruleInstruction" class="rule-instruction"></div>
