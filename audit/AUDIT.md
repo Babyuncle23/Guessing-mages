@@ -628,3 +628,146 @@ themeDescriptions` → автоматически попадают во взве
   verify14 **37** — **0 FAIL**.
 - Скриншоты: `audit/screenshots/wl-collapsed.png`, `wl-expanded.png`,
   `wl-strip-window.png`, `wl-reveal-all.png`, `wl-tool-pill.png`.
+
+## Task 16: Остановившееся колесо вместо карточки темы до «Näytä sanat»
+
+Цель: на фазе «тема выбрана, слова ещё закрыты» показывать просто, где
+остановилось колесо — без развёрнутой гармошки/карточки. Колесо уходит
+только при нажатии «Näytä sanat». Гость в комнате — зеркально до `WORDS_OPEN`.
+
+### Что сделано
+- **Селиттёря (`js/rounds.js`)**: `randomizeTheme` больше не прячет `#loader`
+  после лендинга — колесо остаётся замороженным на результате (`.landed`,
+  хаб = тема). При старте спина `setTurnPanelCollapsed(true)` + caption
+  «Noniin...» → после лендинга caption = имя темы, класс `.drum-rest`
+  (выключает бесконечный `pulse`, `styles.css`). Панель разворачивается
+  **только для vapaavalintainen** — её инструкция «keksi oma sana» обязательна.
+- **`switchToWords`**: `#loader` скрывается + `themeDrum.destroy(drumWheel._drum)`
+  — колесо уходит ровно при открытии слов. `endRound` — страховочное скрытие
+  (vapaavalintainen/досрочный конец хода).
+- **Гость (`js/network.js`)**: `ngSpinDrumTo`/`ngLandDrum` больше не прячут
+  `#ngDrum` после лендинга — замороженное колесо + `.drum-rest` + caption.
+  Флаг `_ngWheelRest`: пока колесо на сцене, `ngApplyTheme` наполняет
+  `#ngThemeBlock` данными, но держит скрытым. `WORDS_OPEN` → `ngDrum`
+  скрывается, карточка темы появляется. Rejoin гостя в theme-фазу →
+  замороженное колесо (`mount` + `spinTo(ctx, theme, 0, 0)`).
+- **Попутный фикс**: цепочка `else` в конце `randomizeTheme` затирала
+  инструкцию vapaavalintainen (`textContent=""` после её установки) —
+  теперь очистка только для прочих тем. Баг был скрытым, всплыл тестом.
+- **Cleanup**: `netCleanupTurnUI`/`netSkipOneTurn`/rejoin уже прячут
+  `#loader`/`#ngDrum` — добавлен сброс `drum-rest`/`_ngWheelRest` рядом.
+
+### Проверка
+- `audit/tool/verify16.js` — **37/37**: колесо видно+`.landed`+`.drum-rest`+
+  хаб+caption=тема; панель collapsed + CTA; «Näytä sanat» → колесо скрыто;
+  vapaavalintainen — колесо+панель expanded+инструкция+нет CTA, giveup чистит;
+  комната — у гостя `ngDrum` lepää до `WORDS_OPEN` → карточка темы.
+- `verify15.js`: ожидание «expanded at theme reveal» → «collapsed при
+  wheel-rest» (намеренная смена). **41/41**.
+- Регрессия: verify **39**, verify2 **67**, verify4 **21**, verify11 **34**,
+  verify12 **41**, verify13 **29**, verify14 **37** — **0 FAIL**.
+- Скриншоты: `audit/screenshots/wr-wheel-rest.png`,
+  `wr-wheel-rest-expanded.png`, `wr-words-open.png` (`shoot-wr.js`).
+
+### Нюансы
+- rAF на фоновой вкладке приостанавливает спин — на реальном устройстве
+  экран на переднем плане, проблемы нет (в тестах обходится `bringToFront`).
+- Rejoin селиттяги в theme-фазу показывает чип+CTA без колеса (состояние
+  барабана не восстановить — приемлемая деградация).
+
+## Task 17: «Немое» большое колесо за правым краем + аудит дублей
+
+Цель: на wheel-rest фазе имя темы дублировалось 3 раза (хаб + подпись + чип).
+Теперь колесо — чисто визуальный индикатор: большое, уходит за правый край,
+без текста; выпавший сектор подсвечен. Имя темы — один раз в чипе.
+
+### Что сделано
+- **Колесо больше + вылет** (`styles.css`): `.theme-drum` `min(150vw,500px)`,
+  `margin-right:-12%` — ~75% видно, обрезает `.container{overflow:hidden}`.
+- **Указатель слева**: `.theme-drum-pointer` на 9 часах (`left:4px; top:50%`),
+  glyph `▼`→`▶` (`index.html` ×2), `drumTick`-анимация под новый transform.
+- **Текст убран**: `.theme-drum-hub` и `.drum-caption` → `display:none`;
+  caption-записи в JS удалены (мёртвый код Task 16). Hub-`textContent`
+  продолжает писаться — скрытый источник истины для тестов.
+- **Подсветка сектора** (`themeDrum.finish`): `.theme-drum-wedge` —
+  conic-gradient по `a0..a1` выпавшего сектора (золото 42%); у победного
+  `.theme-drum-item` `.winner` — font-size 52px + `::after` кольцо-свечение;
+  остальные эмодзи `opacity:.35` на `.landed`.
+- **Геометрия указателя**: `POINTER_DEG=270` в `themeAt`/`spinTo`/`land`
+  — приземление целит под левый край колеса.
+- **Зеркально у гостя** — общие классы `.theme-drum`, тот же `finish`.
+
+### Аудит дублей по всей игре
+| Место | Вердикт |
+|---|---|
+| Тема: хаб+подпись+чип+карточка (×4) | **Исправлено** → чип + карточка по тапу |
+| Эмодзи темы: колесо/карточка/чип | Разные роли — оставлено |
+| `▶ игрок` чип vs `Vuoro:` скорборд | summary↔detail — оставлено |
+| `ngTheme` vs `ngStatus` | Разное содержимое — оставлено |
+| `ruleInstruction` vs `ⓘ`-модалка | Инлайн-фаза vs справочник — оставлено |
+| `+25P` vs `bonusHint` vs ✨-бейджи | Механика vs объекты — оставлено |
+| Таймер бар+секунды | Один виджет — ок |
+
+### Проверка
+- `verify16.js` — **46/46**: bleed справа, hub/caption `display:none`,
+  wedge + winner=тема + указатель слева, локал+vapaavalintainen+комната.
+- `verify8.js` — **20/20**: обновлены формула указателя (270°) и ожидания
+  гостя (колесо до WORDS_OPEN — intended change Task 16/17).
+- Регрессия: verify **39**, verify2 **67**, verify4 **21**, verify11 **34**,
+  verify12 **41**, verify13 **29**, verify14 **37**, verify15 **41** — 0 FAIL.
+- Скриншоты: `wr-wheel-rest.png`, `wr-wedge-multi.png`, `wr-words-open.png`.
+
+## Task 18: UX-пакет — sticky-бар, hold-сдача, «коснулся=весь список», свечение выбора
+
+Цель: продолжение UX-мегаплана по выбору пользователя. Четыре нововведения +
+смена жеста вуали; handoff-строка и ⚙-настройки отклонены.
+
+### Что сделано
+- **Sticky-панель действий** (`styles.css`): при `.words-active` блок
+  `roundControls` (Arvattu / Luovutan / steal) — `position:fixed` у нижнего
+  края, градиентный фон, `env(safe-area-inset-bottom)`, z-index 20;
+  `#wordListWrap` получает `padding-bottom:78px`, чтобы последняя строка
+  не пряталась под панелью.
+- **Сдача по удержанию 1 с** (`js/main.js`): `doGiveUp()` вынесена из
+  click-handler; `pointerdown`/`keydown(Enter|Space)` запускают
+  `.holding` + `gp-fill` (scaleX 0→1 за 1 с), отпуск раньше — отмена.
+  Обычный `click` → `.hold-hint` встряска ~1.4 с, ход НЕ завершается.
+  `window._devConfirmGiveUp` — осознанный обход для модалок/тестов;
+  `btnEmojiGiveUp` и `btnModalGiveUp` вызывают его напрямую.
+- **Вуаль упрощена** (`js/ui.js`): удалены полоса-окно (`--my`/`--wh`),
+  hold-350 ms и fitWindowToRow. Теперь `touchstart`/`touchmove` или
+  `mouseenter`/`mousemove` → `.revealing` = весь список; `touchend`/
+  `mouseleave` → туман обратно. Маска — сплошная (без mask-image).
+  Хинт → «🤫 Kosketa — näet sanat».
+- **Свечение выбора** (`#selGlow` + `updateSelGlow`): золотой
+  radial-blur элемент (z-index:4, над туманом z:3) на позиции
+  `li.selected-word` — видна только локация строки, текст остаётся
+  под вуалью. Прячется при `.revealing`/`mask off`; обновляется по
+  MutationObserver (subtree:true), scroll/resize и явному вызову из
+  обработчика выбора.
+- **Бейдж раунда**: `#chipRound` в чипе (`3/7`) из `formatRoundCounter()`.
+- **Онбординг**: `#veilCoach` — одно облачко один раз (localStorage
+  `veilCoachV1`), fade за 4 с или первый жест.
+- **Хинт тускнеет**: `.hint-dim` (opacity .4, 11px) после первого жеста.
+
+### Тест-правки (intended changes)
+- Все `.click()` по `btnGiveUp` в verify2/5/7/11/12/16 →
+  `window._devConfirmGiveUp()` (в verify12 — внутри `playTurn`).
+- `verify13`/`verify15`: проверки полосы/`--wh` переписаны на мгновенный
+  reveal-all; добавлены `hint-dim`, `mask-on`, solid-mask проверки.
+- `verify5`: `summary reveals the word` — добавлен `li.click()` перед
+  таймаутом (протухшее ожидание: без выбранного слова `tsWord` намеренно
+  скрыт — см. verify11 «no dash when unselected»).
+
+### Проверка
+- `verify17.js` — **42/42**: sticky-бар (fixed/bottom/z/padding), chipRound,
+  мгновенный reveal (touch+mouse), selGlow (позиция/переход/скрытие),
+  coach once + localStorage-флаг, hint-dim, hold-сдача
+  (click≠сдача + hold-hint, <1 с≠сдача, 1 с=endRound).
+- Регрессия: verify **39**, verify2 **67**, verify4 **21**, verify5 **36**,
+  verify7 **28**, verify8 **20**, verify11 **34**, verify12 **41**,
+  verify13 **32**, verify14 **37**, verify15 **41**, verify16 **46** — 0 FAIL.
+- verify3: 43+2 предсуществующих (emoji у гостя — дрейф, не связано).
+- Скриншоты: `wl-coach.png`, `wl-collapsed.png`, `wl-expanded.png`,
+  `wl-selglow.png`, `wl-reveal-hover.png`, `wl-giveup-hold.png`,
+  `wl-tool-pill.png`.

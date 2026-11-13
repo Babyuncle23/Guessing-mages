@@ -259,7 +259,9 @@ btnGuessed.addEventListener("click", () => {
     }
 });
 
-btnGiveUp.addEventListener("click", () => {
+// Luovutus suoritetaan vasta 1 s pohjassapidon jälkeen — vahinkonapautus
+// ei saa päättää vuoroa (puhelin liikkuu kädestä käteen).
+const doGiveUp = () => {
     playClickSound();
     if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
 
@@ -269,7 +271,48 @@ btnGiveUp.addEventListener("click", () => {
     window.hideBonusHint && window.hideBonusHint();
 
     endRound(false);
+};
+window._devConfirmGiveUp = doGiveUp;
+
+let giveUpHoldTimer = null;
+const cancelGiveUpHold = () => {
+    if (giveUpHoldTimer) { clearTimeout(giveUpHoldTimer); giveUpHoldTimer = null; }
+    btnGiveUp.classList.remove('holding');
+};
+const startGiveUpHold = () => {
+    if (giveUpHoldTimer) return; // jo käynnissä / keydown-repeat
+    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+    btnGiveUp.classList.add('holding');
+    giveUpHoldTimer = setTimeout(() => {
+        giveUpHoldTimer = null;
+        btnGiveUp.classList.remove('holding');
+        doGiveUp();
+    }, 1000);
+};
+btnGiveUp.addEventListener('pointerdown', startGiveUpHold);
+btnGiveUp.addEventListener('pointerup', cancelGiveUpHold);
+btnGiveUp.addEventListener('pointerleave', cancelGiveUpHold);
+btnGiveUp.addEventListener('pointercancel', cancelGiveUpHold);
+btnGiveUp.addEventListener('blur', cancelGiveUpHold);
+btnGiveUp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        startGiveUpHold();
+    }
 });
+btnGiveUp.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        cancelGiveUpHold();
+    }
+});
+btnGiveUp.addEventListener('click', (e) => {
+    // Pelkkä napautus/ohjelmallinen click ei luovuta — näytetään vihje
+    e.preventDefault();
+    btnGiveUp.classList.add('hold-hint');
+    setTimeout(() => btnGiveUp.classList.remove('hold-hint'), 1400);
+});
+btnGiveUp.title = 'Pidä pohjassa 1 s luovuttaaksesi';
 
 // RYÖSTÖ: vastustaja arvasi ensin (4+ joukkuemoodi)
 const handleStealClick = () => {
@@ -322,6 +365,9 @@ wordList.addEventListener('click', (e) => {
     // 3. ЗАПИСЫВАЕМ ИНДЕКС СЛОВА В ПАМЯТЬ
     selectedWordIndex = parseInt(li.getAttribute('data-index'), 10);
     console.log("Зажато слово с индексом:", selectedWordIndex); // Для проверки в консоли браузера
+
+    // Kultainen hehku verhon läpi lukitun rivin kohdalla (teksti ei näy)
+    if (typeof window.updateSelGlow === 'function') window.updateSelGlow();
 
     // Обновляем кнопку "Arvattu oikein" — покажет превью выплаты с бонусом
     if (typeof updateGuessedButtonsText === 'function') updateGuessedButtonsText();

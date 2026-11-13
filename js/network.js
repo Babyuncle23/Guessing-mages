@@ -615,7 +615,7 @@
     const ngStatus = (txt) => { const el = $('ngStatus'); if (el) el.innerHTML = txt; };
 
     // ---------- Ruletti arvaajien ruudulla ----------
-    let _ngDrumCtx = null;
+    let _ngDrumCtx = null, _ngWheelRest = false;
     const ngSectorsFromUI = () => {
         if (typeof getThemeWeightsFromUI !== 'function') return [{ theme: 'perusvaihtoehto', w: 1 }];
         const w = getThemeWeightsFromUI();
@@ -624,6 +624,8 @@
     };
     const ngStartDrum = (spin) => {
         $('ngDrum').style.display = 'block';
+        $('ngDrum').classList.remove('drum-rest');
+        _ngWheelRest = false;
         $('ngThemeBlock').style.display = 'none';
         ngStatus('');
         const wheel = $('ngDrumWheel');
@@ -638,10 +640,8 @@
             _ngDrumCtx = null;
             const ms = themeDrum.land(ctx, theme); // fysiikkajarrutus, palauttaa keston
             setTimeout(cb, 250); // teemakortin data täytetään jo rummun ollessa näkyvissä
-            setTimeout(() => {
-                themeDrum.destroy(ctx);
-                const d = $('ngDrum'); if (d) d.style.display = 'none';
-            }, ms + 120); // pyörä piilotetaan vasta kun se on pysähtynyt
+            // Pyörä jää näkyviin pysähtyneenä kunnes sanat aukeavat (WORDS_OPEN)
+            setTimeout(() => { const d = $('ngDrum'); if (d) d.classList.add('drum-rest'); }, ms + 120);
         } else cb();
     };
     const ngStopDrum = () => { if (_ngDrumCtx) { themeDrum.destroy(_ngDrumCtx); _ngDrumCtx = null; } };
@@ -658,7 +658,7 @@
         activeCondition1 = theme;
         ngStopDrum(); // no-op jos landaus vielä käynnissä (_ngDrumCtx=null)
         const tb = $('ngThemeBlock');
-        tb.style.display = 'block';
+        tb.style.display = _ngWheelRest ? 'none' : 'block'; // pyörä näyttää tuloksen kunnes sanat aukeavat
         $('ngTheme').textContent = theme.toUpperCase();
         const em = $('ngThemeEmoji');
         em.textContent = (typeof themeImages !== 'undefined' && themeImages[theme]) || '';
@@ -671,6 +671,7 @@
     // sekä vanhalle land-mallille että yhdistetylle pyöräytykselle.
     const applyLandedTheme = (theme) => {
         _netPhase = 'theme';
+        _ngWheelRest = true; // rumpu jää näytölle — kortti odottaa WORDS_OPENia
         ngApplyTheme(theme);
         if (typeof window.playThemeEffect === 'function' && typeof themeSounds !== 'undefined' && themeSounds[theme]) {
             window.playThemeEffect(themeSounds[theme]);
@@ -691,9 +692,9 @@
             applyLandedTheme(theme);
         }, Math.max(0, ms - 250));
         _ngLandT2 = setTimeout(() => {
-            themeDrum.destroy(ctx);
-            if (_ngDrumCtx === ctx) _ngDrumCtx = null;
-            const d = $('ngDrum'); if (d) d.style.display = 'none';
+            if (_ngDrumCtx === ctx) _ngDrumCtx = null; // ctx jää eloon wheelEl._drum:ssa
+            // Pyörä jää lepäämään näkyviin kunnes sanat aukeavat
+            const d = $('ngDrum'); if (d) d.classList.add('drum-rest');
         }, ms + 120);
     };
 
@@ -925,8 +926,9 @@
         ngStopDrum();
         _netSpin = null;
         _netRoll = null;
-        const ngd = $('ngDrum'); if (ngd) ngd.style.display = 'none';
-        const ldr = $('loader'); if (ldr) ldr.style.display = 'none';
+        _ngWheelRest = false;
+        const ngd = $('ngDrum'); if (ngd) { ngd.style.display = 'none'; ngd.classList.remove('drum-rest'); }
+        const ldr = $('loader'); if (ldr) { ldr.style.display = 'none'; ldr.classList.remove('drum-rest'); }
         if (window.hidePeekWord) window.hidePeekWord();
         const cb = $('curseBanner'); if (cb) cb.style.display = 'none';
         ngCurseBanner(null);
@@ -1095,7 +1097,19 @@
                     ngSpinDrumTo(_netRoll.theme, Math.max(350, left));
                 }
             } else if (_netPhase === 'theme' || _netPhase === 'words' || _netPhase === 'locked') {
-                if (currentActiveTheme) ngApplyTheme(currentActiveTheme);
+                if (currentActiveTheme && _netPhase === 'theme' && typeof window.themeDrum === 'object' && $('ngDrumWheel')) {
+                    // Rejoin kesken teemavaiheen: näytä pysähtynyt pyörä (kortti aukeaa WORDS_OPENissa)
+                    _ngWheelRest = true;
+                    ngApplyTheme(currentActiveTheme); // täyttää kortin datan, näyttö jää piiloon
+                    const d = $('ngDrum');
+                    d.style.display = 'block';
+                    d.classList.add('drum-rest');
+                    _ngDrumCtx = themeDrum.mount($('ngDrumWheel'), ngSectorsFromUI(), $('ngDrumHubName'));
+                    themeDrum.spinTo(_ngDrumCtx, currentActiveTheme, 0, 0);
+                } else if (currentActiveTheme) {
+                    _ngWheelRest = false;
+                    ngApplyTheme(currentActiveTheme);
+                }
                 ngStatus(_netPhase === 'theme' ? 'Selittäjä valmistautuu…' : 'Selittäjä katsoo sanoja — arvatkaa!');
             }
         }
@@ -1201,6 +1215,11 @@
             case 'WORDS_OPEN':
                 if (!isFromExplainer(m)) break;
                 _netPhase = 'words';
+                // Lepäävä rumpu väistyy — teemakortti tilalle (data jo täytetty)
+                _ngWheelRest = false;
+                { const nd = $('ngDrum'); if (nd) { nd.style.display = 'none'; nd.classList.remove('drum-rest'); }
+                  const nw = $('ngDrumWheel'); if (nw && nw._drum && typeof window.themeDrum === 'object') themeDrum.destroy(nw._drum);
+                  const ntb = $('ngThemeBlock'); if (ntb && currentActiveTheme) ntb.style.display = 'block'; }
                 ngStatus(`Selittäjä katsoo sanoja (${ev.count} kpl) — arvatkaa!`);
                 ngTimerStart(ev.timer);
                 break;

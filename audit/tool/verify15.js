@@ -45,8 +45,7 @@ const forceTheme = (page, weightId) => evl(page, (id) => {
 const maskState = (page) => evl(page, () => ({
     mask: getComputedStyle(document.getElementById('wordMask')).display,
     hint: document.getElementById('wordMaskHint').style.display,
-    my: document.getElementById('wordMask').style.getPropertyValue('--my'),
-    wh: document.getElementById('wordMask').style.getPropertyValue('--wh'),
+    hintDim: document.getElementById('wordMaskHint').classList.contains('hint-dim'),
     revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
     lis: document.querySelectorAll('#wordList li').length
 }));
@@ -94,8 +93,9 @@ const startGameAndRoll = async (page, weightId) => {
         await startGameAndRoll(page, 'theme-weight-pantomiimi');
 
         let ps = await panelState(page);
-        check('panel expanded during theme reveal', ps.collapsed === false, JSON.stringify(ps));
-        check('aria-expanded=true while expanded', ps.aria === 'true', ps.aria);
+        // Task 16: pyörä jää näkyviin → harmonikka pysyy kiinni (paitsi vapaavalintainen)
+        check('panel collapsed during wheel-rest (task16)', ps.collapsed === true, JSON.stringify(ps));
+        check('aria-expanded=false while wheel rests', ps.aria === 'false', ps.aria);
         check('aria-controls -> turnPanelBody', ps.controls === 'turnPanelBody', ps.controls);
         check('chip shows theme name', /PANTOMIIMI/i.test(ps.chipTheme), ps.chipTheme);
         check('chip shows current player', /▶/.test(ps.chipTurn) && ps.chipTurn.length > 2, ps.chipTurn);
@@ -145,48 +145,44 @@ const startGameAndRoll = async (page, weightId) => {
         check('emoji close auto-unhides words', await evl(page, () => isWordListHidden === false));
         await page.close();
 
-        // ============ C. Paljastus: --wh + pidä pohjassa ============
-        console.log('== C. Adaptive window + hold-reveal ==');
+        // ============ C. Paljastus: kosketus/hover -> koko lista ============
+        console.log('== C. Touch/hover reveals all ==');
         page = await newPage(browser);
         await startGameAndRoll(page, 'theme-weight-pantomiimi');
         await tap(page, '#btnDisplayWords'); await sleep(500);
 
         let st = await maskState(page);
-        const rowH = await evl(page, () => document.querySelector('#wordList li').offsetHeight);
-        const whNum = parseFloat(st.wh || '0');
-        check('--wh adaptive (≈ row*0.6)', Math.abs(whNum - rowH * 0.6) < 3, `${st.wh} vs row ${rowH}`);
-        check('--wh window covers ~1.2 rows', whNum * 2 >= rowH, `${whNum * 2} vs ${rowH}`);
+        check('idle: fog on, not revealing', st.mask === 'block' && st.revealing === false, JSON.stringify(st));
 
-        // Nopea liuku -> vain kaistale, ei revealing-tilaa
-        await touchOn(page, 'touchstart', 0.2); await sleep(60);
-        await touchOn(page, 'touchmove', 0.5); await sleep(60);
-        await touchOn(page, 'touchmove', 0.8); await sleep(60);
-        st = await maskState(page);
-        check('quick drag: no reveal-all', st.revealing === false);
-        await touchOn(page, 'touchend', 0.8); await sleep(120);
-
-        // Pidä pohjassa 450ms -> koko lista
-        await touchOn(page, 'touchstart', 0.5); await sleep(450);
-        st = await maskState(page);
-        check('hold 350ms+: revealing on', st.revealing === true, JSON.stringify(st));
-        check('hold: mask fully off', st.mask === 'none', st.mask);
-        await touchOn(page, 'touchend', 0.5); await sleep(120);
-        st = await maskState(page);
-        check('release: revealing off + mask back', st.revealing === false && st.mask === 'block', JSON.stringify(st));
-
-        // Hiiri: pohjassa pitäminen = sama
+        // Hiiri ensin (touchActiveUntil-guard estäisi synteettisen hiiri-eleen
+        // 700 ms sisällä kosketuksesta): hover = koko lista, poistuminen = verho
         await evl(page, () => {
             const el = document.getElementById('wordList');
             const r = el.getBoundingClientRect();
-            el.dispatchEvent(new MouseEvent('mousedown', { clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, bubbles: true }));
+            el.dispatchEvent(new MouseEvent('mousemove', { clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, bubbles: true }));
         });
-        await sleep(450);
-        st = await maskState(page);
-        check('mouse hold: revealing on', st.revealing === true, JSON.stringify(st));
-        await evl(page, () => document.getElementById('wordList').dispatchEvent(new MouseEvent('mouseup', { bubbles: true })));
         await sleep(120);
         st = await maskState(page);
-        check('mouse release: revealing off', st.revealing === false);
+        check('mouse hover: revealing on', st.revealing === true, JSON.stringify(st));
+        await evl(page, () => document.getElementById('wordList').dispatchEvent(new MouseEvent('mouseleave', { bubbles: true })));
+        await sleep(120);
+        st = await maskState(page);
+        check('mouse leave: revealing off', st.revealing === false && st.mask === 'block', JSON.stringify(st));
+
+        // Kosketus -> koko lista välittömästi (ei enää kaistaletta eikä 350 ms viivettä)
+        await touchOn(page, 'touchstart', 0.5); await sleep(120);
+        st = await maskState(page);
+        check('touchstart: revealing on instantly', st.revealing === true, JSON.stringify(st));
+        check('touch: mask fully off', st.mask === 'none', st.mask);
+        await touchOn(page, 'touchmove', 0.8); await sleep(60);
+        st = await maskState(page);
+        check('touchmove: stays revealing', st.revealing === true);
+        await touchOn(page, 'touchend', 0.8); await sleep(120);
+        st = await maskState(page);
+        check('touchend: revealing off + mask back', st.revealing === false && st.mask === 'block', JSON.stringify(st));
+
+        // Ensimmäinen paljastus himmentää vihjeen pysyvästi
+        check('hint dimmed after first gesture', st.hintDim === true);
 
         // ============ D. Lista täyttää ruudun / scroll-fallback ============
         console.log('== D. Fill screen + scroll fallback ==');
@@ -224,11 +220,11 @@ const startGameAndRoll = async (page, weightId) => {
         }));
         check('long list: page scrolls comfortably', geo2.docH > geo2.vh, `doc ${geo2.docH} vs vh ${geo2.vh}`);
         check('long list: rows keep readable height', geo2.rowH >= 40, `${geo2.rowH}px`);
-        // Verho kattaa listan + sen margin-korin (8+8px) — tarkoituksella
-        check('long list: mask covers whole list', geo2.maskH >= geo2.listH && geo2.maskH - geo2.listH <= 20, `mask ${geo2.maskH} vs list ${geo2.listH}`);
+        // Verho kattaa listan + margin-korin + sticky-palkin varaus-paddingin (78px)
+        check('long list: mask covers whole list', geo2.maskH >= geo2.listH && geo2.maskH - geo2.listH <= 95, `mask ${geo2.maskH} vs list ${geo2.listH}`);
         await touchOn(page, 'touchstart', 0.5); await sleep(120);
         st = await maskState(page);
-        check('small viewport: mask still tracks', parseFloat(st.my) >= 0, st.my);
+        check('small viewport: reveal still works', st.revealing === true, JSON.stringify(st));
         await touchOn(page, 'touchend', 0.5); await sleep(120);
         await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 }); await sleep(200);
 

@@ -139,6 +139,16 @@ const updateTurnDisplay = () => {
     }
     const chipP = document.getElementById('chipTurn');
     if (chipP) chipP.textContent = `▶ ${gamePlayers[currentPlayerIndex].name}`;
+    const chipR = document.getElementById('chipRound');
+    if (chipR) {
+        const m = formatRoundCounter().match(/(\d+)\s*\/\s*(\d+)/);
+        if (m) {
+            chipR.textContent = `${m[1]}/${m[2]}`;
+            chipR.style.display = '';
+        } else {
+            chipR.style.display = 'none';
+        }
+    }
 }; // <-- ЗДЕСЬ функция updateTurnDisplay успешно закрылась
 
 // ОТДЕЛЬНАЯ САМОСТОЯТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ ОЧКОВ НА КНОПКАХ
@@ -290,7 +300,9 @@ document.getElementById('btnEmojiGuessed')?.addEventListener('click', () => {
 document.getElementById('btnEmojiGiveUp')?.addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     emojiOverlay.style.display = 'none';
-    document.getElementById('btnGiveUp')?.click();
+    // Tietoinen toiminta modaalista — ohitetaan pitkä painallus
+    if (typeof window._devConfirmGiveUp === 'function') window._devConfirmGiveUp();
+    else document.getElementById('btnGiveUp')?.click();
 });
 
 // Ryöstö-painike emoji-modaalissa (4+ joukkuemoodi)
@@ -405,7 +417,7 @@ const restoreHiddenWords = () => {
 };
 window.restoreHiddenWords = restoreHiddenWords;
 
-// --- PRIVACY MASK: sanat luetaan yhden rivin ikkunasta, muu lista "sumussa" ---
+// --- PRIVACY MASK: kosketus/hover paljastaa koko listan, muutoin "sumu" ---
 // Puhtaasti paikallinen efekti: ei relay-viestejä, ei asetuksia — toimii myös
 // verkkokatkon aikana. Vastakohta satunnaiselle vilkaisulle, ei varsinainen
 // salaus (sanat ovat silti DOMissa, kuten ennenkin).
@@ -413,36 +425,41 @@ const wordMask = document.getElementById('wordMask');
 const wordGrain = document.getElementById('wordGrain');
 const wordMaskHint = document.getElementById('wordMaskHint');
 const wordListWrap = document.getElementById('wordListWrap');
-let privacyPointerInside = false;
+const selGlow = document.getElementById('selGlow');
+const veilCoach = document.getElementById('veilCoach');
 let touchActiveUntil = 0;
+let veilUsed = false;
+let veilCoachShown = false;
 
-const setMaskWindowY = (clientY) => {
-    if (!wordMask) return;
-    const r = wordMask.getBoundingClientRect();
-    const y = Math.min(Math.max(clientY - r.top, 0), r.height);
-    wordMask.style.setProperty('--my', y + 'px');
+const dismissVeilCoach = () => {
+    if (!veilCoach || veilCoach.style.display === 'none') return;
+    try { localStorage.setItem('veilCoachV1', '1'); } catch (e) {}
+    veilCoach.classList.add('veil-coach-out');
+    setTimeout(() => { veilCoach.style.display = 'none'; }, 550);
 };
 
-const hideMaskWindow = () => {
-    if (wordMask) wordMask.style.setProperty('--my', '-999px');
+// Ekan onnistuneen paljastuksen jälkeen vihje himmenee — ele on jo opittu
+const markVeilUsed = () => {
+    if (veilUsed) return;
+    veilUsed = true;
+    if (wordMaskHint) wordMaskHint.classList.add('hint-dim');
+    dismissVeilCoach();
 };
 
-// Ikkunan korkeus seuraa rivin korkeutta — täysnäytön listalla rivit ovat isompia
-const fitWindowToRow = () => {
-    if (!wordMask || !wordList) return;
-    const li = wordList.querySelector('li');
-    if (li && li.offsetHeight > 0) {
-        wordMask.style.setProperty('--wh', Math.round(li.offsetHeight * 0.6) + 'px');
+// Lukitun sanan hehku: rivin SIJAINTI näkyy verhon läpi, teksti ei
+const updateSelGlow = () => {
+    if (!selGlow || !wordListWrap || typeof wordList === 'undefined' || !wordList) return;
+    const maskOn = wordMask && wordMask.style.display === 'block';
+    const li = maskOn ? wordList.querySelector('li.selected-word') : null;
+    if (!li) {
+        selGlow.style.display = 'none';
+        return;
     }
+    selGlow.style.top = (li.getBoundingClientRect().top - wordListWrap.getBoundingClientRect().top) + 'px';
+    selGlow.style.height = li.offsetHeight + 'px';
+    selGlow.style.display = 'block';
 };
-// Harmonikan 250 ms -animaation aikana listan korkeus muuttuu — mitataan
-// sekä heti seuraavalla framella että transitionin jälkeen (debounce).
-let _fitTimer = null;
-const scheduleFitWindow = () => {
-    requestAnimationFrame(fitWindowToRow);
-    clearTimeout(_fitTimer);
-    _fitTimer = setTimeout(fitWindowToRow, 400);
-};
+window.updateSelGlow = updateSelGlow;
 
 const refreshPrivacyMask = () => {
     if (!wordMask || typeof wordList === 'undefined' || !wordList) return;
@@ -451,10 +468,20 @@ const refreshPrivacyMask = () => {
                !wordList.classList.contains('hidden-words');
     wordMask.style.display = on ? 'block' : 'none';
     if (wordGrain) wordGrain.style.display = on ? 'block' : 'none';
-    if (wordMaskHint) wordMaskHint.style.display = (on && !privacyPointerInside) ? 'flex' : 'none';
-    if (!on) hideMaskWindow();
-    // Rivit venyvät flex-Layoutilla — mitataan vasta piirron jälkeen
-    if (on) scheduleFitWindow();
+    if (wordMaskHint) wordMaskHint.style.display = on ? 'flex' : 'none';
+    if (wordListWrap) wordListWrap.classList.toggle('mask-on', on);
+    if (!on && wordListWrap) wordListWrap.classList.remove('revealing');
+    updateSelGlow();
+    // Kerran näytettävä ohjepilvi — katoaa ekan eleen tai 4 s jälkeen
+    if (on && !veilCoachShown && veilCoach) {
+        let seen = false;
+        try { seen = localStorage.getItem('veilCoachV1') === '1'; } catch (e) {}
+        if (!seen) {
+            veilCoachShown = true;
+            veilCoach.style.display = 'block';
+            setTimeout(dismissVeilCoach, 4000);
+        }
+    }
     updateToolPill();
 };
 window.refreshPrivacyMask = refreshPrivacyMask;
@@ -462,80 +489,49 @@ window.refreshPrivacyMask = refreshPrivacyMask;
 const initPrivacyMask = () => {
     if (!wordMask || !wordList) return;
 
-    // Pidä-pohjassa (350 ms) -> koko lista paljastuu; liuku -> vain ikkunakaistale
-    let holdTimer = null;
-    let holdStart = null;
-    const cancelHold = () => {
-        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    const revealOn = () => {
+        if (wordMask.style.display !== 'block') return;
+        if (wordListWrap) wordListWrap.classList.add('revealing');
+        markVeilUsed();
     };
-    const startHold = (x, y) => {
-        cancelHold();
-        holdStart = { x, y };
-        holdTimer = setTimeout(() => {
-            holdTimer = null;
-            if (wordListWrap) wordListWrap.classList.add('revealing');
-            if (navigator.vibrate) navigator.vibrate(10);
-        }, 350);
-    };
-    const stopReveal = () => {
-        cancelHold();
-        holdStart = null;
+    const revealOff = () => {
         if (wordListWrap) wordListWrap.classList.remove('revealing');
     };
-    const moveCancelsHold = (x, y) => {
-        if (!holdStart) return;
-        const dx = x - holdStart.x, dy = y - holdStart.y;
-        if (Math.hypot(dx, dy) > 12) { holdStart = null; cancelHold(); }
-    };
 
-    // Kosketus: ikkuna hieman sormen yläpuolella (sormi ei peitä sanaa)
-    wordList.addEventListener('touchstart', (e) => {
+    // Kosketus: koko lista näkyy sormen alla, irtautuessa verho palaa
+    wordList.addEventListener('touchstart', () => {
         touchActiveUntil = Date.now() + 700;
-        privacyPointerInside = true;
-        fitWindowToRow();
-        setMaskWindowY(e.changedTouches[0].clientY - 10);
-        startHold(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        refreshPrivacyMask();
+        revealOn();
     }, { passive: true });
-    wordList.addEventListener('touchmove', (e) => {
+    wordList.addEventListener('touchmove', () => {
         touchActiveUntil = Date.now() + 700;
-        moveCancelsHold(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        setMaskWindowY(e.changedTouches[0].clientY - 10);
+        revealOn();
     }, { passive: true });
     const touchEnd = () => {
-        privacyPointerInside = false;
-        hideMaskWindow();
-        stopReveal();
-        refreshPrivacyMask();
+        touchActiveUntil = Date.now() + 700;
+        revealOff();
     };
     wordList.addEventListener('touchend', touchEnd, { passive: true });
     wordList.addEventListener('touchcancel', touchEnd, { passive: true });
 
-    // Hiiri: ikkuna seuraa kursoria ilman painallusta; pohjassa pitäminen = koko lista
-    wordList.addEventListener('mousedown', (e) => {
-        fitWindowToRow();
-        startHold(e.clientX, e.clientY);
+    // Hiiri: hover paljastaa koko listan
+    wordList.addEventListener('mouseenter', () => {
+        if (Date.now() < touchActiveUntil) return;
+        revealOn();
     });
-    wordList.addEventListener('mousemove', (e) => {
-        if (Date.now() < touchActiveUntil) return; // synteettiset mouse-tapahtumat touchin jälkeen
-        moveCancelsHold(e.clientX, e.clientY);
-        privacyPointerInside = true;
-        setMaskWindowY(e.clientY);
-        refreshPrivacyMask();
+    wordList.addEventListener('mousemove', () => {
+        if (Date.now() < touchActiveUntil) return; // synteettiset tapahtumat touchin jälkeen
+        revealOn();
     });
-    wordList.addEventListener('mouseup', stopReveal);
-    wordList.addEventListener('mouseleave', () => {
-        privacyPointerInside = false;
-        hideMaskWindow();
-        stopReveal();
-        refreshPrivacyMask();
-    });
+    wordList.addEventListener('mouseleave', revealOff);
 
     // Itsenäinen suoja: verho seuraa listan tilaa riippumatta siitä,
-    // mikä koodipolku listaa muutti (metamorfoosi, huonepeli, endRound…)
+    // mikä koodipolku listaa muutti (metamorfoosi, huonepeli, endRound…).
+    // subtree:true — myös lukitun sanan class-vaihdot (selGlow).
     const mo = new MutationObserver(refreshPrivacyMask);
-    mo.observe(wordList, { attributes: true, attributeFilter: ['style', 'class'], childList: true });
-    window.addEventListener('resize', () => requestAnimationFrame(fitWindowToRow));
+    mo.observe(wordList, { attributes: true, attributeFilter: ['style', 'class'], childList: true, subtree: true });
+    window.addEventListener('resize', () => requestAnimationFrame(updateSelGlow));
+    window.addEventListener('scroll', () => requestAnimationFrame(updateSelGlow), { passive: true });
     refreshPrivacyMask();
 };
 initPrivacyMask();
@@ -586,6 +582,7 @@ window.themeDrum = (() => {
     const REDUCED = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const TINTS = ['rgba(229,193,88,0.16)', 'rgba(122,92,220,0.20)'];
     const GAP = 0.7;      // asteen rako sektorien väliin
+    const POINTER_DEG = 270; // osoitin pyörän vasemmalla laidalla (9 o'clock)
     const SPIN_V = 640;   // vapaan pyörintänopeus °/s (arvaajan rumpu)
     const SETTLE_MS = 430;// jousivärähtelyn kesto maalissa
     const OVER = 7;       // ylitys ennen takaisinvalkaisua, astetta
@@ -593,9 +590,9 @@ window.themeDrum = (() => {
 
     const norm360 = (d) => ((d % 360) + 360) % 360;
 
-    // Sektori osoittimen alla annetulla pyörän kulmalla (0° = ylös).
+    // Sektori osoittimen alla annetulla pyörän kulmalla (osoitin vasemmalla: 270°).
     const themeAt = (ctx, angle) => {
-        const x = norm360(-angle);
+        const x = norm360(POINTER_DEG - angle);
         const it = ctx.items.find(i => x >= i.a0 && x < i.a1);
         return it ? it.theme : ctx.items[0].theme;
     };
@@ -702,6 +699,19 @@ window.themeDrum = (() => {
         ctx.wheelEl.classList.remove('spinning');
         ctx.wheelEl.classList.add('landed');
         if (ctx.hubEl) ctx.hubEl.textContent = theme;
+        // Voittaja korostetaan kuvallisesti: kultainen kiila + emojikehä, ei tekstiä
+        const it = ctx.items.find(i => i.theme === theme) || ctx.items[0];
+        if (it) {
+            it.el.classList.add('winner');
+            let w = ctx.wheelEl.querySelector('.theme-drum-wedge');
+            if (!w) {
+                w = document.createElement('div');
+                w.className = 'theme-drum-wedge';
+                ctx.wheelEl.appendChild(w);
+            }
+            w.style.background = `conic-gradient(transparent 0deg ${it.a0}deg, rgba(229,193,88,0.42) ${it.a0}deg ${it.a1 - GAP}deg, transparent ${it.a1}deg 360deg)`;
+            w.style.opacity = '1';
+        }
     };
 
     // Satunnainen pysähdyspiste voittajasektorin sisällä (ei aina täsmälleen
@@ -743,7 +753,7 @@ window.themeDrum = (() => {
         if (!ctx) return 0;
         const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
         const point = aimPoint(it);
-        const need = norm360(-point - norm360(ctx.angle)); // rotate(R): sektori [a0,a1] → [a0+R,a1+R]; osoitin (0°) osuu pointtiin kun R ≡ -point
+        const need = norm360(POINTER_DEG - point - norm360(ctx.angle)); // rotate(R): sektori [a0,a1] → [a0+R,a1+R]; osoitin (270°) osuu pointtiin kun R ≡ P−point
         const spins = minSpins + Math.floor(Math.random() * 2); // 3–4 kierrosta
         if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
         ctx.landed = false;
@@ -757,7 +767,7 @@ window.themeDrum = (() => {
         ctx.wheelEl.classList.remove('spinning');
         const it = ctx.items.find(x => x.theme === theme) || ctx.items[0];
         const point = aimPoint(it);
-        const need = norm360(-point - norm360(ctx.angle));
+        const need = norm360(POINTER_DEG - point - norm360(ctx.angle));
         if (REDUCED) { finish(ctx, theme, ctx.angle + need); return 0; }
         ctx.landed = false;
         const v = Math.max(ctx.v || 0, SPIN_V * 0.55); // v käynnissä olevasta simistä

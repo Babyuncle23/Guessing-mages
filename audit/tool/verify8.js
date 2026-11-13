@@ -84,8 +84,8 @@ const setWeights = (page, map) => evl(page, (m) => {
             const t = document.getElementById('drumHubName').textContent.trim();
             return t.length > 0 && t !== '?';
         }));
-        // Osoitin voi pysähtyä minne tahansa voittajasektorin sisään (rand jitter)
-        const x = ((360 - (d2.angle % 360)) % 360);
+        // Osoitin vasemmalla laidalla (270°): sektori sen alla on norm360(270-angle)
+        const x = (((270 - (d2.angle % 360)) % 360) + 360) % 360;
         const winner = d2.items.find(i => x > i.a0 + 0.5 && x < i.a1 - 0.5);
         check('pointer stopped inside a sector', !!winner, `angle=${d2.angle} x=${x}`);
         await p.waitForFunction('document.getElementById("themeDisplay").textContent.trim().length > 0', { timeout: 4000 });
@@ -125,11 +125,17 @@ const setWeights = (page, map) => evl(page, (m) => {
         check('B: drum spinning with sectors', !!dB && dB.items.length === 2 && dB.spinning, JSON.stringify(dB));
         check('B: same sectors as A (90/270)', dB.items.some(i => i.theme === 'piirtäminen' && Math.abs(i.a1 - i.a0 - 90) < 0.01), JSON.stringify(dB.items));
         check('B: ngDrum visible', await evl(B, () => document.getElementById('ngDrum').style.display === 'block'));
-        await sleep(4000); // reveal + land + theme card
+        await sleep(4000); // reveal + land — pyörä jää lepäämään (Task 16/17)
         const aTheme = await evl(A, () => currentActiveTheme);
-        check('B: theme card shows rolled theme', await evl(B, (t) => document.getElementById('ngTheme').textContent.trim().toLowerCase() === t, aTheme), aTheme);
-        check('B: ngDrum hidden after reveal', await evl(B, () => document.getElementById('ngDrum').style.display === 'none'));
-        check('B: ngDrumWheel emptied', await evl(B, () => document.getElementById('ngDrumWheel').children.length === 0));
+        check('B: ngDrum stays resting after land', await evl(B, () => document.getElementById('ngDrum').style.display === 'block'));
+        check('B: ngDrumWheel landed + keeps items', await evl(B, () =>
+            document.getElementById('ngDrumWheel').classList.contains('landed') &&
+            document.getElementById('ngDrumWheel').children.length > 0));
+        check('B: theme card hidden while drum rests', await evl(B, () => getComputedStyle(document.getElementById('ngThemeBlock')).display === 'none'));
+        // WORDS_OPEN: rumpu väistyy, teemakortti tulee
+        await tap(A, '#btnDisplayWords'); await sleep(1200);
+        check('B: theme card shows rolled theme after WORDS_OPEN', await evl(B, (t) => document.getElementById('ngTheme').textContent.trim().toLowerCase() === t, aTheme), aTheme);
+        check('B: ngDrum hidden after WORDS_OPEN', await evl(B, () => document.getElementById('ngDrum').style.display === 'none'));
         await A.close(); await B.close();
 
         console.log(`\nRESULT: ${pass} passed, ${fail} failed`);

@@ -99,11 +99,14 @@ const setTimer = (page, secs) => page.evaluate((s) => {
         check('bar shrinking', w2 < w1 && w2 < 100, `${w1} -> ${w2}`);
         // ускоренный таймаут: временная option со значением 3
         await setTimer(p, 3);
-        await tap(p, '#btnGiveUp'); await sleep(900); // завершить текущий ход
+        await p.evaluate(() => window._devConfirmGiveUp()); await sleep(900); // завершить текущий ход
         check('giveup -> Aloita kierros back', await evl(p, () => document.getElementById('btn').style.display === 'block'));
         await roll(p);
         await tap(p, '#btnDisplayWords'); await sleep(400);
         check('3s timer armed again', await evl(p, () => document.getElementById('turnTimer').style.display === 'block'));
+        // Лочим слово — иначе таймаут-сводка намеренно не показывает слово
+        // (netShowSummary: "ei valittu -> ei tyhjää riviä", см. verify11)
+        await evl(p, () => document.querySelector('#wordList li').click()); await sleep(200);
         const whoWas = await evl(p, () => currentPlayerIndex);
         await sleep(4000);
         check('timeout auto-ends turn', await evl(p, (w) => currentPlayerIndex !== w, whoWas), '');

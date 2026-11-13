@@ -1,4 +1,4 @@
-// audit/tool/shoot-wl.js — скриншоты Task 15: harmonikka + täysnäytön lista + reveal
+// audit/tool/shoot-wl.js — скриншоты Task 18: sticky-бар, selGlow, coach, hold-сдача
 const path = require('path');
 const puppeteer = require('puppeteer-core');
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
@@ -28,46 +28,52 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
         await page.evaluate(() => document.getElementById('btn').click()); await sleep(3400);
     };
 
-    // 1) Perusvaihtoehto: sanat auki, harmonikka kiinni, sumu
+    // 1) Perusvaihtoehto: sanat auki — coach-pilvi näkyy ekan kerran
     await boot('theme-weight-perusvaihtoehto');
-    await page.evaluate(() => document.getElementById('btnDisplayWords').click()); await sleep(600);
+    await page.evaluate(() => document.getElementById('btnDisplayWords').click()); await sleep(500);
+    await page.screenshot({ path: path.join(OUT, 'wl-coach.png') });
+
+    // Coach pois -> sumu + sticky-palkki
+    await page.evaluate(() => {
+        const c = document.getElementById('veilCoach');
+        if (c) { c.classList.add('veil-coach-out'); c.style.display = 'none'; }
+    });
+    await sleep(200);
     await page.screenshot({ path: path.join(OUT, 'wl-collapsed.png') });
 
-    // 2) Harmonikka auki
+    // 2) Harmonikka auki (chipRound-badge näkyy chipissä)
     await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
     await page.screenshot({ path: path.join(OUT, 'wl-expanded.png') });
     await page.evaluate(() => document.getElementById('turnChip').click()); await sleep(450);
 
-    // 3) Sovitettu kaistale kursorin alla (~1.2 riviä)
+    // 3) Lukittu sana: kultainen hehku verhon läpi (teksti piilossa)
+    await page.evaluate(() => document.querySelectorAll('#wordList li')[2].click()); await sleep(300);
+    await page.screenshot({ path: path.join(OUT, 'wl-selglow.png') });
+
+    // 4) Hover -> koko lista näkyy (+ sticky-palkki alhaalla)
     await page.evaluate(() => {
         const el = document.getElementById('wordList');
-        const li = el.children[2];
-        const r = li.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
         el.dispatchEvent(new MouseEvent('mousemove', { clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, bubbles: true }));
     });
     await sleep(250);
-    await page.screenshot({ path: path.join(OUT, 'wl-strip-window.png') });
+    await page.screenshot({ path: path.join(OUT, 'wl-reveal-hover.png') });
     await page.evaluate(() => document.getElementById('wordList').dispatchEvent(new MouseEvent('mouseleave', { bubbles: true })));
-    await sleep(150);
-
-    // 4) Pidä pohjassa -> koko lista (simuloidaan revealing-tila touch-holdilla)
-    await page.evaluate(() => {
-        const el = document.getElementById('wordList');
-        const r = el.getBoundingClientRect();
-        const t = new Touch({ identifier: 1, target: el, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 });
-        el.dispatchEvent(new TouchEvent('touchstart', { changedTouches: [t], touches: [t], bubbles: true }));
-    });
-    await sleep(500);
-    await page.screenshot({ path: path.join(OUT, 'wl-reveal-all.png') });
-    await page.evaluate(() => {
-        const el = document.getElementById('wordList');
-        const r = el.getBoundingClientRect();
-        const t = new Touch({ identifier: 1, target: el, clientX: r.x + 10, clientY: r.y + 10 });
-        el.dispatchEvent(new TouchEvent('touchend', { changedTouches: [t], touches: [], bubbles: true }));
-    });
     await sleep(200);
 
-    // 5) Piirtäminen: 🎨-pikapainike näkyy
+    // 5) Luovutus: pohjassapito kesken (~50% täyttö)
+    await page.evaluate(() => {
+        document.getElementById('btnGiveUp').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    });
+    await sleep(500);
+    await page.screenshot({ path: path.join(OUT, 'wl-giveup-hold.png') });
+    await page.evaluate(() => {
+        const b = document.getElementById('btnGiveUp');
+        b.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    });
+    await sleep(300);
+
+    // 6) Piirtäminen: 🎨-pikapainike näkyy
     await boot('theme-weight-piirtaminen');
     await page.evaluate(() => document.getElementById('btnDisplayWords').click()); await sleep(600);
     await page.screenshot({ path: path.join(OUT, 'wl-tool-pill.png') });

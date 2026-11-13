@@ -75,7 +75,9 @@ const playTurn = async (page, endBtn) => {
     await waitFor(page, () => document.getElementById('themeDisplay').textContent || null, 8000, 60);
     await tap(page, '#btnDisplayWords');
     await sleep(500);
-    await tap(page, endBtn);
+    // Task 18: luovutus vaatii 1 s pohjassapidon — testipolku ohittaa UI-holdin
+    if (endBtn === '#btnGiveUp') await evl(page, () => window._devConfirmGiveUp());
+    else await tap(page, endBtn);
     await sleep(700);
 };
 

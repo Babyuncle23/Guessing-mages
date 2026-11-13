@@ -437,7 +437,7 @@ button:disabled, .spell-btn:disabled {
     -webkit-touch-callout: none;
 }
 
-/* Sumu: peittää koko listan, ikkuna leikataan mask-gradientilla kohdassa --my */
+/* Sumu: peittää koko listan — kosketus/hover paljastaa kaiken kerralla */
 #wordMask {
     position: absolute;
     inset: 0;
@@ -447,16 +447,32 @@ button:disabled, .spell-btn:disabled {
     background:
         repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 6px, transparent 6px 12px),
         rgba(13, 10, 24, 0.95);
-    mask-image: linear-gradient(to bottom,
-        black calc(var(--my, -999px) - (var(--wh, 26px) + 14px)),
-        transparent calc(var(--my, -999px) - var(--wh, 26px)),
-        transparent calc(var(--my, -999px) + var(--wh, 26px)),
-        black calc(var(--my, -999px) + (var(--wh, 26px) + 14px)));
-    -webkit-mask-image: linear-gradient(to bottom,
-        black calc(var(--my, -999px) - (var(--wh, 26px) + 14px)),
-        transparent calc(var(--my, -999px) - var(--wh, 26px)),
-        transparent calc(var(--my, -999px) + var(--wh, 26px)),
-        black calc(var(--my, -999px) + (var(--wh, 26px) + 14px)));
+}
+
+/* Lukitun sanan rivi ei näy verhon läpi — vain sen pehmeä kultainen hehku */
+#selGlow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    pointer-events: none;
+    border-radius: 10px;
+    background: radial-gradient(ellipse at center,
+        rgba(229, 193, 88, 0.42) 0%,
+        rgba(229, 193, 88, 0.14) 55%,
+        transparent 78%);
+    filter: blur(5px);
+    animation: selGlowPulse 2.4s ease-in-out infinite;
+}
+@keyframes selGlowPulse {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #selGlow { animation: none; }
+}
+#wordListWrap.revealing #selGlow {
+    display: none !important;
 }
 
 /* Kevyt "sanan hajoaminen": hieno rakeisuus rikkoo merkkien ääriviivoja kauempaa katsottuna */
@@ -496,6 +512,104 @@ button:disabled, .spell-btn:disabled {
 #wordListWrap.revealing #wordGrain,
 #wordListWrap.revealing #wordMaskHint {
     display: none !important;
+}
+
+/* Kun ele on jo käytetty, vihje häivytetään — vähemmän visuaalista kohinaa */
+#wordMaskHint.hint-dim {
+    opacity: 0.4;
+    font-size: 11px;
+    transition: opacity 0.6s ease;
+}
+
+/* Kerran näytettävä onboarding-pilvi: katoaa ekan kosketuksen jälkeen (localStorage) */
+#veilCoach {
+    position: absolute;
+    top: 16%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    pointer-events: none;
+    background: rgba(13, 10, 24, 0.94);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--gold);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
+#veilCoach.veil-coach-out {
+    opacity: 0;
+}
+#wordListWrap.revealing #veilCoach {
+    display: none !important;
+}
+
+/* Kierros-badge chipissä: "3/7" näkyy aina ilman harmonikan avaamista */
+.chip-round {
+    font-size: 11px;
+    color: var(--text-muted);
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    padding: 1px 7px;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+/* STICKY-TOIMINTOPALKKI: sanojen aikana napit aina alareunassa peukalon ulottuvilla */
+#gameContainer.words-active .round-controls-block {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 480px !important;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    background: linear-gradient(to top, rgba(13, 10, 24, 0.97) 65%, rgba(13, 10, 24, 0)) !important;
+    z-index: 20 !important;
+    margin: 0 !important;
+    border-radius: 14px 14px 0 0;
+}
+/* Varaa tilaa palkille, jotta viimeinen sana ei jää sen alle */
+#gameContainer.words-active #wordListWrap {
+    padding-bottom: 78px;
+}
+
+/* LUOVUTUKSEN PITKÄ PAINALLUS: vahinkotapaus ei päättäydä vuoroa */
+#btnGiveUp {
+    position: relative;
+    overflow: hidden;
+}
+#btnGiveUp .gp-fill {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: rgba(255, 255, 255, 0.24);
+    transition: transform 1s linear;
+}
+#btnGiveUp.holding .gp-fill {
+    transform: scaleX(1);
+}
+#btnGiveUp .gp-label {
+    position: relative;
+    z-index: 1;
+}
+@keyframes giveupShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+#btnGiveUp.hold-hint {
+    animation: giveupShake 0.35s ease 2;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.7);
+}
+@media (prefers-reduced-motion: reduce) {
+    #btnGiveUp .gp-fill { transition: none; }
+    #btnGiveUp.hold-hint { animation: none; }
 }
 
 /* --- VUOROPANEELI: harmonikka + tiivis tilannekortti (chip) --- */
@@ -976,9 +1090,13 @@ body.spell-help-modal-open {
     font-size: 1.3rem;
     font-weight: bold;
     color: var(--gold);
-    margin: 35px 0;
+    margin: 8px 0;
     animation: pulse 1s infinite alternate;
 }
+
+/* Pysähtynyt pyörä lepää paikoillaan — ei loputonta sykettä */
+.drum-animation.drum-rest { animation: none; }
+.drum-animation.drum-rest .drum-caption { color: var(--gold); opacity: 0.95; }
 
 .flash-now {
     position: absolute;
@@ -2915,16 +3033,18 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
 /* --- TEEMARULETTI (rummun aikana) --- */
 .theme-drum {
     position: relative;
-    width: 270px;
-    height: 270px;
-    margin: 8px auto 6px;
+    /* Iso pyörä ammottaa kortin oikeasta reunasta (~75% näkyvissä) */
+    width: min(150vw, 500px);
+    height: min(150vw, 500px);
+    margin: 4px -12% 4px auto;
+    flex-shrink: 0;
 }
 .theme-drum-pointer {
     position: absolute;
-    top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 26px;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 30px;
     color: var(--gold);
     text-shadow: 0 0 12px rgba(229,193,88,0.9);
     z-index: 3;
@@ -2949,65 +3069,61 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
     animation: drumTick 110ms ease-out;
 }
 @keyframes drumTick {
-    0% { transform: translateX(-50%) rotate(0deg) scale(1); }
-    35% { transform: translateX(-50%) rotate(-20deg) scale(1.18); }
-    100% { transform: translateX(-50%) rotate(0deg) scale(1); }
+    0% { transform: translateY(-50%) rotate(0deg) scale(1); }
+    35% { transform: translateY(-50%) rotate(20deg) scale(1.18); }
+    100% { transform: translateY(-50%) rotate(0deg) scale(1); }
 }
 .theme-drum-item {
     position: absolute;
     left: 50%;
     top: 50%;
-    font-size: 22px;
-    width: 34px;
-    height: 34px;
-    margin: -17px 0 0 -17px;
+    font-size: clamp(24px, 6vw, 34px);
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+    z-index: 2;
+    transition: opacity 0.3s, font-size 0.3s;
+}
+/* Voittava sektori: kultainen kiila + suuri emojikehä, muut himmenevät */
+.theme-drum-wedge {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+.theme-drum-wheel.landed .theme-drum-item { opacity: 0.35; }
+.theme-drum-wheel.landed .theme-drum-item.winner {
+    opacity: 1;
+    font-size: 52px;
+    z-index: 3;
+    filter: drop-shadow(0 0 12px rgba(229,193,88,0.95));
+}
+.theme-drum-item.winner::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    box-shadow: 0 0 18px rgba(229,193,88,0.85), inset 0 0 12px rgba(229,193,88,0.3);
 }
 .theme-drum-hub {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 108px;
-    height: 108px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #2d2450, #14101f 75%);
-    border: 2px solid rgba(229,193,88,0.85);
-    box-shadow: 0 4px 18px rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    box-sizing: border-box;
-    z-index: 2;
-    pointer-events: none;
-}
-.theme-drum-hub span {
-    color: var(--gold);
-    font-size: 13px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 1.15;
-    text-transform: uppercase;
-    word-break: break-word;
-    font-family: 'Comfortaa', sans-serif;
+    /* Keskitulos pois — ehto näkyy chipissä + voittavan sektorin kuvassa */
+    display: none;
 }
 .drum-caption {
-    display: block;
-    font-size: 1.05rem;
-    color: var(--gold);
-    opacity: 0.85;
-    animation: pulse 1s infinite alternate;
+    display: none; /* tekstikaksoiskappale pois — nimi chipissä */
 }
 @media (max-width: 360px) {
-    .theme-drum { width: 230px; height: 230px; }
-    .theme-drum-item { font-size: 19px; }
-    .theme-drum-hub { width: 92px; height: 92px; }
-    .theme-drum-hub span { font-size: 11.5px; }
+    .theme-drum-item { font-size: 22px; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
+    .theme-drum-wheel.landed .theme-drum-item.winner { font-size: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .theme-drum-wheel.spinning { animation: none; }

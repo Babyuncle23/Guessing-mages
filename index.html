@@ -523,6 +523,7 @@
     <div id="turnPanel" class="turn-panel">
         <div id="turnChipRow">
             <button id="turnChip" type="button" aria-expanded="true" aria-controls="turnPanelBody">
+                <span id="chipRound" class="chip-round" style="display:none"></span>
                 <span id="chipTheme">🎭 …</span>
                 <span id="chipTurn"></span>
                 <span class="chip-chevron">▾</span>
@@ -567,7 +568,7 @@
 
     <div id="loader" class="drum-animation" style="display: none;">
         <div class="theme-drum">
-            <div class="theme-drum-pointer">▼</div>
+            <div class="theme-drum-pointer">▶</div>
             <div class="theme-drum-wheel" id="drumWheel"></div>
             <div class="theme-drum-hub"><span id="drumHubName">?</span></div>
         </div>
@@ -604,8 +605,10 @@
     <div id="wordListWrap">
         <ol id="wordList" style="display: none;"></ol>
         <div id="wordMask" style="display: none;"></div>
+        <div id="selGlow" style="display: none;"></div>
         <div id="wordGrain" style="display: none;"></div>
-        <div id="wordMaskHint" style="display: none;">🤫 Vedä — yksi sana · pidä — kaikki</div>
+        <div id="wordMaskHint" style="display: none;">🤫 Kosketa — näet sanat</div>
+        <div id="veilCoach" style="display: none;">🤫 Kosketa listaa<br>näet kaikki sanat</div>
     </div>
     <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
@@ -615,7 +618,7 @@
 <div id="roundControls" class="round-controls-block" style="display: none;">
     <button id="btnGuessed" class="btn-success">Arvattu oikein (+100p)</button>
     <button id="btnStolen" class="btn-steal steal-btn" style="display: none;">⚡ Vastustaja arvasi ensin! (+50p heille)</button>
-    <button id="btnGiveUp" class="btn-danger">Luovutan vuoron / laiminlöin ehdon</button>
+    <button id="btnGiveUp" class="btn-danger"><span class="gp-fill" aria-hidden="true"></span><span class="gp-label">Luovutan vuoron / laiminlöin ehdon</span></button>
 </div>
 
 <!-- LOITSUJEN APUMODAALI -->
@@ -689,7 +692,7 @@
         <div id="ngCurseBanner" style="display:none;"></div>
         <div id="ngDrum" class="drum-animation" style="display:none;">
             <div class="theme-drum">
-                <div class="theme-drum-pointer">▼</div>
+                <div class="theme-drum-pointer">▶</div>
                 <div class="theme-drum-wheel" id="ngDrumWheel"></div>
                 <div class="theme-drum-hub"><span id="ngDrumHubName">?</span></div>
             </div>

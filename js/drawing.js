@@ -259,7 +259,9 @@
             if (typeof playClickSound === 'function') playClickSound();
             window.stopDrawingIntervals();
             if (overlay) overlay.style.display = 'none';
-            document.getElementById('btnGiveUp')?.click();
+            // Tietoinen toiminta modaalista — ohitetaan pitkä painallus
+            if (typeof window._devConfirmGiveUp === 'function') window._devConfirmGiveUp();
+            else document.getElementById('btnGiveUp')?.click();
         });
 
         // Ryöstö-painike piirtomodaalissa (4+ joukkuemoodi)

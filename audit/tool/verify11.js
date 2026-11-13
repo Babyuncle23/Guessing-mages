@@ -199,7 +199,7 @@ const drumThemes = (wheelId) => `JSON.stringify([...document.querySelectorAll('#
         await host.evaluate(() => document.getElementById('btnDisplayWords').click());
         await sleep(500);
         // Isäntä luovuttaa valitsematta sanaa
-        await host.evaluate(() => document.getElementById('btnGiveUp').click());
+        await host.evaluate(() => window._devConfirmGiveUp());
         const guestSummary = await waitFor(guest, () => {
             const c = document.getElementById('turnSummaryCard');
             if (c && c.style.display === 'flex') {
@@ -257,7 +257,7 @@ const drumThemes = (wheelId) => `JSON.stringify([...document.querySelectorAll('#
         await waitFor(host, () => document.getElementById('themeDisplay').textContent || null, 8000, 50);
         await host.evaluate(() => document.getElementById('btnDisplayWords').click());
         await sleep(400);
-        await host.evaluate(() => document.getElementById('btnGiveUp').click());
+        await host.evaluate(() => window._devConfirmGiveUp());
         await sleep(4500); // yhteenveto ehtii pois
 
         // Vuoro 4: vieras selittää, luovuttaa → PELI PÄÄTTYY
@@ -267,7 +267,7 @@ const drumThemes = (wheelId) => `JSON.stringify([...document.querySelectorAll('#
         await waitFor(guest, () => document.getElementById('themeDisplay').textContent || null, 8000, 50);
         await guest.evaluate(() => document.getElementById('btnDisplayWords').click());
         await sleep(400);
-        await guest.evaluate(() => document.getElementById('btnGiveUp').click());
+        await guest.evaluate(() => window._devConfirmGiveUp());
 
         // ============ D. Voittomodaali kaikilla ============
         console.log('== D. Voittomodaali näkyy molemmilla ==');

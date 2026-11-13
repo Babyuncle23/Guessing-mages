@@ -143,7 +143,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         check('curse targets Yrttitarhuri (idx 2)', await page.evaluate(() => pendingCurses.hunger === 2));
         // P2 gives up turn -> P3 (Yrttitarhuri) is cursed
         await revealWords(page);
-        await page.click('#btnGiveUp'); await sleep(400);
+        await page.evaluate(() => window._devConfirmGiveUp()); await sleep(400);
         check('turn -> Yrttitarhuri', await page.evaluate(() => gamePlayers[currentPlayerIndex].name === 'Yrttitarhuri'));
         check('hunger consumed -> reduceToThree', await page.evaluate(() => pendingCurses.hunger === -1 && activeModifiers.reduceToThree === true));
         await roll(page);
@@ -153,7 +153,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         }));
         await revealWords(page);
         check('cursed list = 3 words', await page.evaluate(() => document.querySelectorAll('#wordList li').length) === 3);
-        await page.click('#btnGiveUp'); await sleep(300);
+        await page.evaluate(() => window._devConfirmGiveUp()); await sleep(300);
         check('curse banner hidden next turn', await page.evaluate(() => document.getElementById('curseBanner').style.display === 'none'));
         await page.close();
 
@@ -206,7 +206,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         // Emoji modal + filter
         await forceTheme(page, 'theme-weight-vain-emojit');
         // need a fresh round with emoji theme — give up this turn, roll again
-        await page.click('#btnGiveUp'); await sleep(300);
+        await page.evaluate(() => window._devConfirmGiveUp()); await sleep(300);
         await roll(page);
         const th = await page.evaluate(() => currentActiveTheme);
         check('emoji theme rolled', th === 'vain emojit', th);
@@ -249,7 +249,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
             await sleep(200);
             const hasWords = await page.evaluate(() => document.querySelectorAll('#wordList li').length > 0);
             if (hasWords) { await page.click('#btnGuessed'); }
-            else { await page.click('#btnGiveUp'); }
+            else { await page.evaluate(() => window._devConfirmGiveUp()); }
             await sleep(500);
         }
         await sleep(600);
@@ -282,7 +282,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         await sleep(1200);
         const fillW = await page.evaluate(() => parseFloat(document.getElementById('turnTimerFill').style.width));
         check('timer counting down', fillW < 99 && fillW > 50, fillW);
-        await page.click('#btnGiveUp'); await sleep(400);
+        await page.evaluate(() => window._devConfirmGiveUp()); await sleep(400);
         check('timer stops after turn', await page.evaluate(() => document.getElementById('turnTimer').style.display === 'none'));
 
         // Persistence across reload (merkitse että localStorage säilytetään)

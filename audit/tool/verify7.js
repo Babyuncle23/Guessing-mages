@@ -126,7 +126,7 @@ const joinViaForm = async (page, name, code) => {
         await evl(B, () => { window.__plays = []; sessionStorage.setItem('arksanum-sound', '0'); window.updateSoundBtn(); });
         const aDrums = await drumCount(A);
         await tap(A, '#btnDisplayWords'); await sleep(500);
-        await tap(A, '#btnGiveUp'); await sleep(1500); // A:n vuoro loppuu → B selittää
+        await A.evaluate(() => window._devConfirmGiveUp()); await sleep(1500); // A:n vuoro loppuu → B selittää
         await tap(B, '#btn'); await sleep(3400); // B rullaa omalla ruudullaan
         check('muted B (explainer): no local drum', (await drumCount(B)) === 0, JSON.stringify(await plays(B)));
         check('muted B: icon back to 🔇', await evl(B, () => document.getElementById('soundToggleBtn').textContent === '🔇'));

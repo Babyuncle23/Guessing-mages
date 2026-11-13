@@ -47,9 +47,11 @@ const maskState = (page) => evl(page, () => ({
     mask: getComputedStyle(document.getElementById('wordMask')).display,
     grain: getComputedStyle(document.getElementById('wordGrain')).display,
     hint: document.getElementById('wordMaskHint').style.display,
-    my: document.getElementById('wordMask').style.getPropertyValue('--my'),
-    grad: getComputedStyle(document.getElementById('wordMask')).maskImage ||
-          getComputedStyle(document.getElementById('wordMask')).webkitMaskImage || '',
+    hintComputed: getComputedStyle(document.getElementById('wordMaskHint')).display,
+    revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
+    maskOn: document.getElementById('wordListWrap').classList.contains('mask-on'),
+    maskImg: getComputedStyle(document.getElementById('wordMask')).maskImage ||
+             getComputedStyle(document.getElementById('wordMask')).webkitMaskImage || 'none',
     lis: document.querySelectorAll('#wordList li').length
 }));
 const mouseMoveOn = (page, fracY) => evl(page, (f) => {
@@ -64,7 +66,7 @@ const touchOn = (page, type, fracY) => evl(page, (t, f) => {
     const ev = new TouchEvent(t, { changedTouches: [touch], touches: t === 'touchend' ? [] : [touch], bubbles: true, cancelable: true });
     el.dispatchEvent(ev);
 }, type, fracY);
-const myNum = (s) => parseFloat(s || '-999');
+const myNum = (s) => parseFloat(s || '-999'); // legacy (ei enää käytössä Task 18:n jälkeen)
 
 (async () => {
     const srv = spawn('node', ['server.js'], {
@@ -98,43 +100,36 @@ const myNum = (s) => parseFloat(s || '-999');
         check('mask visible', st.mask === 'block', st.mask);
         check('grain visible', st.grain === 'block', st.grain);
         check('hint visible while idle', st.hint === 'flex', st.hint);
-        check('mask uses gradient window', /linear-gradient/.test(st.grad), st.grad.slice(0, 60));
-        check('window hidden initially (--my -999)', st.my === '' || myNum(st.my) <= -999, st.my);
+        // Task 18: ikkunakaistaletta ei enää ole — verho on tasainen,
+        // kosketus/hover paljastaa KOKO listan (revealing-luokka)
+        check('mask is solid (no gradient window)', st.maskImg === 'none' || st.maskImg === '', st.maskImg.slice(0, 60));
+        check('mask-on class on wrap', st.maskOn === true);
+        check('not revealing initially', st.revealing === false);
 
-        // hiiri: ikkuna seuraa kursoria
+        // hiiri: hover paljastaa koko listan
         await mouseMoveOn(page, 0.3); await sleep(120);
         st = await maskState(page);
-        const listH = await evl(page, () => document.getElementById('wordList').getBoundingClientRect().height);
-        check('mousemove sets window Y inside list', myNum(st.my) >= 0 && myNum(st.my) <= listH, `${st.my} / h=${listH}`);
-        check('hint hidden while pointer inside', st.hint === 'none' || st.hint === '', st.hint);
+        check('mousemove: revealing on', st.revealing === true, JSON.stringify(st));
+        check('mousemove: mask fully off', st.mask === 'none', st.mask);
+        check('mousemove: hint computed off under revealing', st.hintComputed === 'none', st.hintComputed);
         await evl(page, () => document.getElementById('wordList').dispatchEvent(new MouseEvent('mouseleave', { bubbles: true })));
         await sleep(120);
         st = await maskState(page);
-        check('mouseleave hides window', myNum(st.my) <= -999, st.my);
-        check('hint returns after leave', st.hint === 'flex', st.hint);
+        check('mouseleave: revealing off', st.revealing === false);
+        check('mouseleave: mask back', st.mask === 'block', st.mask);
+        check('hint returns after leave', st.hintComputed === 'flex', st.hintComputed);
 
-        // kosketus: ikkuna sormen yläpuolella (-10 px offset)
-        // HUOM: --my on suhteessa #wordMask-rektiin, joka kattaa ol:n margin-korin
-        // (mobiili 12px ylös + alas) — odotus lasketaan maskin rectistä.
+        // kosketus: kosketus = koko lista, vapautus = verho
         await touchOn(page, 'touchstart', 0.5); await sleep(120);
         st = await maskState(page);
-        const expectedY = await evl(page, () => {
-            const mr = document.getElementById('wordMask').getBoundingClientRect();
-            const lr = document.getElementById('wordList').getBoundingClientRect();
-            return (lr.y + lr.height * 0.5 - 10) - mr.y;
-        });
-        check('touchstart sets window Y with -10 offset', Math.abs(myNum(st.my) - expectedY) < 2, `${st.my} vs ${expectedY}`);
+        check('touchstart: revealing on immediately', st.revealing === true, JSON.stringify(st));
         await touchOn(page, 'touchmove', 0.7); await sleep(120);
         st = await maskState(page);
-        const expectedY2 = await evl(page, () => {
-            const mr = document.getElementById('wordMask').getBoundingClientRect();
-            const lr = document.getElementById('wordList').getBoundingClientRect();
-            return (lr.y + lr.height * 0.7 - 10) - mr.y;
-        });
-        check('touchmove tracks finger', Math.abs(myNum(st.my) - expectedY2) < 2, `${st.my} vs ${expectedY2}`);
+        check('touchmove: still revealing', st.revealing === true);
         await touchOn(page, 'touchend', 0.7); await sleep(120);
         st = await maskState(page);
-        check('touchend hides window', myNum(st.my) <= -999, st.my);
+        check('touchend: revealing off', st.revealing === false);
+        check('touchend: mask back', st.mask === 'block', st.mask);
 
         // valinta toimii verhon läpi
         await evl(page, () => document.querySelector('#wordList li').click()); await sleep(200);
@@ -218,9 +213,7 @@ const myNum = (s) => parseFloat(s || '-999');
         await sleep(400);
         await mouseMoveOn(A, 0.4); await sleep(120);
         const stA2 = await maskState(A);
-        check('offline explainer: mask still on', stA2.mask === 'block', stA2.mask);
-        const listH2 = await evl(A, () => document.getElementById('wordList').getBoundingClientRect().height);
-        check('offline explainer: window still tracks', myNum(stA2.my) >= 0 && myNum(stA2.my) <= listH2, `${stA2.my} / h=${listH2}`);
+        check('offline explainer: reveal still works', stA2.revealing === true, JSON.stringify(stA2));
 
         // ============ Console errors ============
         console.log('== Errors ==');

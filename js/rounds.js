@@ -390,6 +390,8 @@ const randomizeTheme = () => {
     if (!sectorMap[randomTheme]) sectors.push({ theme: randomTheme, w: 1 });
 
     drumAnim.style.display = "block";
+    drumAnim.classList.remove('drum-rest');
+    if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true); // kolmio-chip näkyy, pyörä saa näyttämön
     playAudio(sounds.drum);
     const drumCtx = (typeof window.themeDrum === 'object')
         ? themeDrum.mount(document.getElementById('drumWheel'), sectors, document.getElementById('drumHubName'))
@@ -401,7 +403,8 @@ const randomizeTheme = () => {
     if (typeof window.netRelayThemeRolling === 'function') window.netRelayThemeRolling(sectors, randomTheme, 1950);
 
     setTimeout(() => {
-        drumAnim.style.display = "none"; // pyörä piiloutuu loaderin mukana; seuraava mount siivoaa
+        // Pyörä jää näkyviin pysähtyneenä kunnes "Näytä sanat" painetaan
+        drumAnim.classList.add('drum-rest');
         const nyt = document.createElement('div');
         nyt.className = 'flash-now';
         nyt.textContent = 'NYT!';
@@ -444,8 +447,11 @@ if (soundUrl) {
 
             btn.style.display = "none";
             updateTurnDisplay();
-            // Harmonikka auki ehdon paljastusvaiheessa — tiivistyy kun sanat aukeavat
-            if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
+            // Harmonikka pysyy kiinni — pyörä näyttää tuloksen. Aukeaa vain
+            // vapaavalintaisessa, koska ohje "keksi oma sana" pitää nähdä.
+            if (typeof setTurnPanelCollapsed === 'function' && randomTheme === "vapaavalintainen") {
+                setTurnPanelCollapsed(false);
+            }
 
 if (randomTheme === "vapaavalintainen") {
     ruleInstruction.style.display = "block";
@@ -492,7 +498,8 @@ if (randomTheme === "vapaavalintainen") {
                 // Oma ehto: sääntöä ei tunneta ulkoa — näytetään se suoraan selittäjälle
                 ruleInstruction.style.display = "block";
                 ruleInstruction.textContent = themeDescriptions[randomTheme] || randomTheme;
-            } else {
+            } else if (randomTheme !== "vapaavalintainen") {
+                // vapaavalintaisen ohje ("keksi oma sana") jo asetettu yllä — älä pyyhi
                 ruleInstruction.textContent = "";
             }
 
@@ -521,7 +528,12 @@ if (randomTheme === "vapaavalintainen") {
 const switchToWords = () => {
     playClickSound();
     playAudio(sounds.flip);
-    
+
+    // Pysähtynyt pyörä poistuu vasta nyt — sanat aukeavat
+    if (drumAnim) { drumAnim.style.display = "none"; drumAnim.classList.remove('drum-rest'); }
+    const _dw = document.getElementById('drumWheel');
+    if (_dw && _dw._drum && typeof window.themeDrum === 'object') window.themeDrum.destroy(_dw._drum);
+
     document.getElementById("gameContainer").classList.add("words-active");
     roundControls.style.display = 'flex';
     spellContainer.style.display = "none";
@@ -825,6 +837,7 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
         }
     }
 
+    if (drumAnim) { drumAnim.style.display = "none"; drumAnim.classList.remove('drum-rest'); } // vapaavalintainen: pyörä voi olla vielä näkyvissä
     wordList.style.display = "none";
     wordList.classList.remove("hidden-words");
     isWordListHidden = true;
