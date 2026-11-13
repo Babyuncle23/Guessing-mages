@@ -399,6 +399,11 @@
             magicToggle.checked = s.magic;
             magicToggle.dispatchEvent(new Event('change'));
         }
+        const bonusToggle = $('bonusScalingToggle');
+        if (bonusToggle && typeof s.bonusScaling === 'boolean' && bonusToggle.checked !== s.bonusScaling) {
+            bonusToggle.checked = s.bonusScaling;
+            bonusToggle.dispatchEvent(new Event('change'));
+        }
         if (s.rounds && $('roundSelect')) $('roundSelect').value = s.rounds;
         if (s.timer !== undefined && typeof window.setTimerSeconds === 'function') window.setTimerSeconds(s.timer);
         // Omat ehdot ennen painoja — korttien inputit pitää olla olemassa
@@ -431,6 +436,7 @@
     const collectSettings = () => ({
         playerMode,
         magic: !!($('magicToggle') && $('magicToggle').checked),
+        bonusScaling: $('bonusScalingToggle') ? !!$('bonusScalingToggle').checked : true,
         rounds: $('roundSelect') ? $('roundSelect').value : '7',
         timer: String(typeof window.getTimerSeconds === 'function' ? window.getTimerSeconds() : 0),
         customs: typeof window.customThemesApi !== 'undefined' ? window.customThemesApi.list() : [],
@@ -527,6 +533,9 @@
     const startRoomGameLocal = (cfg) => {
         playerMode = cfg.mode;
         totalTurns = parseInt(cfg.rounds, 10) || 10;
+        // «Kasvavat bonussanat» kulkee isännän START_GAME-cfg:ssä — luetaan
+        // vain pelin alussa; poissa oleva kenttä = uusi systeemi (oletus).
+        bonusScalingEnabled = !cfg || cfg.bonusScaling !== false;
         teamCursors = [0, 0];
         _netPhase = 'idle';
         _netSpin = null;
@@ -1523,6 +1532,7 @@
             const cfg = {
                 mode: s.playerMode, magic: s.magic,
                 rounds: parseInt(s.rounds, 10) || 10, timer: parseInt(s.timer, 10) || 0,
+                bonusScaling: s.bonusScaling,
                 weights: s.weights,
                 customs: s.customs,
                 players: Net.players.filter(p => p.connected).map(p => ({ id: p.id, name: p.name, char: p.char }))
@@ -1555,7 +1565,7 @@
 
         // Isännän asetusmuutokset välitetään huoneeseen
         const bc = () => window.netBroadcastSettings();
-        ['magicToggle', 'roundSelect', 'timerRange', 'timerInput'].forEach(id => {
+        ['magicToggle', 'bonusScalingToggle', 'roundSelect', 'timerRange', 'timerInput'].forEach(id => {
             document.getElementById(id)?.addEventListener('change', bc);
         });
         document.addEventListener('input', (e) => {

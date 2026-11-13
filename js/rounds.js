@@ -289,7 +289,9 @@ const getBonusPhase = () => {
     const p = totalTurns > 0 ? currentRound / totalTurns : 0;
     return p > 0.8 ? 2 : p > 0.5 ? 1 : 0;
 };
-const getBonusConfig = () => BONUS_PHASES[getBonusPhase()];
+// Тогл «Kasvavat bonussanat» выкл (настройка захвачена при старте игры) →
+// фиксированная экономика «как раньше»: всегда 1 ✨-слово и +25p.
+const getBonusConfig = () => bonusScalingEnabled ? BONUS_PHASES[getBonusPhase()] : { count: 1, value: 25 };
 
 // Единый генератор списка слов хода — используется и switchToWords,
 // и Sanametamorfoosi (перегенерация списка).

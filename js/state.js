@@ -20,5 +20,8 @@ let selectedWordIndex = -1;
 let currentBonusWords = [];
 // 💀-проклятые слова Sanakaaos: сложные, но НЕ дают бонусных очков.
 let currentCursedWords = [];
+// Прогрессивная бонусная экономика вкл/выкл (#bonusScalingToggle).
+// Захватывается при СТАРТЕ игры — переключение посреди партии на неё не влияет.
+let bonusScalingEnabled = true;
 let activeCondition1 = "";
 let activeCondition2 = "";

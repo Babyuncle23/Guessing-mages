@@ -90,7 +90,7 @@
         <strong>Milloin 0 pistettä?</strong> Napsauta ”Luovuta vuoro”, jos sääntöjä on rikottu tai kukaan pelaajista ei jaksa jatkaa kierrosta.
     </p>
 
-    <p style="margin-bottom: 12px; font-size: 13.5px; line-height: 1.4;">
+    <p id="rulesBonusText" style="margin-bottom: 12px; font-size: 13.5px; line-height: 1.4;">
         <strong>✨ Bonussanat:</strong> Osa sanoista tulee aina koko sanakirjasta — usein harvinaisia. Pelin edetessä bonussanoja tulee lisää ja niiden arvo kasvaa: +25p → +50p → +100p!
     </p>
 
@@ -145,7 +145,7 @@
         </div>
         <div class="guide-step">
             <span class="guide-step-num">✨</span>
-            <p><strong>Bonussanat (+25→+100p):</strong> Listalla on 1–3 ✨-merkittyä harvinaista sanaa — määrä ja arvo kasvavat pelin edetessä. Jos selität sellaisen, napauta sitä listassa ennen kuin painat "Arvattu oikein"!</p>
+            <p id="magicGuideBonusText"><strong>Bonussanat (+25→+100p):</strong> Listalla on 1–3 ✨-merkittyä harvinaista sanaa — määrä ja arvo kasvavat pelin edetessä. Jos selität sellaisen, napauta sitä listassa ennen kuin painat "Arvattu oikein"!</p>
         </div>
     </div>
 </div>
@@ -253,6 +253,17 @@
                 </div>
                 <small id="timerHint" style="color:var(--text-muted); font-size:11.5px; display:block; margin-top:4px;">0 = ei ajastinta · liu'uta tai kirjoita tarkka aika (enintään 600&nbsp;s)</small>
             </div>
+
+<!-- KASVAVAT BONUSSANAT -KYTKIN (oletus päällä; voimaan uuden pelin alkaessa) -->
+<div style="background: rgba(255,255,255,0.03); border: 1px solid var(--soft-border); border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; width: 100%;">
+        <span style="font-weight: bold; font-size: 14px; color: var(--gold);">✨ Kasvavat bonussanat</span>
+        <input type="checkbox" id="bonusScalingToggle" checked style="transform: scale(1.3); cursor: pointer;">
+    </label>
+    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; margin-bottom: 0; line-height: 1.4;">
+        Päällä (oletus): bonussanoja tulee lisää ja niiden arvo kasvaa finaalia kohden (1–3 sanaa, +25p → +100p). Pois päältä: aina 1 bonussana, +25p — kuten aiemmin. Astuu voimaan uuden pelin alkaessa.
+    </p>
+</div>
 
 <!-- MUKAUTUSVALINNAT -->
 <div style="margin-bottom: 20px;">

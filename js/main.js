@@ -92,6 +92,9 @@ const resetCurrentGame = () => {
     currentCursedWords = [];
 
     totalTurns = parseInt(document.getElementById('roundSelect').value) || 10;
+    // «Kasvavat bonussanat»-kytkin luetaan vain pelin alussa — kesken pelin
+    // tehty muutos astuu voimaan vasta seuraavassa pelissä.
+    bonusScalingEnabled = (document.getElementById('bonusScalingToggle')?.checked !== false);
     gamePlayers = createPlayers();
 
     document.body.dataset.mode = playerMode;
@@ -123,6 +126,9 @@ document.getElementById('startGameBtn').addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
 
     totalTurns = parseInt(document.getElementById('roundSelect').value) || 10;
+    // «Kasvavat bonussanat»-kytkin luetaan vain pelin alussa — kesken pelin
+    // tehty muutos astuu voimaan vasta seuraavassa pelissä.
+    bonusScalingEnabled = (document.getElementById('bonusScalingToggle')?.checked !== false);
     gamePlayers = createPlayers();
 
     document.body.dataset.mode = playerMode;

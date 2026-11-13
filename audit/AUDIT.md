@@ -196,7 +196,7 @@ python -m http.server 8080   # затем http://localhost:8080
 - `qr-code.svg` — офлайн SVG-QR (segno, error-level M, золото на тёмном) вместо внешнего `api.qrserver.com`.
 - `#victoryModal` — заменён `alert()+location.reload()`: рейтинг с медалями/подсветкой победителя, «🔄 Pelaa uudelleen» → `resetCurrentGame()` (полный сброс без reload), «⚙️ Muuta asetuksia» → `#characterModal`.
 - `#timerSelect` (0/60/90/120с) + прогресс-бар `#turnTimer`/`#turnTimerFill` над блоком темы; warn/danger-цвета; при таймауте — авто-`endRound(false)`. Старт при открытии слов, стоп в `endRound`.
-- `js/storage.js` — `localStorage` (`arksanum-settings-v1`): веса тем, playerMode, magicToggle, roundSelect, timerSelect, setupOrder. Автосохранение по change/input, восстановление при загрузке.
+- `js/storage.js` — `localStorage` (`arksanum-settings-v1`): веса тем, playerMode, magicToggle, bonusScalingToggle (`bonusScaling`, фикс. 1✨/+25p когда выкл), roundSelect, timerSelect, setupOrder. Автосохранение по change/input, восстановление при загрузке.
 - Багфикс по ходу: `refreshStartButton` больше не затирает состояние ошибки словарей (`dictionariesFailed`); `.steal-btn`-гейтинг поднят по специфике выше `.round-controls-block button { display:flex !important }`.
 
 ### Новые скриншоты (audit/screenshots/t2-*.png)

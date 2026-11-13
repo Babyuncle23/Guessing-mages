@@ -98,6 +98,24 @@ document.addEventListener("click", (e) => {
 // начисляются молча, без ✨-индикаторов.
 const formatRoundCounter = () => `Kierros: ${currentRound} / ${totalTurns}`;
 
+// Sääntötekstit (aloitusruutu + taikuusopas) seuraavat #bonusScalingTogglea:
+// päällä = kasvava bonus-ekonomia (1–3 ✨, +25→+100p), pois = kiinteä 1 ✨/+25p.
+window.refreshBonusTexts = () => {
+    const on = (document.getElementById('bonusScalingToggle')?.checked !== false);
+    const rules = document.getElementById('rulesBonusText');
+    if (rules) {
+        rules.innerHTML = on
+            ? `<strong>✨ Bonussanat:</strong> Osa sanoista tulee aina koko sanakirjasta — usein harvinaisia. Pelin edetessä bonussanoja tulee lisää ja niiden arvo kasvaa: +25p → +50p → +100p!`
+            : `<strong>✨ Bonussana:</strong> Yksi sanoista tulee aina koko sanakirjasta — usein harvinainen. Selitä se ja saat +25p.`;
+    }
+    const guide = document.getElementById('magicGuideBonusText');
+    if (guide) {
+        guide.innerHTML = on
+            ? `<strong>Bonussanat (+25→+100p):</strong> Listalla on 1–3 ✨-merkittyä harvinaista sanaa — määrä ja arvo kasvavat pelin edetessä. Jos selität sellaisen, napauta sitä listassa ennen kuin painat "Arvattu oikein"!`
+            : `<strong>Bonussana (+25p):</strong> Sanalistassa yksi sana on harvinainen ja merkitty +25p-merkillä. Jos selität sen, napauta kyseistä sanaa listassa ennen kuin painat "Arvattu oikein"!`;
+    }
+};
+
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
 

@@ -25,6 +25,7 @@
         });
 
         const magicToggle = document.getElementById('magicToggle');
+        const bonusToggle = document.getElementById('bonusScalingToggle');
         const roundSelect = document.getElementById('roundSelect');
 
         return {
@@ -32,6 +33,7 @@
             customs: typeof window.customThemesApi !== 'undefined' ? window.customThemesApi.list() : [],
             playerMode: typeof playerMode !== 'undefined' ? playerMode : 2,
             magic: magicToggle ? magicToggle.checked : false,
+            bonusScaling: bonusToggle ? bonusToggle.checked : true,
             rounds: roundSelect ? roundSelect.value : '7',
             timer: String(window.getTimerSeconds()),
             // Valitut hahmot muistetaan myös, jotta taikapeli on nopea aloittaa uudelleen
@@ -90,6 +92,14 @@
             magicToggle.dispatchEvent(new Event('change'));
         }
 
+        // 3.5 Bonussanojen kytkin — puuttuva avain = uusi systeemi (oletus ON).
+        //     change-tapahtuma päivittää myös sääntötekstit (refreshBonusTexts).
+        const bonusToggle = document.getElementById('bonusScalingToggle');
+        if (bonusToggle && typeof saved.bonusScaling === 'boolean' && saved.bonusScaling !== bonusToggle.checked) {
+            bonusToggle.checked = saved.bonusScaling;
+            bonusToggle.dispatchEvent(new Event('change'));
+        }
+
         // 4. Kierrosmäärä ja ajastin
         const roundSelect = document.getElementById('roundSelect');
         if (roundSelect && saved.rounds) roundSelect.value = saved.rounds;
@@ -115,8 +125,16 @@
         const save = () => window.saveGameSettings();
         const roundSelect = document.getElementById('roundSelect');
         const magicToggle = document.getElementById('magicToggle');
+        const bonusToggle = document.getElementById('bonusScalingToggle');
         if (roundSelect) roundSelect.addEventListener('change', save);
         if (magicToggle) magicToggle.addEventListener('change', save);
+        if (bonusToggle) {
+            bonusToggle.addEventListener('change', save);
+            // Sääntötekstit seuraavat valittua bonusmoodia
+            bonusToggle.addEventListener('change', () => {
+                if (typeof window.refreshBonusTexts === 'function') window.refreshBonusTexts();
+            });
+        }
 
         // Ajastimen kaksi ohjainta synkassa: liukusäädin päivittää numerokentän
         // lennosta, numerokenttä liukusäätimen (clamp 300 peukalolle). Tallennus
