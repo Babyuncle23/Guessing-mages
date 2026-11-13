@@ -415,49 +415,25 @@ button:disabled, .spell-btn:disabled {
     border-radius: 8px;
 }
 
+/* Valittu sana — violetti "valittu kortti" (sama paletti kuin
+   .char-card.selected-second). Ei ✓-merkkejä enää. */
 #wordList li.selected-word {
-    background: rgba(229, 193, 88, 0.12) !important;
-    border: 1px solid var(--gold) !important;
-    box-shadow: 0 0 12px var(--gold-glow);
+    background: rgba(155, 89, 182, 0.16) !important;
+    border: 1px solid #9b59b6 !important;
+    box-shadow: 0 0 14px rgba(155, 89, 182, 0.45);
     color: #fff;
     font-weight: bold;
 }
 
-/* ✓-ele: rasti oikeassa reunassa — seuraa sormen alla olevaa riviä,
-   vapautus lukitsee sanan (padding-right jättää tilan rastille) */
-/* #wordListWrap-etuasema voittaa myöhemmät #wordList li -tiivistysmääritykset */
-#wordListWrap #wordList li {
-    padding-right: 40px !important;
-}
-#wordList li::before {
-    content: '✓';
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%) scale(0.9);
-    font-weight: bold;
-    font-size: 15px;
-    color: var(--gold);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease, transform 0.15s ease, text-shadow 0.15s ease;
-}
-#wordListWrap.revealing #wordList li::before {
-    opacity: 0.28;
-}
+/* Sormen alla oleva rivi — sama violetti korttityyli, ilman rastia.
+   transition:none: kortti napsahtaa sormen alle välittömästi, ei viiveä. */
 #wordList li.check-armed {
-    background: rgba(229, 193, 88, 0.09) !important;
-    border-color: rgba(229, 193, 88, 0.45) !important;
-}
-#wordListWrap #wordList li.check-armed::before {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.25);
-    text-shadow: 0 0 10px rgba(229, 193, 88, 0.95), 0 0 4px rgba(229, 193, 88, 0.6);
-}
-#wordListWrap #wordList li.selected-word::before {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-    text-shadow: 0 0 6px rgba(229, 193, 88, 0.7);
+    background: rgba(155, 89, 182, 0.16) !important;
+    border: 1px solid #9b59b6 !important;
+    box-shadow: 0 0 14px rgba(155, 89, 182, 0.5);
+    color: #fff;
+    font-weight: bold;
+    transition: none;
 }
 
 /* --- YKSITYISYYSVERHO: sanojen "sumu" + yhden rivin lukuikkuna --- */
@@ -468,8 +444,9 @@ button:disabled, .spell-btn:disabled {
 }
 
 /* Pitkän painalluksen tekstivalinta ei saa "valottaa" sanoja verhon alta.
-   touch-action:none: sormen veto ei scrollaa listaa — ✓-rasti liikkuu
-   riveillä; listaa vieritetään vain reunavyöhykkeen autoscrollilla. */
+   touch-action:none: sormen veto ei scrollaa listaa natiivisti — violetti
+   kortti liikkuu riveillä; listaa vieritetään työntöskrollilla +
+   reunavyöhykkeen autoscrollilla. */
 #wordList {
     user-select: none;
     -webkit-user-select: none;
@@ -498,8 +475,8 @@ button:disabled, .spell-btn:disabled {
     pointer-events: none;
     border-radius: 10px;
     background: radial-gradient(ellipse at center,
-        rgba(229, 193, 88, 0.42) 0%,
-        rgba(229, 193, 88, 0.14) 55%,
+        rgba(155, 89, 182, 0.45) 0%,
+        rgba(155, 89, 182, 0.16) 55%,
         transparent 78%);
     filter: blur(5px);
     animation: selGlowPulse 2.4s ease-in-out infinite;
@@ -547,11 +524,19 @@ button:disabled, .spell-btn:disabled {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
-/* Pidä pohjassa -> koko lista näkyy (verho + riekale + vihje pois) */
+/* Pidä pohjassa -> koko lista näkyy välittömästi; vapautuksen jälkeen
+   verho drippaa takaisin ~1.8 s himmennyksenä (ei äkkipiiloa) */
+#wordListWrap.mask-on:not(.revealing) #wordMask,
+#wordListWrap.mask-on:not(.revealing) #wordGrain,
+#wordListWrap.mask-on:not(.revealing) #wordMaskHint {
+    opacity: 1;
+    transition: opacity 1.8s ease;
+}
 #wordListWrap.revealing #wordMask,
 #wordListWrap.revealing #wordGrain,
 #wordListWrap.revealing #wordMaskHint {
-    display: none !important;
+    opacity: 0 !important;
+    transition: none !important;
 }
 
 /* Kun ele on jo käytetty, vihje häivytetään — vähemmän visuaalista kohinaa */
@@ -2479,8 +2464,9 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     font-size: 14px !important; /* Слегка уменьшаем размер шрифта */
 }
 
-/* Убедимся, что золотая рамка зажатого слова тоже не ломает размер */
-#wordList li.selected-word {
+/* Убедимся, что рамка зажатого/выбранного слова тоже не ломает размер */
+#wordList li.selected-word,
+#wordList li.check-armed {
     padding: 9px 13px !important; /* Компенсируем 1px толщины рамки */
 }
 /* ==========================================================

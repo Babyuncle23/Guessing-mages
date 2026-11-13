@@ -154,7 +154,7 @@ const glowState = (page) => evl(page, () => {
         }));
         check('idle fog: mask block, solid', mst.mask === 'block' && (mst.maskImg === 'none' || mst.maskImg === ''), JSON.stringify(mst));
         check('idle: not revealing', mst.revealing === false);
-        check('hint teaches ✓-gesture', await evl(page, () => /✓|valitset/i.test(document.getElementById('wordMaskHint').textContent)));
+        check('hint teaches release-gesture', await evl(page, () => /vapauta|valitse/i.test(document.getElementById('wordMaskHint').textContent)));
 
         // Hiiri ensin (touchActiveUntil-guard estäisi synteettisen hiiri-eleen
         // 700 ms sisällä kosketuksesta): hover = koko lista
@@ -180,10 +180,11 @@ const glowState = (page) => evl(page, () => {
         await touchOn(page, 'touchstart', 0.5); await sleep(100);
         mst = await evl(page, () => ({
             revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
-            mask: getComputedStyle(document.getElementById('wordMask')).display
+            mask: getComputedStyle(document.getElementById('wordMask')).display,
+            maskOpacity: getComputedStyle(document.getElementById('wordMask')).opacity
         }));
         check('touchstart: revealing instantly', mst.revealing === true, JSON.stringify(mst));
-        check('touch: mask fully hidden', mst.mask === 'none', mst.mask);
+        check('touch: mask fully transparent', mst.mask === 'block' && parseFloat(mst.maskOpacity) === 0, JSON.stringify(mst));
         await touchOn(page, 'touchcancel', 0.5); await sleep(120); // cancel = ei valintaa
         check('touchcancel armed nothing', await evl(page, () => !document.querySelector('#wordList li.selected-word')));
         mst = await evl(page, () => ({
@@ -219,36 +220,40 @@ const glowState = (page) => evl(page, () => {
         const maskZ = await evl(page, () => getComputedStyle(document.getElementById('wordMask')).zIndex);
         check('glow above mask layer', parseInt(glowZ) > parseInt(maskZ), `${glowZ} vs ${maskZ}`);
 
-        // ============ C2. ✓-ele: vedä sormella = rasti, vapauta = valinta ============
-        console.log('== C2. Check-gesture: arm/move/commit ==');
+        // ============ C2. Vedä sormella = violetti kortti, vapauta = valinta ============
+        console.log('== C2. Card-gesture: arm/move/commit ==');
         // Nyt rivi 4 on lukittuna — ele siirtää valinnan riviin 1
         let c0 = await rowCenter(page, 0), c1 = await rowCenter(page, 1);
         await touchAt(page, 'touchstart', c0.x, c0.y); await sleep(120);
         let arm = await evl(page, () => ({
             armed: [...document.querySelectorAll('#wordList li')].findIndex(l => l.classList.contains('check-armed')),
             revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
-            checkOp: getComputedStyle(document.querySelector('#wordList li.check-armed') || document.body, '::before').opacity
+            armedBorder: (document.querySelector('#wordList li.check-armed') ? getComputedStyle(document.querySelector('#wordList li.check-armed')).borderColor : 'none'),
+            armedBefore: getComputedStyle(document.querySelector('#wordList li.check-armed') || document.body, '::before').content
         }));
         check('touchstart arms row under finger', arm.armed === 0, `armed=${arm.armed}`);
-        check('armed ✓ glowing (opacity)', parseFloat(arm.checkOp) > 0.8, arm.checkOp);
+        check('armed = violet card (no ✓)', arm.armedBorder === 'rgb(155, 89, 182)' && arm.armedBefore === 'none', JSON.stringify(arm));
         check('revealing while armed', arm.revealing === true);
 
-        // Sormi liikkuu -> rasti hyppää toiselle riville
+        // Sormi liikkuu -> violetti kortti hyppää toiselle riville
         await touchAt(page, 'touchmove', c1.x, c1.y); await sleep(100);
         arm = await evl(page, () => [...document.querySelectorAll('#wordList li')].findIndex(l => l.classList.contains('check-armed')));
-        check('✓ jumps to row under finger', arm === 1, `armed=${arm}`);
+        check('card style jumps to row under finger', arm === 1, `armed=${arm}`);
 
-        // Vapautus rivillä = sana lukittuu
+        // Vapautus rivillä = sana lukittuu (valinta VASTA irrottaessa)
         await touchAt(page, 'touchend', c1.x, c1.y); await sleep(160);
         let sel = await evl(page, () => ({
             idx: selectedWordIndex,
             armedLeft: document.querySelectorAll('#wordList li.check-armed').length,
             selRow: [...document.querySelectorAll('#wordList li')].findIndex(l => l.classList.contains('selected-word')),
-            revealed: document.getElementById('wordListWrap').classList.contains('revealing')
+            revealed: document.getElementById('wordListWrap').classList.contains('revealing'),
+            maskOpacity: parseFloat(getComputedStyle(document.getElementById('wordMask')).opacity),
+            maskDur: getComputedStyle(document.getElementById('wordMask')).transitionDuration
         }));
         check('release commits row under finger', sel.idx === parseInt(c1.idx) && sel.selRow === 1, JSON.stringify(sel));
         check('armed class cleared after release', sel.armedLeft === 0);
         check('fog back after release', sel.revealed === false);
+        check('fog fades back over ~2s', sel.maskOpacity > 0 && sel.maskOpacity < 0.75 && /1\.8s/.test(sel.maskDur), `op=${sel.maskOpacity} dur=${sel.maskDur}`);
 
         // Tavalinen tap/click EI valitse (TAP_SELECT_ENABLED=false)
         await evl(page, () => document.querySelectorAll('#wordList li')[0].click()); await sleep(120);
@@ -288,6 +293,24 @@ const glowState = (page) => evl(page, () => {
             await touchAt(page, 'touchend', wlX, aimY); await sleep(140);
             const selAfterEdge = await evl(page, () => selectedWordIndex);
             check('edge-scroll release commits armed row', armedIdx === null || selAfterEdge === parseInt(armedIdx), `armed=${armedIdx} sel=${selAfterEdge}`);
+
+            // Työntöskrolli: sormi ylimmällä näkyvällä rivillä -> veto
+            // ylös vierittää listaa sormen tahdissa (helppo scrollaus)
+            await evl(page, () => { document.getElementById('wordList').scrollTop = 80; });
+            const topRow = await evl(page, () => {
+                const wl = document.getElementById('wordList');
+                const lr = wl.getBoundingClientRect();
+                const first = [...wl.querySelectorAll('li')].find(li => li.getBoundingClientRect().bottom > lr.top + 4);
+                const r = first.getBoundingClientRect();
+                return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+            });
+            await touchAt(page, 'touchstart', topRow.x, topRow.y); await sleep(80);
+            const stPush0 = await evl(page, () => document.getElementById('wordList').scrollTop);
+            await touchAt(page, 'touchmove', topRow.x, topRow.y - 14); await sleep(60);
+            await touchAt(page, 'touchmove', topRow.x, topRow.y - 28); await sleep(60);
+            const stPush1 = await evl(page, () => document.getElementById('wordList').scrollTop);
+            check('push past top row scrolls list up', stPush1 < stPush0, `${stPush0} -> ${stPush1}`);
+            await touchAt(page, 'touchcancel', topRow.x, topRow.y - 28); await sleep(80);
         } else {
             console.log('  (list not scrollable — edge checks skipped)');
         }
@@ -299,7 +322,7 @@ const glowState = (page) => evl(page, () => {
         console.log('== D. Coach once + hint dim ==');
         const coach = await evl(page, () => ({
             d: document.getElementById('veilCoach').style.display,
-            flag: localStorage.getItem('veilCoachV2')
+            flag: localStorage.getItem('veilCoachV3')
         }));
         check('coach dismissed by earlier gesture', coach.d === 'none' && coach.flag === '1', JSON.stringify(coach));
         check('hint dimmed (veilUsed)', await evl(page, () => document.getElementById('wordMaskHint').classList.contains('hint-dim')));
@@ -307,7 +330,7 @@ const glowState = (page) => evl(page, () => {
         // Uusi sivu: localStorage on jaettu origin-tasolla — nollataan flag,
         // jotta "ekaa kertaa" -polku testataan aidosti.
         const p2 = await newPage(browser);
-        await evl(p2, () => localStorage.removeItem('veilCoachV2'));
+        await evl(p2, () => localStorage.removeItem('veilCoachV3'));
         await startGameAndRoll(p2, 'theme-weight-pantomiimi');
         await openWords(p2);
         const coach2 = await evl(p2, () => ({
@@ -320,7 +343,7 @@ const glowState = (page) => evl(page, () => {
         const coach3 = await evl(p2, () => ({
             d: document.getElementById('veilCoach').style.display,
             out: document.getElementById('veilCoach').classList.contains('veil-coach-out'),
-            flag: localStorage.getItem('veilCoachV2'),
+            flag: localStorage.getItem('veilCoachV3'),
             hintDim: document.getElementById('wordMaskHint').classList.contains('hint-dim')
         }));
         check('coach dismissed on first gesture', (coach3.d === 'none' || coach3.out === true) && coach3.flag === '1', JSON.stringify(coach3));
@@ -328,9 +351,9 @@ const glowState = (page) => evl(page, () => {
         await touchOn(p2, 'touchend', 0.5); await sleep(100);
 
         // Uusi sivu flagin kanssa -> coach EI näy enää
-        await evl(p2, () => localStorage.setItem('veilCoachV2', '1'));
+        await evl(p2, () => localStorage.setItem('veilCoachV3', '1'));
         const p3 = await newPage(browser);
-        await evl(p3, () => localStorage.setItem('veilCoachV2', '1'));
+        await evl(p3, () => localStorage.setItem('veilCoachV3', '1'));
         // flag pitää asettaa ennen peliä — tehdään reload
         await p3.reload({ waitUntil: 'domcontentloaded' });
         await p3.waitForFunction('typeof wordsReady !== "undefined"', { timeout: 15000 });

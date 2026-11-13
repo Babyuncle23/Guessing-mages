@@ -51,7 +51,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
         return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
     });
     await sleep(250);
-    await page.screenshot({ path: path.join(OUT, 'gest-armed-check.png') });
+    await page.screenshot({ path: path.join(OUT, 'gest-armed-card.png') });
 
     // Vapautus -> rivi lukittu, sumu takaisin + selGlow
     await page.evaluate((cx, cy) => {

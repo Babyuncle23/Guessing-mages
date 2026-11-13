@@ -450,7 +450,7 @@ let veilCoachShown = false;
 
 const dismissVeilCoach = () => {
     if (!veilCoach || veilCoach.style.display === 'none') return;
-    try { localStorage.setItem('veilCoachV2', '1'); } catch (e) {}
+    try { localStorage.setItem('veilCoachV3', '1'); } catch (e) {}
     veilCoach.classList.add('veil-coach-out');
     setTimeout(() => { veilCoach.style.display = 'none'; }, 550);
 };
@@ -492,7 +492,7 @@ const refreshPrivacyMask = () => {
     // Kerran näytettävä ohjepilvi — katoaa ekan eleen tai 4 s jälkeen
     if (on && !veilCoachShown && veilCoach) {
         let seen = false;
-        try { seen = localStorage.getItem('veilCoachV2') === '1'; } catch (e) {}
+        try { seen = localStorage.getItem('veilCoachV3') === '1'; } catch (e) {}
         if (!seen) {
             veilCoachShown = true;
             veilCoach.style.display = 'block';
@@ -515,11 +515,11 @@ const initPrivacyMask = () => {
         if (wordListWrap) wordListWrap.classList.remove('revealing');
     };
 
-    // ✓-ele: sormen alla oleva rivi saa rastin — vedä haluamallesi riville ja
-    // vapauta = sana lukittuu. UX-hienosäätö:
-    //  • touch-action:none: veto EI scrollaa listaa — rasti liikkuu riveillä,
-    //    alimmat rivit tavoittuvat reunavyöhykkeen autoscrollilla.
-    //  • Rasti seuraa aina sormen alla olevaa riviä — myös scrollin aikana.
+    // Kortti-ele: sormen alla oleva rivi saa violetin "valittu kortti" -tyylin —
+    // vedä haluamallesi riville ja vapauta = sana lukittuu. UX-hienosäätö:
+    //  • touch-action:none: veto EI scrollaa natiivisti — työntöskrolli
+    //    (reunarivi + veto ohi) ja reunavyöhykkeen autoscroll hoitavat vierityksen.
+    //  • Kortti seuraa aina sormen alla olevaa riviä — myös scrollin aikana.
     //  • Vapautus listan ulkopuolella / keskeytys ei valitse mitään.
     const EDGE_ZONE = 46;     // px listan reunoista jossa autoscroll käynnistyy
     let armedLi = null, aiming = false;
@@ -558,7 +558,7 @@ const initPrivacyMask = () => {
         else if (lastY > bottom - EDGE_ZONE) { dir = 1; depth = lastY - (bottom - EDGE_ZONE); }
         if (!dir) { edgeRaf = 0; return; }
         wordList.scrollTop += dir * Math.max(2, Math.min(9, depth / 5));
-        armAt(lastX, lastY); // rivit liikkuivat sormen alle — rasti mukana
+        armAt(lastX, lastY); // rivit liikkuivat sormen alle — kortti mukana
         edgeRaf = requestAnimationFrame(edgeStep);
     };
     const ensureEdge = () => { if (!edgeRaf) edgeRaf = requestAnimationFrame(edgeStep); };
@@ -571,8 +571,23 @@ const initPrivacyMask = () => {
     };
     const aimMove = (x, y) => {
         if (!aiming) return;
+        const dy = y - lastY;
         lastX = x; lastY = y;
         armAt(x, y);
+        // Työntöskrolli: kun osoitettu rivi on jo näkyvän listan reunalla
+        // ja sormi työntää ohi, lista vierii sormen tahdissa — ylös- ja
+        // alasvieritys onnistuu "vapaasti" ilman erillistä reunavyöhykettä.
+        if (armedLi && dy !== 0) {
+            const lr = wordList.getBoundingClientRect();
+            const ar = armedLi.getBoundingClientRect();
+            if (dy < 0 && ar.top - lr.top < ar.height * 0.6) {
+                wordList.scrollTop += dy;
+                armAt(x, y);
+            } else if (dy > 0 && lr.bottom - ar.bottom < ar.height * 0.6) {
+                wordList.scrollTop += dy;
+                armAt(x, y);
+            }
+        }
         ensureEdge();
     };
     const aimEnd = (commit) => {
@@ -585,7 +600,7 @@ const initPrivacyMask = () => {
         disarm();
     };
 
-    // Natiivi scroll: sisältö virtaa sormen alta — rasti seuraa mukana
+    // Scrollin aikana sisältö virtaa sormen alta — kortti seuraa mukana
     wordList.addEventListener('scroll', () => {
         if (aiming) armAt(lastX, lastY);
     }, { passive: true });
@@ -616,7 +631,7 @@ const initPrivacyMask = () => {
         aimEnd(false); // keskeytetty kosketus ei valitse
     }, { passive: true });
 
-    // Hiiri: hover paljastaa listan; vedä painikkeella = sama ✓-ele
+    // Hiiri: hover paljastaa listan; vedä painikkeella = sama kortti-ele
     let mouseDown = false;
     wordList.addEventListener('mousedown', (e) => {
         if (Date.now() < touchActiveUntil) return; // synteettinen hiiri touchin perästä
@@ -640,7 +655,7 @@ const initPrivacyMask = () => {
     });
     wordList.addEventListener('mouseleave', () => {
         revealOff();
-        disarm(); // kursori pois — rasti katoaa, mutta veto jatkuu takaisin tullessa
+        disarm(); // kursori pois — kortti katoaa, mutta veto jatkuu takaisin tullessa
     });
 
     // Itsenäinen suoja: verho seuraa listan tilaa riippumatta siitä,

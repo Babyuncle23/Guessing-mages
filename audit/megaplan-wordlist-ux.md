@@ -352,3 +352,19 @@ verify16 **67/67** · 15 **42** · 14 **34** · 4 **21** · 17 **56** ·
 - Reserve-Padding 80→20px, damit das Rad unter die Pille reichen kann.
 - verify16 weiterhin **79/79** (`btnPos=fixed` unverändert).
 - Screenshot: `audit/pill-rest.png`.
+
+### Task 26 — ✓ убраны, фиолетовая карточка за пальцем, плавное затухание
+- Заменил ✓-жест на «фиолетовую карточку»: `.check-armed` и
+  `.selected-word` — палитра `#9b59b6`; `selGlow` тоже в фиолет.
+- Выбор только на отпускании (как и было).
+- **Вверх-скролл «просто»**: push-scroll в `aimMove` — палец толкает
+  крайнюю видимую строку дальше края → список едет со скоростью пальца;
+  dwell-zone у краёв сохранена.
+- Тень после отпускания не пропадает мгновенно: у `.mask-on` стоит
+  `transition: opacity 1.8s` — вуаль возвращается стильным ~2с-затуханием.
+- **Root cause золотой рамки**: `selectWordLi` писал inline
+  `border: var(--soft-border) !important` на все li — инлайн-!important
+  бьёт любой CSS. Заменено на `removeProperty` — цвета теперь из классов.
+- `transition:none` на `.check-armed` — карточка за пальцем без лага.
+- Тесты: verify17 **58/58**, verify16 **80/80**, verify15 **43/43**,
+  verify14 **34/34**, verify4 **21/21**.

@@ -355,17 +355,16 @@ window.selectWordLi = (li) => {
 
     if (typeof playClickSound === 'function') playClickSound();
     
-    // 1. Сбрасываем стили у всех элементов списка
+    // 1. Сбрасываем стили у всех элементов списка — инлайн-стили снять
+    //    полностью, иначе inline !important перебивает .check-armed / .selected-word
     wordList.querySelectorAll('li').forEach(el => {
         el.classList.remove('selected-word');
-        el.style.setProperty('background', 'rgba(255, 255, 255, 0.03)', 'important');
-        el.style.setProperty('border', '1px solid var(--soft-border)', 'important');
+        el.style.removeProperty('background');
+        el.style.removeProperty('border');
     });
     
-    // 2. Визуально зажимаем текущее слово (фиолетовый фон + золотая рамка)
+    // 2. Визуально зажимаем текущее слово (фиолетовый «выбранный» стиль из CSS)
     li.classList.add('selected-word');
-    li.style.setProperty('background', 'rgba(91, 33, 182, 0.35)', 'important');
-    li.style.setProperty('border', '1px solid var(--gold)', 'important');
     
     // 3. ЗАПИСЫВАЕМ ИНДЕКС СЛОВА В ПАМЯТЬ
     selectedWordIndex = idx;

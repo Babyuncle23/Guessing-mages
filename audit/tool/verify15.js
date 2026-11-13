@@ -44,6 +44,7 @@ const forceTheme = (page, weightId) => evl(page, (id) => {
 }, weightId);
 const maskState = (page) => evl(page, () => ({
     mask: getComputedStyle(document.getElementById('wordMask')).display,
+    maskOp: getComputedStyle(document.getElementById('wordMask')).opacity,
     hint: document.getElementById('wordMaskHint').style.display,
     hintDim: document.getElementById('wordMaskHint').classList.contains('hint-dim'),
     revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
@@ -187,7 +188,7 @@ const startGameAndRoll = async (page, weightId) => {
         await touchOn(page, 'touchstart', 0.5); await sleep(120);
         st = await maskState(page);
         check('touchstart: revealing on instantly', st.revealing === true, JSON.stringify(st));
-        check('touch: mask fully off', st.mask === 'none', st.mask);
+        check('touch: mask fully off', st.mask === 'none' || st.maskOp === '0', `mask=${st.mask} op=${st.maskOp}`);
         await touchOn(page, 'touchmove', 0.8); await sleep(60);
         st = await maskState(page);
         check('touchmove: stays revealing', st.revealing === true);

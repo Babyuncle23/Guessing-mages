@@ -1061,3 +1061,36 @@ vs pill 722–784px, `elementFromPoint` → пилюля.
   кликабельна над нижним краем, фаза 2, без-магии, комната).
 - Регрессия: verify16 — **80/80**, verify17 — **56/56**,
   verify18 — **34/34**.
+
+## Task 26 — kortti-ele: ✓ pois, violetti kortti sormen alla, pehmeä sumu
+- ✓-rasti poistettu kokonaan (pseudo-elementit, padding-varaus). Sen
+  tilalla `li.check-armed` = violetti "valittu kortti" (paletti
+  `#9b59b6`, sama kuin `.char-card.selected-second`); `selected-word`
+  ja `#selGlow` samassa violetissa — yksi visuaalinen kieli.
+- Valinta VAIN vapautuksessa (touchend/mouseup) — entinen malli säilyi.
+- `touch-action:none` säilyy: natiivi veto-scroll on pois päältä.
+  Ylösvieritys onnistuu nyt **työntöskrollilla**: kun osoitettu rivi
+  on näkyvän listan reunalla ja sormi työntää ohi, lista vierii
+  sormen tahdissa (`aimMove` dy-siirto scrollTop:iin) + entinen
+  reunavyöhykkeen auto-scroll toimii yhä.
+- Verho ei katoa enää välittömästi vapautuksen jälkeen:
+  `.mask-on:not(.revealing)` → `opacity:1; transition: 1.8s` —
+  sumu drippaa takaisin tyylikkäästi ~2 s aikana. Reveal on edelleen
+  välitön (`opacity:0 + transition:none`).
+- **Inline-style bugi (root cause)**: `selectWordLi` kirjoitti
+  `el.style.border = 'var(--soft-border)' !important` JOKAISEEN li:hin
+  ja `var(--gold)` valittuun — inline !important voittaa kaiken CSS:n,
+  joten armed-kortti näytti kultaiselta. Nyt resetointi
+  `removeProperty`:llä; värit tulevat luokista.
+- `.check-armed { transition:none }` — kortti napsahtaa sormen alle
+  välittömästi (li `transition:all` viivytti border-väriä ~0.2 s).
+- coach-avain V2→V3 (teksti uusittu, näkyy kerran uudestaan).
+- Hintit: "Pidä + vedä — vapauta valitaksesi" / "Vedä sanalle —
+  vapauta valitaksesi" (ei ✓-mainintaa).
+
+### Tarkistus
+- verify17 — **58/58** (+2: push-scroll ylös, violetti kortti / ei ✓).
+- verify16 — **80/80**, verify15 — **43/43**, verify14 — **34/34**,
+  verify4 — **21/21**.
+- Kuvat: `gest-armed-card.png` (violetti kortti sormen alla),
+  `gest-selected-glow.png` (violetti hehku + sumu himmenee takaisin).
