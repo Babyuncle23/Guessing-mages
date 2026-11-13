@@ -114,7 +114,7 @@ const listStats = (page) => evl(page, () => ({
         check('минимум 1 небонусное слово', st.notRare >= 1, st.notRare);
         check('бейдж +25p', st.badge.includes('+25p'), st.badge);
         check('хинт: koko sanakirjasta + +25p (verify4-parity)', /koko sanakirjasta/.test(st.hint) && /\+25p/.test(st.hint), st.hint);
-        check('индикатор раунда · ✨+25p', st.roundLabel.includes('· ✨+25p'), st.roundLabel);
+        check('индикатор бонуса ✨+25p (без Kierros-дубля)', st.roundLabel.includes('✨+25p') && !/Kierros/.test(st.roundLabel), st.roundLabel);
         check('currentBonusWords ⊆ списка', await evl(page, () =>
             currentBonusWords.length === 1 && currentBonusWords.every(w =>
                 [...document.querySelectorAll('#wordList li')].some(li => li.textContent.includes(w)))),
@@ -128,7 +128,7 @@ const listStats = (page) => evl(page, () => ({
         check('≥1 лёгкое слово остаётся', st.notRare >= 1, st.notRare);
         check('бейдж +100p', st.badge.includes('+100p'), st.badge);
         check('хинт +100p', /\+100p/.test(st.hint), st.hint);
-        check('индикатор раунда · ✨+100p', st.roundLabel.includes('· ✨+100p'), st.roundLabel);
+        check('индикатор бонуса ✨+100p (без Kierros-дубля)', st.roundLabel.includes('✨+100p') && !/Kierros/.test(st.roundLabel), st.roundLabel);
 
         // Phase 1 для полноты
         await setPhaseAndRegen(page, 6, 10); await sleep(400);

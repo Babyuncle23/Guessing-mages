@@ -575,10 +575,7 @@
             // Oman vuoron normaalinakyma: varmista etta kontrollit nakyvat oikein
             btn.style.display = currentActiveTheme ? 'none' : 'block';
         }
-        const cur = gamePlayers[currentPlayerIndex];
-        if (cur) {
-            $('ngExplainer').textContent = `🗣️ Selittää: ${cur.displayName || cur.name}`;
-        }
+        // Selittäjän nimi vain tulostaulun ▶-merkissä — ei ngExplainer-kaksoiskappaletta
         $('ngRound').textContent = (typeof formatRoundCounter === 'function')
             ? formatRoundCounter()
             : `Kierros: ${currentRound} / ${totalTurns}`;

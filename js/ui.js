@@ -100,14 +100,20 @@ const formatRoundCounter = () => {
     return `Kierros: ${currentRound} / ${totalTurns} · ✨+${v}p`;
 };
 
+// Paneelissa kierrosluku näkyy jo chipissä — täällä vain bonusvaiheen panos.
+const formatBonusCounter = () => {
+    const v = (typeof getBonusConfig === 'function') ? getBonusConfig().value : 25;
+    return `✨+${v}p`;
+};
+
 const updateTurnDisplay = () => {
     if (gamePlayers.length < 2) return;
 
-    document.getElementById('roundDisplay').textContent = formatRoundCounter();
+    document.getElementById('roundDisplay').textContent = formatBonusCounter();
     const avatarEl = document.getElementById('currentAvatar');
     if (avatarEl) avatarEl.textContent = gamePlayers[currentPlayerIndex].img || '';
 
-    document.getElementById('currentName').innerHTML = `Vuoro:<br><span>${gamePlayers[currentPlayerIndex].name}</span>`;
+    // Pelaajan nimi vain tulostaulussa — ei "Vuoro: Nimi" -kaksoiskappaletta
 
     // Tulostaulu: kaikki pelaajat/joukkueet (2, 3 tai tiimit)
     document.getElementById('scoreDisplay').innerHTML = gamePlayers
@@ -137,8 +143,7 @@ const updateTurnDisplay = () => {
             ? (themeImages[currentActiveTheme] || '🎭') : '🎭';
         chipT.textContent = currentActiveTheme ? `${emoji} ${currentActiveTheme.toUpperCase()}` : '🎭 …';
     }
-    const chipP = document.getElementById('chipTurn');
-    if (chipP) chipP.textContent = `▶ ${gamePlayers[currentPlayerIndex].name}`;
+    // chipTurn jätetään tyhjäksi: pelaajan nimi vain tulostaulussa (▶)
     const chipR = document.getElementById('chipRound');
     if (chipR) {
         const m = formatRoundCounter().match(/(\d+)\s*\/\s*(\d+)/);

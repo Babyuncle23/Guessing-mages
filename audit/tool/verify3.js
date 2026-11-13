@@ -125,7 +125,9 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
         await tap(A, '#btn'); await sleep(3400);
         check('B got theme PIIRTÄMINEN', await evl(B, () => document.getElementById('ngTheme').textContent.toUpperCase().includes('PIIRT')) &&
                                      await evl(C, () => document.getElementById('ngTheme').textContent.toUpperCase().includes('PIIRT')));
-        check('B guesser screen: explainer name shown', await evl(B, () => document.getElementById('ngExplainer').textContent.includes('Isanta')));
+        check('B guesser screen: explainer only via ngScore ▶ (no dup)', await evl(B, () =>
+            document.getElementById('ngExplainer') === null &&
+            /▶\s*Isanta/.test(document.getElementById('ngScore').textContent)));
         await tap(A, '#btnDisplayWords'); await sleep(600);
         check('A sees 5 words', await evl(A, () => document.querySelectorAll('#wordList li').length) === 5);
         check('B NEVER receives word list', await evl(B, () => document.querySelectorAll('#wordList li').length === 0));

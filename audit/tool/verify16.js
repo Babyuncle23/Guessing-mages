@@ -62,6 +62,8 @@ const wheelState = (page, loaderId, wheelId, hubId) => evl(page, (l, w, h) => {
     const winEl = wh ? wh.querySelector('.theme-drum-item.winner') : null;
     const winLab = winEl ? winEl.querySelector('.drum-label') : null;
     const winLabRect = winLab ? winLab.getBoundingClientRect() : null;
+    const winTag = winEl ? winEl.querySelector('.drum-tag') : null;
+    const winTagRect = winTag ? winTag.getBoundingClientRect() : null;
     const ptr = ld ? ld.querySelector('.theme-drum-pointer') : null;
     const wr = wh ? wh.getBoundingClientRect() : null;
     const pr = ptr ? ptr.getBoundingClientRect() : null;
@@ -82,6 +84,7 @@ const wheelState = (page, loaderId, wheelId, hubId) => evl(page, (l, w, h) => {
         winnerRing: winEl ? getComputedStyle(winEl, '::after').content : 'n/a',
         winnerLabelColor: winLab ? getComputedStyle(winLab).color : null,
         winnerLabelHorizontal: winLabRect ? winLabRect.width > winLabRect.height : null,
+        tagClear: winTagRect && pr ? winTagRect.left > pr.right : null,
         tags,
         pointerLeft: pr && wr ? (pr.x + pr.width / 2) < (wr.x + wr.width / 2) : null,
         wheelBleeds: wr ? wr.right > document.documentElement.clientWidth : null
@@ -97,7 +100,9 @@ const panelState = (page) => evl(page, () => ({
     chipThemeDisplay: getComputedStyle(document.getElementById('chipTheme')).display,
     chipRoundVisible: getComputedStyle(document.getElementById('chipRound')).display !== 'none',
     chipTurnText: document.getElementById('chipTurn').textContent,
-    themeBlockDisplay: getComputedStyle(document.getElementById('themeBlock')).display
+    themeBlockDisplay: getComputedStyle(document.getElementById('themeBlock')).display,
+    scoreMarker: /▶/.test(document.getElementById('scoreDisplay').textContent),
+    roundLabel: document.getElementById('roundDisplay').textContent
 }));
 
 (async () => {
@@ -135,6 +140,7 @@ const panelState = (page) => evl(page, () => ({
         check('no winner ring (::after none)', ws.winnerRing === 'none', ws.winnerRing);
         check('winner label golden', ws.winnerLabelColor === 'rgb(229, 193, 88)', String(ws.winnerLabelColor));
         check('winner label horizontal under pointer', ws.winnerLabelHorizontal === true);
+        check('winner tag not under pointer', ws.tagClear === true);
         check('pointer at wheel left edge', ws.pointerLeft === true);
 
         let ps = await panelState(page);
@@ -143,7 +149,9 @@ const panelState = (page) => evl(page, () => ({
         check('Näytä sanat CTA visible while wheel rests', ps.btnDisplay !== 'none', ps.btnDisplay);
         check('chip visible (aria-controls ok)', await evl(page, () => document.getElementById('turnChip').getBoundingClientRect().height > 0));
         check('chip theme hidden during rest (only on wheel)', ps.chipThemeDisplay === 'none', ps.chipThemeDisplay);
-        check('chip keeps round+player during rest', ps.chipRoundVisible === true && /▶/.test(ps.chipTurnText), JSON.stringify(ps));
+        check('chip keeps round badge only (no player dup)', ps.chipRoundVisible === true && ps.chipTurnText === '', JSON.stringify(ps));
+        check('scoreboard has ▶ turn marker', ps.scoreMarker === true);
+        check('roundDisplay = bonus only (no Kierros dup)', /^✨\+\d+p$/.test(ps.roundLabel.trim()), ps.roundLabel);
 
         await tap(page, '#btnDisplayWords'); await sleep(600);
         ws = await wheelState(page, 'loader', 'drumWheel', 'drumHubName');

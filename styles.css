@@ -3047,7 +3047,8 @@ body[data-net="room-guest"] .room-code-chip { display: inline-block; }
 }
 .theme-drum-pointer {
     position: absolute;
-    left: 4px;
+    /* Obodan ulkopuolella — kärki reunassa, ei sektoreiden/emojien päällä */
+    left: -12px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 30px;

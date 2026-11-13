@@ -826,3 +826,34 @@ body:has(.drum-rest) #themeBlock { display: none; }
 - verify17 — **42/42**, verify8 — **20/20** — регрессия зелёная.
 - Скриншот `wr-wheel-rest-expanded.png`: тема ровно ×1 (золотая подпись
   на секторе), чип «1/7 · ▶ Pelaaja 1», в панели нет «Selityksen ehto».
+
+## Task 21 — дедуп Pelaaja/1-7 везде + стрелка за ободом
+
+**Запрос**: имя игрока ×3 (чип `▶`, `Vuoro:`, скорборд `▶`), раунд ×2
+(чип-бейдж + `Kierros:`), стрелка перекрывает эмодзи-подпись победителя.
+
+### Каноничные места (решения пользователя)
+- Имя игрока → **только скорборд** (`scoreDisplay ▶`, `ngScore ▶`).
+- Раунд → **только `#chipRound`** (локал) и **`#ngRound`** (гость — его
+  единственная копия, полный `Kierros: X/Y · ✨+Zp` сохранён).
+- `Vuoro:`-блок → аватар + дебаффы (без текста).
+- `#ngExplainer` («🗣️ Selittää: …») — удалён полностью.
+
+### Реализация
+- `js/ui.js`: `formatBonusCounter()` → `✨+Zp` для `#roundDisplay`
+  (без `Kierros:`); удалены записи `currentName` и `chipTurn`.
+- `js/network.js` + `index.html`: блок `#ngExplainer` удалён вместе
+  с сеттером.
+- `styles.css`: `.theme-drum-pointer { left:-12px }` — стрелка снаружи
+  обода, остриё у края; теги секторов не перекрываются (и в спине).
+- Чип при wheel-rest = `1/7 ▾` (тема на колесе, игрок в скорборде).
+
+### Проверка
+- verify16 — **61/61** (+3: tag не под стрелкой, ▶ в скорборде,
+  roundDisplay=✨-only; чип — round badge без игрока).
+- verify3 — 43 + 2 предсуществующих; новый чек: `ngScore ▶ Isanta` +
+  `ngExplainer` отсутствует.
+- verify14 — **37/37** (`✨+25p`/`✨+100p` без Kierros), verify15 — **41/41**,
+  verify17 — **42/42**, verify8 — **20/20**.
+- Скриншоты: `wr-wheel-rest-expanded.png` (имя ×1, 1/7 ×1, аватар-only),
+  `wr-wedge-multi.png` (стрелка за ободом).

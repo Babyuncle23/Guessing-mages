@@ -100,7 +100,7 @@ const startGameAndRoll = async (page, weightId) => {
         check('aria-controls -> turnPanelBody', ps.controls === 'turnPanelBody', ps.controls);
         // Task 20: teema vain pyörällä levon aikana — chipissä teksti tallennettu mutta piilossa
         check('chip theme hidden during rest, textContent tracks', /PANTOMIIMI/i.test(ps.chipTheme) && ps.chipThemeDisplay === 'none', `${ps.chipTheme} ${ps.chipThemeDisplay}`);
-        check('chip shows current player', /▶/.test(ps.chipTurn) && ps.chipTurn.length > 2, ps.chipTurn);
+        check('chip has no player name (scoreboard ▶ only)', ps.chipTurn === '', ps.chipTurn);
         check('Näytä sanat CTA visible pre-open', ps.btnDisplay !== 'none', ps.btnDisplay);
 
         await tap(page, '#btnDisplayWords'); await sleep(500);
