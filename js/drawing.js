@@ -202,6 +202,7 @@
         if (typeof playClickSound === 'function') playClickSound();
         window.stopDrawingIntervals();
         if (overlay) overlay.style.display = 'none';
+        if (typeof window.restoreHiddenWords === 'function') window.restoreHiddenWords();
         if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'close' });
     };
 

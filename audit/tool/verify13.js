@@ -142,12 +142,13 @@ const myNum = (s) => parseFloat(s || '-999');
 
         // ============ B. Verho seuraa listan tilaa ============
         console.log('== B. State following ==');
-        await tap(page, '#btnDisplayWords'); await sleep(300); // -> Piilotettu
+        // Task 15: "Piilota sanat" poistui — sama reaktiivisuus testataan luokalla suoraan
+        await evl(page, () => document.getElementById('wordList').classList.add('hidden-words')); await sleep(200);
         st = await maskState(page);
         check('hidden-words: mask off', st.mask === 'none', st.mask);
         check('hidden-words: grain off', st.grain === 'none', st.grain);
         check('hidden-words: Piilotettu shown', await evl(page, () => document.getElementById('wordList').classList.contains('hidden-words')));
-        await tap(page, '#btnDisplayWords'); await sleep(300); // -> auki taas
+        await evl(page, () => document.getElementById('wordList').classList.remove('hidden-words')); await sleep(200);
         st = await maskState(page);
         check('re-show: mask back on', st.mask === 'block', st.mask);
         // uudelleenrendaus (metamorfoosi-tyyppinen polku)

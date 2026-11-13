@@ -567,3 +567,64 @@ themeDescriptions` → автоматически попадают во взве
   счёта; очков нет — корректно.
 - Хинт на 1-м раунде содержит «koko sanakirjasta» и «+25p» — совместимость
   verify4 B3 сохранена специально.
+
+## Task 15: Компактный UX списка слов — гармошка, полный экран, большое раскрытие (megaplan-wordlist-ux)
+
+Цель: убрать дублирующую кнопку «Piilota sanat» (верх вуали достаточно скрывает),
+освободить максимум места словам и сделать раскрытие удобнее.
+Решения пользователя: полоса + холд=весь список; 🎨-пилюля у чипа;
+под гармошку — скорборд/карточка темы/инструкция/bonusHint.
+
+### Что сделано
+- **`#turnPanel`-гармошка** (`index.html`, `styles.css`, `js/ui.js`):
+  `#playerTurn` + `#themeBlock` + `#bonusHint` + `#ruleInstruction` перенесены
+  внутрь `#turnPanelBody` (collapsed → `max-height:0`). Всегда видимый чип:
+  `emoji + ТЕМА · ▶ игрок ▾` — `aria-expanded`/`aria-controls`, тоггл по клику,
+  `prefers-reduced-motion` → без анимации. По умолчанию развёрнута при
+  раскрытии темы, авто-сворачивается в `switchToWords` / rejoin explainer.
+- **«Piilota sanat» удалён**: после открытия `#btnDisplayWords` скрывается
+  полностью (`rounds.js`, `main.js` — кнопка только «Näytä sanat»; `toggleWordVisibility`
+  больше не вызывается из UI). Сеть: rejoin explainer тоже прячет кнопку.
+- **Авто-анхайд модалок**: закрытие рисовалки/эмодзи снимает `hidden-words`
+  само — раньше требовалась повторная кнопка (`restoreHiddenWords`,
+  `drawing.js closeModal`, `btnCloseEmojiModalX`).
+- **🎨-пилюля** `#btnToolCanvas` у чипа: видна только на piirtäminen /
+  näkymätön muste / vain emojit при открытых словах (`updateToolPill`,
+  вызывается из `refreshPrivacyMask` + конца `switchToWords`) — открывает
+  модалку вместо спрятанного `#themeBlock`.
+- **Список на весь экран** (`.words-active`): контейнер `min-height:
+  calc(100dvh - 34px)`, gap 20→8px, `#wordListWrap {flex:1}`,
+  `#wordList {flex:1; max-height:none; overflow-y:auto}`,
+  li `flex:1 1 0; min-height:44px` — строки равномерно заполняют высоту;
+  при переполнении карточка растёт → скроллит **страница** (удобнее крошечного
+  внутреннего скролла; маска скроллится вместе со списком).
+- **Адаптивное окно**: `--wh = li.offsetHeight × 0.6` (замер rAF + debounce
+  400мс после transition гармошки + на старте жеста + resize) — полоса
+  ~1.2 строки независимо от высоты строк.
+- **Холд = весь список**: 350мс удержание (сдвиг <12px не отменяет) →
+  `.revealing` прячет mask+grain+hint до отпускания; mouse hold аналогично;
+  `vibrate(10)` тик. Хинт обновлён: «Vedä — yksi sana · pidä — kaikki».
+
+### Подводные камни
+- Глобальный `button { width:100% }` (styles.css:307) раздувал 🎨-пилюлю на
+  всю строку → `width:auto !important` на обеих кнопках чипа.
+- `--wh` нельзя мерить синхронно при рендере — во время 250мс-анимации
+  гармошки высота li растёт (flex-перераспределение) → rAF + отложенный замер.
+- `themeDrawingHint` создаётся после `renderOlList` → `updateToolPill`
+  вызван и в конце `switchToWords` (иначе пилюля опаздывает).
+- Переполнение списка = page-scroll по дизайну (не inner-scroll).
+
+### Проверка
+- `audit/tool/verify15.js` — **41/41**: отсутствие Piilota sanat, collapsed
+  по умолчанию + aria + тоггл, чип (тема/игрок), 🎨-пилюля по теме +
+  открытие модалки + auto-unhide, hold=reveal-all (touch+mouse), адаптивный
+  --wh, список ≥50% вьюпорта / 5 слов без скролла, page-scroll фолбэк +
+  трекинг, выбор слова, бонус-бейдж, reduced-motion.
+- `verify2`: ожидание «emoji close → words hidden» заменено на auto-unhide
+  (намеренная смена поведения); `verify.js`/`verify2.js`/`verify3` клики по
+  `#themeBlock` → `#btnToolCanvas`.
+- Регрессия: verify **39**, verify2 **67**, verify3 (evaluate-тапы совместимы),
+  verify4 **21**, verify11 **34**, verify12 **41**, verify13 **29**,
+  verify14 **37** — **0 FAIL**.
+- Скриншоты: `audit/screenshots/wl-collapsed.png`, `wl-expanded.png`,
+  `wl-strip-window.png`, `wl-reveal-all.png`, `wl-tool-pill.png`.

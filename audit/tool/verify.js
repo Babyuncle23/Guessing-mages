@@ -125,7 +125,7 @@ const drawStroke = async (page, pts) => {
         await page.click('#startGameBtn'); await sleep(400);
         await roll(page);
         await page.click('#btnDisplayWords'); await sleep(400);
-        await page.click('#themeBlock'); await sleep(500);
+        await page.click('#btnToolCanvas'); await sleep(500);
         check('drawing modal open', await page.evaluate(() => document.getElementById('drawingModalOverlay').style.display === 'flex'));
         await drawStroke(page, [[0.3, 0.6], [0.3, 0.35], [0.5, 0.2], [0.7, 0.35], [0.7, 0.6], [0.3, 0.6]]);
         await sleep(300);
@@ -151,7 +151,7 @@ const drawStroke = async (page, pts) => {
         await page.click('#startGameBtn'); await sleep(400);
         await roll(page);
         await page.click('#btnDisplayWords'); await sleep(400);
-        await page.click('#themeBlock'); await sleep(500);
+        await page.click('#btnToolCanvas'); await sleep(500);
         await drawStroke(page, [[0.3, 0.5], [0.7, 0.5]]);
         await sleep(400);
         const g1 = await canvasMaxAlpha(page);

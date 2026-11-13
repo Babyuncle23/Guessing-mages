@@ -218,10 +218,21 @@ btnDisplayWords.addEventListener("click", () => {
     playClickSound();
     if (typeof window.isRoomGame === 'function' && window.isRoomGame() && !window.netIsMyTurn()) return;
     if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+    // "Piilota sanat" poistettu — nappi vain avaa sanat, verho peittää ne jälkeen
     if (wordList.style.display === "none") {
         switchToWords();
+    }
+});
+
+// 🎨-pikapainike: sama logiikka kuin #themeBlock-klikki (harmonikan ollessa kiinni)
+document.getElementById('btnToolCanvas')?.addEventListener('click', () => {
+    if (!document.getElementById('themeDrawingHint')) return;
+    if (!generatedWordsList || generatedWordsList.length === 0 || wordList.style.display === "none") return;
+    if (typeof playClickSound === 'function') playClickSound();
+    if (currentActiveTheme === "vain emojit") {
+        if (typeof window.openEmojiModal === 'function') window.openEmojiModal();
     } else {
-        toggleWordVisibility();
+        if (typeof window.openDrawingModal === 'function') window.openDrawingModal();
     }
 });
 

@@ -939,6 +939,8 @@
         if (themeDisplay) themeDisplay.textContent = '';
         if (themeImage) themeImage.style.display = 'none';
         document.getElementById('gameContainer').classList.remove('words-active');
+        if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
+        const btc = $('btnToolCanvas'); if (btc) btc.style.display = 'none';
         const oldHint = $('themeDrawingHint'); if (oldHint) oldHint.remove();
         const oldInfo = $('themeInfoHelpBtn'); if (oldInfo) oldInfo.remove();
         if (window.clearGameCanvas) window.clearGameCanvas();
@@ -1075,8 +1077,9 @@
                 wordList.style.display = 'block';
                 wordList.classList.remove('hidden-words');
                 isWordListHidden = false;
-                btnDisplayWords.style.display = 'block';
-                btnDisplayWords.textContent = '🙈 Piilota sanat';
+                btnDisplayWords.style.display = 'none';
+                if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true);
+                if (typeof updateToolPill === 'function') updateToolPill();
                 roundControls.style.display = 'flex';
             } else {
                 btnDisplayWords.style.display = 'block';

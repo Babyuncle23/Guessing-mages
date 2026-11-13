@@ -189,7 +189,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         await page.click('#wordList li'); await sleep(200);
         const selWord = await page.evaluate(() => generatedWordsList[selectedWordIndex]);
         check('word selected', selWord !== undefined && selWord.length > 0, selWord);
-        await page.click('#themeBlock'); await sleep(500);
+        await page.click('#btnToolCanvas'); await sleep(500);
         check('drawing modal open', await page.evaluate(() => document.getElementById('drawingModalOverlay').style.display === 'flex'));
         check('words hidden while modal open', await page.evaluate(() => isWordListHidden === true));
         // Hold-to-peek via mouse
@@ -212,7 +212,7 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         check('emoji theme rolled', th === 'vain emojit', th);
         await revealWords(page);
         await page.click('#wordList li'); await sleep(200);
-        await page.click('#themeBlock'); await sleep(400);
+        await page.click('#btnToolCanvas'); await sleep(400);
         check('emoji modal open', await page.evaluate(() => document.getElementById('emojiModalOverlay').style.display === 'flex'));
         // type mixed input -> letters/digits stripped
         await page.evaluate(() => {
@@ -230,7 +230,8 @@ const revealWords = async (page) => { await page.click('#btnDisplayWords'); awai
         await page.mouse.up(); await sleep(200);
         check('emoji guessed btn has score text', await page.evaluate(() => /Arvattu oikein \(\+\d+p\)/.test(document.getElementById('btnEmojiGuessed').textContent)));
         await page.click('#btnCloseEmojiModalX'); await sleep(300);
-        check('emoji modal closed, words still hidden', await page.evaluate(() => isWordListHidden === true));
+        // Task 15: "Piilota sanat" poistettu — modaalin sulkeminen palauttaa sanat automaattisesti
+        check('emoji modal closed, words auto-unhidden', await page.evaluate(() => isWordListHidden === false));
         await page.close();
 
         // ============ F. Victory modal + replay (2-round demo) ============

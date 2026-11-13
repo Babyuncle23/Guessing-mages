@@ -129,6 +129,16 @@ const updateTurnDisplay = () => {
 
     // Вызываем функцию обновления текста, так как она теперь объявлена снаружи
     updateGuessedButtonsText();
+
+    // Tiivis tilannekortti (chip): ehto + vuorossa oleva pelaaja
+    const chipT = document.getElementById('chipTheme');
+    if (chipT) {
+        const emoji = (typeof themeImages !== 'undefined' && currentActiveTheme)
+            ? (themeImages[currentActiveTheme] || '🎭') : '🎭';
+        chipT.textContent = currentActiveTheme ? `${emoji} ${currentActiveTheme.toUpperCase()}` : '🎭 …';
+    }
+    const chipP = document.getElementById('chipTurn');
+    if (chipP) chipP.textContent = `▶ ${gamePlayers[currentPlayerIndex].name}`;
 }; // <-- ЗДЕСЬ функция updateTurnDisplay успешно закрылась
 
 // ОТДЕЛЬНАЯ САМОСТОЯТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЧИСЛЕНИЯ ОЧКОВ НА КНОПКАХ
@@ -267,6 +277,7 @@ if (typeof wordList !== 'undefined' && typeof btnDisplayWords !== 'undefined') {
 document.getElementById('btnCloseEmojiModalX')?.addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     emojiOverlay.style.display = 'none';
+    restoreHiddenWords();
     if (typeof window.netRelayEmoji === 'function') window.netRelayEmoji({ action: 'close' });
 });
 
@@ -353,6 +364,47 @@ document.addEventListener('DOMContentLoaded', () => {
     bindHoldToPeek(document.getElementById('btnPeekEmoji'));
 });
 
+// --- VUOROPANEELI: harmonikka yläpalkille (sanojen aikana kiinni oletuksena) ---
+const turnPanelBody = document.getElementById('turnPanelBody');
+const turnChip = document.getElementById('turnChip');
+const btnToolCanvas = document.getElementById('btnToolCanvas');
+
+const setTurnPanelCollapsed = (collapsed) => {
+    if (!turnPanelBody || !turnChip) return;
+    turnPanelBody.classList.toggle('collapsed', collapsed);
+    turnChip.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+};
+window.setTurnPanelCollapsed = setTurnPanelCollapsed;
+
+if (turnChip) {
+    turnChip.addEventListener('click', () => {
+        if (typeof playClickSound === 'function') playClickSound();
+        setTurnPanelCollapsed(!turnPanelBody.classList.contains('collapsed'));
+    });
+}
+
+// Piirto-/emoji-työkalun pikapainike — vain kun ehto vaatii työkalun JA sanat auki
+const updateToolPill = () => {
+    if (!btnToolCanvas) return;
+    const needs = !!document.getElementById('themeDrawingHint') &&
+                  typeof wordList !== 'undefined' && !!wordList &&
+                  wordList.style.display !== 'none' &&
+                  wordList.children.length > 0;
+    btnToolCanvas.style.display = needs ? 'inline-flex' : 'none';
+};
+window.updateToolPill = updateToolPill;
+
+// Kun piirto-/emoji-modaali suljetaan, sanalista palaa näkyviin ilman nappia
+// ("Piilota sanat" -togglaus poistui — verho peittää muutenkin)
+const restoreHiddenWords = () => {
+    if (typeof wordList === 'undefined' || !wordList) return;
+    if (!wordList.classList.contains('hidden-words')) return;
+    if (wordList.style.display === 'none' || wordList.children.length === 0) return;
+    wordList.classList.remove('hidden-words');
+    isWordListHidden = false;
+};
+window.restoreHiddenWords = restoreHiddenWords;
+
 // --- PRIVACY MASK: sanat luetaan yhden rivin ikkunasta, muu lista "sumussa" ---
 // Puhtaasti paikallinen efekti: ei relay-viestejä, ei asetuksia — toimii myös
 // verkkokatkon aikana. Vastakohta satunnaiselle vilkaisulle, ei varsinainen
@@ -360,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const wordMask = document.getElementById('wordMask');
 const wordGrain = document.getElementById('wordGrain');
 const wordMaskHint = document.getElementById('wordMaskHint');
+const wordListWrap = document.getElementById('wordListWrap');
 let privacyPointerInside = false;
 let touchActiveUntil = 0;
 
@@ -374,6 +427,23 @@ const hideMaskWindow = () => {
     if (wordMask) wordMask.style.setProperty('--my', '-999px');
 };
 
+// Ikkunan korkeus seuraa rivin korkeutta — täysnäytön listalla rivit ovat isompia
+const fitWindowToRow = () => {
+    if (!wordMask || !wordList) return;
+    const li = wordList.querySelector('li');
+    if (li && li.offsetHeight > 0) {
+        wordMask.style.setProperty('--wh', Math.round(li.offsetHeight * 0.6) + 'px');
+    }
+};
+// Harmonikan 250 ms -animaation aikana listan korkeus muuttuu — mitataan
+// sekä heti seuraavalla framella että transitionin jälkeen (debounce).
+let _fitTimer = null;
+const scheduleFitWindow = () => {
+    requestAnimationFrame(fitWindowToRow);
+    clearTimeout(_fitTimer);
+    _fitTimer = setTimeout(fitWindowToRow, 400);
+};
+
 const refreshPrivacyMask = () => {
     if (!wordMask || typeof wordList === 'undefined' || !wordList) return;
     const on = wordList.children.length > 0 &&
@@ -383,41 +453,81 @@ const refreshPrivacyMask = () => {
     if (wordGrain) wordGrain.style.display = on ? 'block' : 'none';
     if (wordMaskHint) wordMaskHint.style.display = (on && !privacyPointerInside) ? 'flex' : 'none';
     if (!on) hideMaskWindow();
+    // Rivit venyvät flex-Layoutilla — mitataan vasta piirron jälkeen
+    if (on) scheduleFitWindow();
+    updateToolPill();
 };
 window.refreshPrivacyMask = refreshPrivacyMask;
 
 const initPrivacyMask = () => {
     if (!wordMask || !wordList) return;
 
+    // Pidä-pohjassa (350 ms) -> koko lista paljastuu; liuku -> vain ikkunakaistale
+    let holdTimer = null;
+    let holdStart = null;
+    const cancelHold = () => {
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    };
+    const startHold = (x, y) => {
+        cancelHold();
+        holdStart = { x, y };
+        holdTimer = setTimeout(() => {
+            holdTimer = null;
+            if (wordListWrap) wordListWrap.classList.add('revealing');
+            if (navigator.vibrate) navigator.vibrate(10);
+        }, 350);
+    };
+    const stopReveal = () => {
+        cancelHold();
+        holdStart = null;
+        if (wordListWrap) wordListWrap.classList.remove('revealing');
+    };
+    const moveCancelsHold = (x, y) => {
+        if (!holdStart) return;
+        const dx = x - holdStart.x, dy = y - holdStart.y;
+        if (Math.hypot(dx, dy) > 12) { holdStart = null; cancelHold(); }
+    };
+
     // Kosketus: ikkuna hieman sormen yläpuolella (sormi ei peitä sanaa)
     wordList.addEventListener('touchstart', (e) => {
         touchActiveUntil = Date.now() + 700;
         privacyPointerInside = true;
+        fitWindowToRow();
         setMaskWindowY(e.changedTouches[0].clientY - 10);
+        startHold(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
         refreshPrivacyMask();
     }, { passive: true });
     wordList.addEventListener('touchmove', (e) => {
         touchActiveUntil = Date.now() + 700;
+        moveCancelsHold(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
         setMaskWindowY(e.changedTouches[0].clientY - 10);
     }, { passive: true });
     const touchEnd = () => {
         privacyPointerInside = false;
         hideMaskWindow();
+        stopReveal();
         refreshPrivacyMask();
     };
     wordList.addEventListener('touchend', touchEnd, { passive: true });
     wordList.addEventListener('touchcancel', touchEnd, { passive: true });
 
-    // Hiiri: ikkuna seuraa kursoria ilman painallusta
+    // Hiiri: ikkuna seuraa kursoria ilman painallusta; pohjassa pitäminen = koko lista
+    wordList.addEventListener('mousedown', (e) => {
+        fitWindowToRow();
+        startHold(e.clientX, e.clientY);
+    });
     wordList.addEventListener('mousemove', (e) => {
         if (Date.now() < touchActiveUntil) return; // synteettiset mouse-tapahtumat touchin jälkeen
+        moveCancelsHold(e.clientX, e.clientY);
         privacyPointerInside = true;
         setMaskWindowY(e.clientY);
         refreshPrivacyMask();
     });
+    wordList.addEventListener('mouseup', stopReveal);
     wordList.addEventListener('mouseleave', () => {
         privacyPointerInside = false;
         hideMaskWindow();
+        stopReveal();
         refreshPrivacyMask();
     });
 
@@ -425,6 +535,7 @@ const initPrivacyMask = () => {
     // mikä koodipolku listaa muutti (metamorfoosi, huonepeli, endRound…)
     const mo = new MutationObserver(refreshPrivacyMask);
     mo.observe(wordList, { attributes: true, attributeFilter: ['style', 'class'], childList: true });
+    window.addEventListener('resize', () => requestAnimationFrame(fitWindowToRow));
     refreshPrivacyMask();
 };
 initPrivacyMask();

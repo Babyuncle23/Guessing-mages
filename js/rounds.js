@@ -444,6 +444,8 @@ if (soundUrl) {
 
             btn.style.display = "none";
             updateTurnDisplay();
+            // Harmonikka auki ehdon paljastusvaiheessa — tiivistyy kun sanat aukeavat
+            if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
 
 if (randomTheme === "vapaavalintainen") {
     ruleInstruction.style.display = "block";
@@ -547,9 +549,11 @@ const switchToWords = () => {
     });
 
     renderOlList();
-    btnDisplayWords.style.display = "block";
-    btnDisplayWords.textContent = "🙈 Piilota sanat";
+    // "Piilota sanat" -tila poistettu: yksityisyysverho hoitaa peiton (megaplan-wordlist-ux)
+    btnDisplayWords.style.display = "none";
     isWordListHidden = false;
+    if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(true);
+    if (typeof updateToolPill === 'function') updateToolPill();
     renderSpellButtonsAfterWords();
     // Индикатор бонусной фазы в счётчике раундов — держим актуальным
     if (typeof updateTurnDisplay === 'function') updateTurnDisplay();
@@ -622,6 +626,8 @@ const isDrawingActive = currentActiveTheme === "piirtäminen" || currentActiveTh
             renderThemeRulesHelpButton();
         }
     }
+    // themeDrawingHint luotiin vasta äsken — näytä 🎨-pikapainike jos ehto vaatii
+    if (typeof updateToolPill === 'function') updateToolPill();
 }; 
 // === КОНЕЦ ОБНОВЛЕННОГО ФИНАЛА switchToWords ===
 
@@ -827,6 +833,8 @@ const endRound = (isGuessed, guesserIndex = -1, stolenIndex = -1, timedOut = fal
     btnDisplayWords.textContent = "Näytä sanat (vain selittäjälle)";
     ruleInstruction.textContent = "";
     spellContainer.style.display = "none";
+    if (typeof setTurnPanelCollapsed === 'function') setTurnPanelCollapsed(false);
+    const _btc = document.getElementById('btnToolCanvas'); if (_btc) _btc.style.display = 'none';
 
     if (themeDisplay) themeDisplay.textContent = "";
     if (themeImage) themeImage.style.display = "none";

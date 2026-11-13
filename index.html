@@ -512,8 +512,26 @@
 <!-- VARSINAINEN PELIALUE -->
 <div class="container" id="gameContainer">
     <div class="age-badge">12+</div>
-    <div id="playerTurn" class="player-turn-container" style="display: none;">
-        <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
+
+    <!-- VUORON AJASTIN (näkyy vain kun sana-avu auki) -->
+    <div id="turnTimer" style="display: none;">
+        <div id="turnTimerFill"></div>
+    </div>
+    <div id="turnTimerSec" style="display: none; text-align: right; font-size: 11px; color: var(--text-muted); margin: 0 2px 4px 0;"></div>
+
+    <!-- VUOROPANEELI: harmonikka — sanojen aikana oletuksena kiinni, jättää tilaa listalle -->
+    <div id="turnPanel" class="turn-panel">
+        <div id="turnChipRow">
+            <button id="turnChip" type="button" aria-expanded="true" aria-controls="turnPanelBody">
+                <span id="chipTheme">🎭 …</span>
+                <span id="chipTurn"></span>
+                <span class="chip-chevron">▾</span>
+            </button>
+            <button id="btnToolCanvas" type="button" class="chip-tool-btn" style="display: none;" title="Avaa piirtoalusta / emoji-taulu">🎨 Avaa</button>
+        </div>
+        <div id="turnPanelBody" class="turn-panel-body">
+            <div id="playerTurn" class="player-turn-container" style="display: none;">
+                <div class="round-counter" id="roundDisplay">Kierros: 1 / 10</div>
 <div class="player-block">
     <!-- Переносим имя ИГРОКА сюда, к волку -->
     <div class="avatar-wrapper">
@@ -531,20 +549,20 @@
         <button type="button" id="btnLeaveInGame" class="net-leave-chip" title="Poistu huoneesta">🚪 Poistu</button>
     </div>
 </div>
-    </div>
+            </div>
 
-    <!-- VUORON AJASTIN (näkyy vain kun sana-avu auki) -->
-    <div id="turnTimer" style="display: none;">
-        <div id="turnTimerFill"></div>
-    </div>
-    <div id="turnTimerSec" style="display: none; text-align: right; font-size: 11px; color: var(--text-muted); margin: 0 2px 4px 0;"></div>
+            <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
+            <div id="themeBlock">
+                <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
+                <small class="zone-badge-title">Selityksen ehto</small>
+                <div id="themeDisplay" class="theme-text"></div>
+                <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
+            </div>
 
-    <!-- TEEMALOHKO (Pysyy näkyvissä myös sanojen aikana) -->
-    <div id="themeBlock">
-        <!-- Текстовая подпись добавлена внутрь блока, чтобы скрываться и показываться вместе с ним через JS -->
-        <small class="zone-badge-title">Selityksen ehto</small>
-        <div id="themeDisplay" class="theme-text"></div>
-        <div id="img" class="theme-emoji" style="display: none; font-size:42px; text-align:center;"></div>
+            <p id="bonusHint" class="bonus-hint" style="display: none;">✨-merkityt sanat arvotaan koko sanakirjasta — usein harvinaisia! Selitä merkitty ja saat bonuspisteitä.</p>
+
+            <div id="ruleInstruction" class="rule-instruction"></div>
+        </div>
     </div>
 
     <div id="loader" class="drum-animation" style="display: none;">
@@ -587,11 +605,8 @@
         <ol id="wordList" style="display: none;"></ol>
         <div id="wordMask" style="display: none;"></div>
         <div id="wordGrain" style="display: none;"></div>
-        <div id="wordMaskHint" style="display: none;">🤫 Vedä sormella — vain yksi sana näkyy</div>
+        <div id="wordMaskHint" style="display: none;">🤫 Vedä — yksi sana · pidä — kaikki</div>
     </div>
-    <p id="bonusHint" class="bonus-hint" style="display: none;">✨-merkityt sanat arvotaan koko sanakirjasta — usein harvinaisia! Selitä merkitty ja saat bonuspisteitä.</p>
-
-    <div id="ruleInstruction" class="rule-instruction"></div>
     <button id="btnDisplayWords" style="display: none;">👁️ Näytä sanat (vain selittäjälle)</button>
 
     <button id="btn">Aloita kierros</button>
