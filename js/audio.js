@@ -50,6 +50,23 @@ let uiAudioCtx = null;
 const uiBuffers = {};
 const UI_BUFFER_SOUNDS = ["sounds/click.mp3", "sounds/flip.mp3", "sounds/book.mp3"];
 
+// Resume + ääniputken "lämmitys" äänettömällä puskurilla: eka klikki
+// ei myöhästy, koska output-putki on jo hereillä.
+let uiPrimed = false;
+const resumeUIAudio = () => {
+    if (!uiAudioCtx || uiAudioCtx.state !== 'suspended') return;
+    uiAudioCtx.resume().then(() => {
+        if (uiPrimed || !uiAudioCtx || uiAudioCtx.state !== 'running') return;
+        uiPrimed = true;
+        try {
+            const src = uiAudioCtx.createBufferSource();
+            src.buffer = uiAudioCtx.createBuffer(1, 1, 22050);
+            src.connect(uiAudioCtx.destination);
+            src.start(0);
+        } catch (e) {}
+    }).catch(() => {});
+};
+
 try {
     uiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     UI_BUFFER_SOUNDS.forEach(url => {
@@ -59,9 +76,10 @@ try {
             .then(buf => { uiBuffers[url] = buf; })
             .catch(() => {});
     });
-    document.addEventListener('pointerdown', () => {
-        if (uiAudioCtx && uiAudioCtx.state === 'suspended') uiAudioCtx.resume().catch(() => {});
-    });
+    document.addEventListener('pointerdown', resumeUIAudio);
+    // Capture-vaihe: resume käynnistyy jo eleen alussa → touchend-klikki
+    // ehtii toistua viipymättä (mobiilin eka soitto herättää ääniputken).
+    document.addEventListener('touchstart', resumeUIAudio, { capture: true, passive: true });
 } catch (e) {
     uiAudioCtx = null;
 }
@@ -119,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const on = !isSoundOn();
         sessionStorage.setItem(SOUND_PREF_KEY, on ? '1' : '0');
         if (!on) stopAllSounds();
-        else if (uiAudioCtx && uiAudioCtx.state === 'suspended') uiAudioCtx.resume().catch(() => {});
+        else resumeUIAudio();
         updateSoundBtn();
         if (typeof playClickSound === 'function' && on) playClickSound();
     });

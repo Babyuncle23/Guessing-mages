@@ -1103,3 +1103,11 @@ vs pill 722–784px, `elementFromPoint` → пилюля.
   kerroksen oma opacity säilyy (grain 0.12, hint-dim 0.4). Verho
   näyttää taas pehmeältä tummalta sumulta kuten ennen.
 - verify17 **58/58**, verify15 **43/43**.
+
+### Task 26c — eka klikki myöhästyi mobiilissa (ääniputki kylmä)
+- `resumeUIAudio()` ajetaan nyt myös `touchstart`-capturessa — resume
+  käynnistyy eleen alussa ja ehtii valmiiksi ennen vapautusta.
+- Ensimmäisen onnistuneen resumen jälkeen soitetaan äänetön 1-näytteinen
+  puskuri — mobiilin audio-output "lämpiää" → eka klikki on välitön.
+- Sound-toggle käyttää samaa `resumeUIAudio`-polutta.
+- verify17 **58/58**.
