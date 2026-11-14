@@ -1094,3 +1094,12 @@ vs pill 722–784px, `elementFromPoint` → пилюля.
   verify4 — **21/21**.
 - Kuvat: `gest-armed-card.png` (violetti kortti sormen alla),
   `gest-selected-glow.png` (violetti hehku + sumu himmenee takaisin).
+
+### Task 26b — rakeisuus piilossa: opacity-bugi korjattu
+- Virhe: `.mask-on:not(.revealing)` -säännössä `opacity:1` koski
+  KAIKKIA verhokerroksia → `#wordGrain`-ominaisuuden `opacity:0.12`
+  jäi voimattomaksi → tiheä kirkas pistekenttä peitti listan.
+- Korjaus: sääntö asettaa vain `transition: opacity 1.8s` — jokaisen
+  kerroksen oma opacity säilyy (grain 0.12, hint-dim 0.4). Verho
+  näyttää taas pehmeältä tummalta sumulta kuten ennen.
+- verify17 **58/58**, verify15 **43/43**.

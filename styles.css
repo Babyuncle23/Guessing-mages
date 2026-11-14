@@ -525,11 +525,12 @@ button:disabled, .spell-btn:disabled {
 }
 
 /* Pidä pohjassa -> koko lista näkyy välittömästi; vapautuksen jälkeen
-   verho drippaa takaisin ~1.8 s himmennyksenä (ei äkkipiiloa) */
+   verho drippaa takaisin ~1.8 s himmennyksenä (ei äkkipiiloa).
+   TÄRKEÄ: vain transition — ei opacity-määritystä, jotta jokaisen kerroksen
+   oma peittävyys säilyy (wordGrain 0.12, hint-dim 0.4). */
 #wordListWrap.mask-on:not(.revealing) #wordMask,
 #wordListWrap.mask-on:not(.revealing) #wordGrain,
 #wordListWrap.mask-on:not(.revealing) #wordMaskHint {
-    opacity: 1;
     transition: opacity 1.8s ease;
 }
 #wordListWrap.revealing #wordMask,
