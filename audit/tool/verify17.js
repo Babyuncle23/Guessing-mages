@@ -253,7 +253,7 @@ const glowState = (page) => evl(page, () => {
         check('release commits row under finger', sel.idx === parseInt(c1.idx) && sel.selRow === 1, JSON.stringify(sel));
         check('armed class cleared after release', sel.armedLeft === 0);
         check('fog back after release', sel.revealed === false);
-        check('fog fades back over ~2s', sel.maskOpacity > 0 && sel.maskOpacity < 0.75 && /1\.8s/.test(sel.maskDur), `op=${sel.maskOpacity} dur=${sel.maskDur}`);
+        check('fog fades back over ~1.2s', sel.maskOpacity > 0 && sel.maskOpacity < 0.75 && /1\.2s/.test(sel.maskDur), `op=${sel.maskOpacity} dur=${sel.maskDur}`);
 
         // Tavalinen tap/click EI valitse (TAP_SELECT_ENABLED=false)
         await evl(page, () => document.querySelectorAll('#wordList li')[0].click()); await sleep(120);
