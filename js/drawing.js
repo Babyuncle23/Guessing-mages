@@ -186,7 +186,13 @@
         }
 
         overlay.style.display = 'flex';
-        if (typeof window.netRelayDraw === 'function') window.netRelayDraw({ action: 'open' });
+        // getBoundingClientRect pakottaa layoutin — mitat ovat jo oikeat.
+        // Vieraan ruutu on eri kuvasuhteessa → lähetetään omat mitat,
+        // jotta vieras voi piirtää letterboxoituna ilman vääntymistä.
+        const r0 = canvas.getBoundingClientRect();
+        if (typeof window.netRelayDraw === 'function') {
+            window.netRelayDraw({ action: 'open', w: r0.width || 400, h: r0.height || 500 });
+        }
 
         currentTool = "draw";
         updateToolButtons();
@@ -276,15 +282,49 @@
     window.addEventListener('resize', () => {
         if (overlay && overlay.style.display === 'flex') {
             resizeCanvas();
+            // Piirtäjän kuvasuhde muuttui (esim. käännös) — kerro vieraalle
+            setTimeout(() => {
+                const r = canvas && canvas.getBoundingClientRect();
+                if (r && r.width && r.height && typeof window.netRelayDraw === 'function') {
+                    window.netRelayDraw({ action: 'resize', w: r.width, h: r.height });
+                }
+            }, 60);
         }
     });
 
     // ============ ARVAAJAN CANVAS (read-only live-replay huonepelissä) ============
     let ngCvs = null, ngCtx = null, ngStrokes = [], ngLive = null, ngRaf = null;
+    let ngW = null, ngH = null; // lähettäjän kankaan mitat (letterbox-kartoitusta varten)
+
+    // Pidä canvas-bufferi synkissä CSS-koon kanssa (käännös/koko muuttuu)
+    const ngSyncSize = () => {
+        if (!ngCvs) return;
+        const r = ngCvs.getBoundingClientRect();
+        const w = Math.round(r.width), h = Math.round(r.height);
+        if (w && h && (ngCvs.width !== w || ngCvs.height !== h)) {
+            ngCvs.width = w; ngCvs.height = h;
+        }
+    };
 
     const ngRender = (now) => {
         if (!ngCtx || !ngCvs) return;
-        ngCtx.clearRect(0, 0, ngCvs.width, ngCvs.height);
+        ngSyncSize();
+        const CW = ngCvs.width, CH = ngCvs.height;
+        // Yhtenäinen skaala + keskitetty letterbox: lähettäjän koordinaatit
+        // (0..1 lähettäjän w×h-alueesta) säilyttävät kuvasuhteen vieraan ruudulla.
+        const sw = ngW || CW, sh = ngH || CH;
+        const k = Math.min(CW / sw, CH / sh);
+        const ox = (CW - sw * k) / 2, oy = (CH - sh * k) / 2;
+        const X = (x) => ox + x * sw * k;
+        const Y = (y) => oy + y * sh * k;
+        ngCtx.clearRect(0, 0, CW, CH);
+        // Hienovarainen katkoviivakehys näyttää lähettäjän piirtoalueen
+        ngCtx.save();
+        ngCtx.strokeStyle = 'rgba(229,193,88,0.16)';
+        ngCtx.setLineDash([4, 6]);
+        ngCtx.lineWidth = 1;
+        ngCtx.strokeRect(ox, oy, sw * k, sh * k);
+        ngCtx.restore();
         const ghost = isGhostMode();
         if (ghost) {
             ngStrokes = ngStrokes.filter(s => s.tool === 'erase' || (now - s.t) < GHOST_FADE_MS);
@@ -298,26 +338,25 @@
             ngCtx.globalAlpha = alpha;
             if (s.tool === 'erase') {
                 ngCtx.globalCompositeOperation = 'destination-out';
-                ngCtx.lineWidth = 28;
+                ngCtx.lineWidth = Math.max(8, 28 * k);
             } else {
                 ngCtx.globalCompositeOperation = 'source-over';
                 ngCtx.strokeStyle = '#e5c158';
-                ngCtx.lineWidth = 4;
+                ngCtx.lineWidth = Math.max(2, 4 * k);
             }
             ngCtx.lineCap = 'round';
             ngCtx.lineJoin = 'round';
             const pts = s.points;
             if (pts.length) {
-                const W = ngCvs.width, H = ngCvs.height;
                 ngCtx.beginPath();
-                ngCtx.moveTo(pts[0].x * W, pts[0].y * H);
-                if (pts.length === 1) ngCtx.lineTo(pts[0].x * W, pts[0].y * H);
+                ngCtx.moveTo(X(pts[0].x), Y(pts[0].y));
+                if (pts.length === 1) ngCtx.lineTo(X(pts[0].x), Y(pts[0].y));
                 for (let i = 1; i < pts.length - 1; i++) {
-                    const midX = (pts[i].x + pts[i + 1].x) / 2 * W;
-                    const midY = (pts[i].y + pts[i + 1].y) / 2 * H;
-                    ngCtx.quadraticCurveTo(pts[i].x * W, pts[i].y * H, midX, midY);
+                    const midX = X((pts[i].x + pts[i + 1].x) / 2);
+                    const midY = Y((pts[i].y + pts[i + 1].y) / 2);
+                    ngCtx.quadraticCurveTo(X(pts[i].x), Y(pts[i].y), midX, midY);
                 }
-                ngCtx.lineTo(pts[pts.length - 1].x * W, pts[pts.length - 1].y * H);
+                ngCtx.lineTo(X(pts[pts.length - 1].x), Y(pts[pts.length - 1].y));
                 ngCtx.stroke();
             }
         }
@@ -344,10 +383,14 @@
         if (ngRaf !== null) { cancelAnimationFrame(ngRaf); ngRaf = null; }
         ngStrokes = [];
         ngLive = null;
+        ngW = null; ngH = null;
     };
 
     // Käsittelee selittäjältä tulleet piirtotapahtumat
     window.netDrawEvent = (ev) => {
+        // Lähettäjän kangasmitat voivat tulla missä tahansa viestissä
+        // (open / resize) — päivitä aina, jotta kuvasuhde pysyy oikeana
+        if (ev.w && ev.h) { ngW = ev.w; ngH = ev.h; }
         switch (ev.action) {
             case 'open': {
                 const c = document.getElementById('ngCanvas');
@@ -357,6 +400,9 @@
                 setTimeout(ngStart, 50);
                 break;
             }
+            case 'resize':
+                ngRender(performance.now()); // piirrä uudella kuvasuhteella
+                break;
             case 'live':
                 ngLive = { tool: ev.tool, points: ev.points, t: performance.now() };
                 ngRender(performance.now()); // render heti — rAF voi olla tauolla taustalla olevalta puhelimelta

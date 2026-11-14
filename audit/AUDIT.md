@@ -1111,3 +1111,17 @@ vs pill 722–784px, `elementFromPoint` → пилюля.
   puskuri — mobiilin audio-output "lämpiää" → eka klikki on välitön.
 - Sound-toggle käyttää samaa `resumeUIAudio`-polutta.
 - verify17 **58/58**.
+
+## Task 27 — huonepiirto säilyttää kuvasuhteen vieraalla
+- Ongelma: vedot normalisoidaan lähettäjän kankaan mitoilla (0..1),
+  mutta vieraan `#ngCanvas` on eri kuvasuhde (100%×55vh vs koko ruudun
+  modaali) → piirros vääntyi toisella ruudulla.
+- Korjaus: `open`-viesti kuljettaa lähettäjän kankaan mitat (w,h) +
+  `resize`-viesti käännöksen varalta. Vieras piirtää letterboxoituna:
+  yhtenäinen skaala `k=min(CW/sw,CH/sh)` + keskitetty offset, ohut
+  katkoviivakehys näyttää lähettäjän piirtoalueen. Viivan paksuus
+  skaalautuu samalla kertoimella.
+- `ngSyncSize` pitää vieraan canvas-bufferin synkissä CSS-koon kanssa.
+- verify3: +1 tarkistus (kaksi pistettä tunnetuissa kulmissa —
+  bbox-kuvasuhde ≈ lähettäjän kuvasuhde ±12 %). **45/45**
+  (+ 2 ennestään tunnettu emoji-flake).

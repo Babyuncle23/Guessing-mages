@@ -54,6 +54,18 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
     let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 0) n++;
     return n;
 }, id);
+// Musteen bounding box — vain selkeät vedot (a>100), letterbox-kehys (a≈41) jää pois
+const inkBBox = async (pg, id) => pg.evaluate((i) => {
+    const c = document.getElementById(i);
+    if (!c) return null;
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+        const a = d[(y * c.width + x) * 4 + 3];
+        if (a > 100) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    return x1 < 0 ? null : { w: x1 - x0 + 1, h: y1 - y0 + 1, cw: c.width, ch: c.height };
+}, id);
 
 (async () => {
     const srv = spawn('node', ['server.js'], { cwd: path.join(__dirname, '..', '..'), env: { ...process.env, PORT: '8484' }, stdio: 'pipe' });
@@ -184,6 +196,30 @@ const inkOn = async (pg, id) => pg.evaluate((i) => {
         const before = bInk;
         await tap(A, '#btnUndoStroke'); await sleep(600);
         check('B canvas undo applied', (await inkOn(B, 'ngCanvas')) < before);
+        // Kuvasuhde säilyy vieraalla: kaksi PISTETTÄ tunnetuissa kulmissa —
+        // pisteiden bbox-kuvasuhde ≈ lähettäjän kankaan kuvasuhde (letterbox)
+        await tap(A, '#btnClearModalCanvas'); await sleep(500);
+        await A.evaluate(() => {
+            const c = document.getElementById('drawingModalCanvas');
+            const r = c.getBoundingClientRect();
+            const dot = (fx, fy) => {
+                const x1 = r.x + r.width * fx, y1 = r.y + r.height * fy;
+                const x2 = r.x + r.width * (fx + 0.015), y2 = y1;
+                c.dispatchEvent(new MouseEvent('mousedown', { clientX: x1, clientY: y1, bubbles: true }));
+                c.dispatchEvent(new MouseEvent('mousemove', { clientX: x2, clientY: y2, bubbles: true }));
+                c.dispatchEvent(new MouseEvent('mouseup', { clientX: x2, clientY: y2, bubbles: true }));
+            };
+            dot(0.1, 0.1); dot(0.885, 0.9);
+        });
+        await sleep(600);
+        const aAspect = await evl(A, () => {
+            const r = document.getElementById('drawingModalCanvas').getBoundingClientRect();
+            return r.width / r.height;
+        });
+        const bBox = await inkBBox(B, 'ngCanvas');
+        const bAspect = bBox ? bBox.w / bBox.h : -1;
+        check('B ink keeps sender aspect (letterboxed)', bBox && Math.abs(bAspect - aAspect) / aAspect < 0.12,
+            `senderAspect=${aAspect.toFixed(3)} inkAspect=${bAspect.toFixed(3)} box=${JSON.stringify(bBox)}`);
         await tap(A, '#btnModalGuessed'); await sleep(800);
 
         // ============ E. 3P whoGuessed + scores + summary ============
