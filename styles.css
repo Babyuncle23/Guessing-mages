@@ -607,40 +607,6 @@ button:disabled, .spell-btn:disabled {
     display: none !important;
 }
 
-/* LUOVUTUKSEN PITKÄ PAINALLUS: vahinkotapaus ei päättäydä vuoroa */
-#btnGiveUp {
-    position: relative;
-    overflow: hidden;
-}
-#btnGiveUp .gp-fill {
-    position: absolute;
-    inset: 0;
-    transform: scaleX(0);
-    transform-origin: left center;
-    background: rgba(255, 255, 255, 0.24);
-    transition: transform 1s linear;
-}
-#btnGiveUp.holding .gp-fill {
-    transform: scaleX(1);
-}
-#btnGiveUp .gp-label {
-    position: relative;
-    z-index: 1;
-}
-@keyframes giveupShake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-}
-#btnGiveUp.hold-hint {
-    animation: giveupShake 0.35s ease 2;
-    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.7);
-}
-@media (prefers-reduced-motion: reduce) {
-    #btnGiveUp .gp-fill { transition: none; }
-    #btnGiveUp.hold-hint { animation: none; }
-}
-
 /* --- VUOROPANEELI: harmonikka + tiivis tilannekortti (chip) --- */
 /* Yhtenäinen vuorotieto-kortti: chip + tulostaulu + bonus samassa pinnassa.
    order 1 + loader order 2 → kortti pysyy aina rummun YLÄPUOLELLA. */
@@ -3050,7 +3016,8 @@ body.room-settings-locked #settingsTab #settingsLockHint {
     background: rgba(30,140,80,0.95);
     color: #fff;
 }
-#netConnBadge .ncb-btn {
+#netConnBadge .ncb-btn,
+#netWaitBanner .ncb-btn {
     margin: 0;
     padding: 4px 12px;
     width: auto;

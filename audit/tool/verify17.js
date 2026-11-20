@@ -3,7 +3,7 @@
 // B) Verho: kosketus/hover paljastaa KOKO listan (kaistale/hold poistettu)
 // C) selGlow: lukitun rivin kultainen hehku verhon läpi — teksti ei näy
 // D) chipRound "1/N" + veilCoach kerran + hint-dim ekan eleen jälkeen
-// E) Luovutus: pelkkä click EI lopeta vuoroa; 1 s pohjassapito lopettaa
+// E) Luovutus: yksi napautus lopettaa vuoron (hold poistettu megaplan-turn-pause)
 // Запуск: node verify17.js  (сам поднимает server.js на :8480)
 const { spawn } = require('child_process');
 const path = require('path');
@@ -366,38 +366,13 @@ const glowState = (page) => evl(page, () => {
         check('coach not shown when flag set', coach4 === 'none' || coach4 === '', coach4);
         await p3.close();
 
-        // ============ E. Luovutus: hold 1 s ============
-        console.log('== E. Give up requires 1 s hold ==');
-        // Pelkkä click -> ei lopetusta + hold-hint
+        // ============ E. Luovutus: yksi napautus lopettaa ============
+        console.log('== E. Give up ends turn on single tap ==');
+        // Hold-mekaniikka poistettu (megaplan-turn-pause): pelkkä click = luovutus
         await evl(page, () => document.getElementById('btnGiveUp').click());
-        await sleep(250);
+        await sleep(600);
         bs = await barState(page);
-        check('plain click does NOT end turn', bs.wordsActive === true, JSON.stringify(bs));
-        check('hold-hint shown on plain click', await evl(page, () => document.getElementById('btnGiveUp').classList.contains('hold-hint')));
-        await sleep(1500);
-
-        // Lyhyt painallus (<1 s) -> ei lopetusta
-        await evl(page, () => {
-            const b = document.getElementById('btnGiveUp');
-            b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-        });
-        await sleep(400);
-        check('holding class during press', await evl(page, () => document.getElementById('btnGiveUp').classList.contains('holding')));
-        await evl(page, () => document.getElementById('btnGiveUp').dispatchEvent(new PointerEvent('pointerup', { bubbles: true })));
-        await sleep(700);
-        bs = await barState(page);
-        check('short press does NOT end turn', bs.wordsActive === true);
-
-        // Täysi 1 s pito -> vuoro loppuu
-        await evl(page, () => {
-            const b = document.getElementById('btnGiveUp');
-            b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-        });
-        await sleep(1150);
-        await evl(page, () => document.getElementById('btnGiveUp').dispatchEvent(new PointerEvent('pointerup', { bubbles: true })));
-        await sleep(500);
-        bs = await barState(page);
-        check('1 s hold ends turn', bs.wordsActive === false, JSON.stringify(bs));
+        check('single click ends turn', bs.wordsActive === false, JSON.stringify(bs));
         check('words cleared after giveup', await evl(page, () => document.querySelectorAll('#wordList li').length === 0));
         check('next round button back', await evl(page, () => document.getElementById('btn').style.display === 'block'));
 

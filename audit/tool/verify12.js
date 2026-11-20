@@ -27,6 +27,13 @@ async function newPage(browser, url) {
             try { window.__plays.push(((this.getAttribute('src') || this.src || '') + '').split('/').pop()); } catch (e) {}
             return orig.call(this);
         };
+        // Headless: toisen sivun bringToFront tekee tästä 'hidden' -> AWAY-artefakti.
+        try {
+            Object.defineProperty(document, 'visibilityState', {
+                configurable: true,
+                get: () => window.__vs || 'visible'
+            });
+        } catch (e) {}
     });
     await page.bringToFront();
     await page.setViewport({ width: 420, height: 900 });
@@ -209,8 +216,8 @@ const playTurn = async (page, endBtn) => {
         await sleep(1500);
         check('replay started', await evl(A, () => window.isRoomGame() === true && currentRound === 1));
 
-        // ============ C. Grace umpeutuu -> skip ============
-        console.log('== C. Drop past grace -> PLAYER_DISCONNECTED -> skip ==');
+        // ============ C. Grace umpeutuu -> PAUSSI (ei autoskip) -> manuaalinen ohitus ============
+        console.log('== C. Drop past grace -> pause + manual skip ==');
         // Vuoro 1 uudessa pelissä = A; siirretään B:lle
         await playTurn(A, '#btnGiveUp');
         await sleep(800);
@@ -221,9 +228,20 @@ const playTurn = async (page, endBtn) => {
         check('no skip yet during grace', await evl(A, () => currentPlayerIndex === 1));
         await sleep(4200); // grace 4 s + marginaali
         check('A sees PLAYER_DISCONNECTED', (await evs(A)).includes('PLAYER_DISCONNECTED'));
-        check('B turn skipped after grace', await evl(A, () => currentPlayerIndex === 0));
+        // UUSI KÄYTÖS: vuoro EI ohitu automaattisesti — paussi jää odottamaan
+        check('B turn NOT skipped after grace (paused)', await evl(A, () => currentPlayerIndex === 1));
+        check('pause banner visible', await evl(A, () => {
+            const b = document.getElementById('netWaitBanner');
+            return b.style.display === 'flex' && /ei ole peliss|näyttö sammui|Odotetaan/.test(b.textContent);
+        }), await evl(A, () => (document.getElementById('netWaitBanner') || {}).textContent));
+        check('skip button offered', await evl(A, () => !!document.querySelector('#netWaitBanner .ncb-btn')));
+        // Manuaalinen ohitus: arm -> confirm
+        await tap(A, '#netWaitBanner .ncb-btn'); await sleep(250);
+        check('skip button armed', await evl(A, () => /Varmista/.test(document.querySelector('#netWaitBanner .ncb-btn').textContent)));
+        await tap(A, '#netWaitBanner .ncb-btn'); await sleep(700);
+        check('B turn skipped manually', await evl(A, () => currentPlayerIndex === 0));
         check('A is explainer after skip', await evl(A, () => window.netIsMyTurn() === true));
-        check('wait banner gone after expiry', await evl(A, () => document.getElementById('netWaitBanner').style.display === 'none'));
+        check('wait banner gone after skip', await evl(A, () => document.getElementById('netWaitBanner').style.display === 'none'));
 
         // ============ E. netCanAct + navigator.onLine ============
         console.log('== E. Offline action guard + offline badge ==');

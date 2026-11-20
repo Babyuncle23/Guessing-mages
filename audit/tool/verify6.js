@@ -15,6 +15,15 @@ const check = (name, ok, extra = '') => {
 
 async function newPage(browser, url) {
     const page = await browser.newPage();
+    // Headless: toisen sivun bringToFront tekee tästä 'hidden' -> AWAY-artefakti.
+    await page.evaluateOnNewDocument(() => {
+        try {
+            Object.defineProperty(document, 'visibilityState', {
+                configurable: true,
+                get: () => window.__vs || 'visible'
+            });
+        } catch (e) {}
+    });
     await page.bringToFront();
     await page.setViewport({ width: 420, height: 900 });
     page.on('dialog', d => d.accept().catch(() => {}));
@@ -116,23 +125,33 @@ const reloadWait = async (page) => {
         check('B sees PLAYER_BACK', (await evs(B)).includes('PLAYER_BACK'));
         check('still no DISCONNECTED', !(await evs(B)).includes('PLAYER_DISCONNECTED'));
 
-        // ============ D. Explainer drop past grace: скип + converged rejoin ============
-        console.log('== D. Explainer drop > grace: turn skips, rejoin sees new turn ==');
+        // ============ D. Explainer drop past grace: пауза (не скип) + resume ============
+        console.log('== D. Explainer drop > grace: turn pauses, rejoin resumes same turn ==');
         await A.evaluate(() => { Net._wantRoom = false; Net.ws.close(); });
         await sleep(700);
         check('A conn badge visible while offline', await evl(A, () => document.getElementById('netConnBadge').style.display === 'flex'));
-        await sleep(4000); // grace 4s истекает -> DISCONNECTED -> skip
+        await sleep(4000); // grace 4s истекает -> DISCONNECTED -> пауза (НЕ skip)
         check('B sees PLAYER_DISCONNECTED', (await evs(B)).includes('PLAYER_DISCONNECTED'));
-        check('B advanced to idx 1', await evl(B, () => currentPlayerIndex === 1));
-        check('B became explainer', await evl(B, () => window.netIsMyTurn() === true));
-        // A возвращается — видит уже новый ход (idx 1), а не свой сгоревший
+        check('B did NOT advance (idx still 0)', await evl(B, () => currentPlayerIndex === 0));
+        check('B sees pause banner (gone)', await evl(B, () => {
+            const b = document.getElementById('netWaitBanner');
+            return b.style.display === 'flex' && /ei ole peliss/.test(b.textContent);
+        }));
+        check('B offered manual skip', await evl(B, () => !!document.querySelector('#netWaitBanner .ncb-btn')));
+        // A возвращается — ход её ждал: она снова selittäjä, слова на месте
+        const backsBefore = (await evs(B)).filter(k => k === 'PLAYER_BACK').length;
         await evl(A, () => { Net._wantRoom = true; Net._resumeIntent = true; Net.connect(); });
         await sleep(1500);
-        check('A rejoined to idx 1 (snapshot fresh)', await evl(A, () => currentPlayerIndex === 1));
-        check('A sees guesser screen (не свой ход)', await evl(A, () => document.getElementById('netGuesserScreen').style.display === 'block'));
+        check('A rejoined still explainer (idx 0)', await evl(A, () => window.netIsMyTurn() === true));
+        check('A words still open (page intact)', await evl(A, () => document.getElementById('wordList').children.length > 0));
+        check('B sees PLAYER_BACK for A', (await evs(B)).filter(k => k === 'PLAYER_BACK').length > backsBefore);
+        check('pause banner gone on B', await evl(B, () => document.getElementById('netWaitBanner').style.display !== 'flex'));
 
         // ============ E. Reloaded explainer mid-words -> TURN_SKIPPED ============
         console.log('== E. Reloaded explainer (words lost) auto-skips ==');
+        // A lopettaa vuoronsa -> siirtyy B:lle
+        await evl(A, () => window._devConfirmGiveUp()); await sleep(1500);
+        check('B is explainer now', await evl(B, () => window.netIsMyTurn() === true));
         await tap(B, '#btn'); await sleep(3400);
         await tap(B, '#btnDisplayWords'); await sleep(700);
         check('B words open', await evl(B, () => document.getElementById('wordList').children.length > 0));

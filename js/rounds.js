@@ -728,6 +728,10 @@ const showVictoryModal = () => {
     const rankings = document.getElementById('victoryRankings');
     if (!modal || !rankings) return;
 
+    // Peli päättyi — näytön ei tarvitse enää pysyä hereillä
+    window.wakeKeep = false;
+    if (typeof window.releaseWakeLock === 'function') window.releaseWakeLock();
+
     const sorted = [...gamePlayers].sort((a, b) => b.score - a.score);
     const topScore = sorted[0].score;
     const medals = ['🥇', '🥈', '🥉', '🎖️'];

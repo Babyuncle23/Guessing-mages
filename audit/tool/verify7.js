@@ -23,6 +23,13 @@ async function newPage(browser, url) {
             window.__plays.push(this.getAttribute('src') || this.src || '?');
             return orig.apply(this, arguments);
         };
+        // Headless: toisen sivun bringToFront tekee tästä 'hidden' -> AWAY-artefakti.
+        try {
+            Object.defineProperty(document, 'visibilityState', {
+                configurable: true,
+                get: () => window.__vs || 'visible'
+            });
+        } catch (e) {}
     });
     await page.bringToFront();
     await page.setViewport({ width: 420, height: 900 });

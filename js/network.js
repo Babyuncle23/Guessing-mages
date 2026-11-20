@@ -162,9 +162,11 @@
         ensureNetTick();
     };
 
-    // ---------- Grace-odotus (pelaaja saattaa palata) ----------
+    // ---------- Grace-odotus + vuoron paussi ----------
     // _waitUntil[pid] = paluun määräaika; lähteenä roster.waiting/graceUntil
-    // ja PLAYER_WAITING-tapahtumat. Vuoro ei ohitu odotuksen aikana.
+    // ja PLAYER_WAITING-tapahtumat. Vuoro ei ohitu ENÄÄ automaattisesti —
+    // nukkuneen/poissaolevan selittäjän vuoro jää odottamaan paluuta tai
+    // manuaalista «Ohita vuoro»-painallusta (paikalla olevat päättävät).
     const waitBanner = () => {
         let b = $('netWaitBanner');
         if (!b) {
@@ -177,20 +179,95 @@
     };
     const isWaitingPid = (pid) => !!(pid && Net._waitUntil[pid] > Date.now());
     const clearWaits = () => { Net._waitUntil = {}; updateWaitBanner(); };
-    const updateWaitBanner = () => {
+
+    // Manuaalisen ohituksen nappi odotuspalkissa — näkyy kaikille paikalla
+    // oleville (isäntäkin saattaa olla se nukkunut). Kaksi painallusta:
+    // «Ohita vuoro» -> «⚠️ Varmista?» -> suoritus.
+    let _skipBtn = null;
+    const skipTurnBtn = () => {
+        if (_skipBtn) return _skipBtn;
+        _skipBtn = document.createElement('button');
+        _skipBtn.type = 'button';
+        _skipBtn.className = 'ncb-btn';
+        _skipBtn.textContent = 'Ohita vuoro';
+        _skipBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof playClickSound === 'function') playClickSound();
+            if (_skipBtn.dataset.armed === '1') {
+                _skipBtn.dataset.armed = '';
+                _skipBtn.textContent = 'Ohita vuoro';
+                clearTimeout(_skipBtn._t);
+                forceSkipTurn();
+            } else {
+                _skipBtn.dataset.armed = '1';
+                _skipBtn.textContent = '⚠️ Varmista?';
+                clearTimeout(_skipBtn._t);
+                _skipBtn._t = setTimeout(() => {
+                    _skipBtn.dataset.armed = '';
+                    _skipBtn.textContent = 'Ohita vuoro';
+                }, 3000);
+            }
+        });
+        return _skipBtn;
+    };
+
+    // Vuoron estävä tila: 'none' = selittäjä paikalla, 'waiting' = grace-
+    // odotus, 'away' = näyttö sammunut (socket elossa), 'gone' = poissa,
+    // 'left' = poistunut huoneesta kokonaan (ei voi palata samalla pid:llä).
+    const explainerBlocker = () => {
+        const pid = window.netGetExplainerPid();
+        if (!pid) return 'none';
+        const e = rosterEntry(pid);
+        if (!e) return 'left';
+        if (e.connected && !e.away) return 'none';
+        if (!e.connected && isWaitingPid(pid)) return 'waiting';
+        if (e.connected && e.away) return 'away';
+        return 'gone';
+    };
+
+    // Odotuspalkki: näyttää vuoron paussin TAI muiden pelaajien paluun
+    // odotuksen. Kun selittäjä on paikalla, vanha waiting-lista jää voimaan.
+    const updateTurnPauseUI = () => {
         const b = waitBanner();
         const now = Date.now();
-        const entries = Object.entries(Net._waitUntil).filter(([, t]) => t > now);
-        if (!entries.length || !window.isRoomGame()) {
-            b.style.display = 'none';
-            return;
+        if (!window.isRoomGame()) { b.style.display = 'none'; return; }
+        const state = explainerBlocker();
+        const name = rosterName(window.netGetExplainerPid());
+        let text = null, canSkip = false;
+        if (state === 'waiting') {
+            const t = Net._waitUntil[window.netGetExplainerPid()] || now;
+            text = `⏳ Odotetaan pelaajan ${name} paluuta… (${Math.max(1, Math.ceil((t - now) / 1000))} s)`;
+            canSkip = true;
+        } else if (state === 'away') {
+            text = `💤 Pelaajan ${name} näyttö sammui — odotetaan tai ohitetaan`;
+            canSkip = true;
+        } else if (state === 'gone') {
+            text = `⏸️ ${name} ei ole pelissä — vuoro odottaa`;
+            canSkip = true;
+        } else {
+            const entries = Object.entries(Net._waitUntil).filter(([, t]) => t > now);
+            if (entries.length) {
+                const names = entries.map(([pid, t]) =>
+                    `${rosterName(pid)} (${Math.max(1, Math.ceil((t - now) / 1000))} s)`);
+                text = `⏳ Odotetaan paluuta: ${names.join(', ')}`;
+            }
         }
-        const names = entries.map(([pid, t]) =>
-            `${rosterName(pid)} (${Math.max(1, Math.ceil((t - now) / 1000))} s)`);
-        b.textContent = `⏳ Odotetaan paluuta: ${names.join(', ')}`;
+
+        // Arvaajan näytön status peilaa paussia — palautuu kun vuoro jatkuu
+        if (state !== 'none') { if (!_pausedShown) { _pausedShown = true; ngStatus('⏸️ Vuoro odottaa pelaajan paluuta…'); } }
+        else if (_pausedShown) { _pausedShown = false; ngStatus(''); }
+
+        if (!text) { b.style.display = 'none'; return; }
+        b.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = text;
+        b.appendChild(span);
+        if (canSkip && Net.connected) b.appendChild(skipTurnBtn());
         b.style.display = 'flex';
         ensureNetTick();
     };
+    let _pausedShown = false;
+    const updateWaitBanner = updateTurnPauseUI; // vanhat kutsut paikallaan
     // Roster on auktoriteetti odotustiloihin (kattaa myös oman reconnectin)
     const syncWaits = (players) => {
         const known = new Set((players || []).map(p => p.id));
@@ -375,7 +452,7 @@
             <div class="room-player-row">
                 <span>${p.host ? '👑' : '🙂'} <strong>${p.name}</strong> ${p.host ? '<span class="rp-host">(isäntä)</span>' : ''}</span>
                 ${p.char ? `<span style="margin-left:6px;">${charImages[p.char] || ''} ${p.char}</span>` : ''}
-                ${!p.connected ? '<span class="rp-off">poissa</span>' : ''}
+                ${!p.connected ? '<span class="rp-off">poissa</span>' : (p.away ? '<span class="rp-off">💤</span>' : '')}
             </div>`).join('');
 
         // Hahmovalinta: estä jo varatut hahmot
@@ -557,6 +634,9 @@
         isExtraTurnRound = false;
         isMetamorphosisUsedThisTurn = false;
         document.body.dataset.mode = playerMode;
+        // Peli alkaa — näyttö pysyy päällä (Screen Wake Lock, kuten videossa)
+        window.wakeKeep = true;
+        if (typeof window.requestWakeLock === 'function') window.requestWakeLock();
 
         const cm = $('characterModal');
         if (cm) cm.style.display = 'none';
@@ -593,6 +673,7 @@
         $('ngScore').innerHTML = gamePlayers.map((pl, i) =>
             `<span>${i === currentPlayerIndex ? '▶ ' : ''}${pl.displayName || pl.name}: <strong>${pl.score}p</strong></span>`
         ).join('<br>');
+        updateTurnPauseUI();
     };
 
     let ngTimerInt = null;
@@ -872,6 +953,9 @@
         _victoryFired = true;
         Net._waitUntil = {};
         updateWaitBanner();
+        // Peli ohi — näyttö saa taas sammua itsestään
+        window.wakeKeep = false;
+        if (typeof window.releaseWakeLock === 'function') window.releaseWakeLock();
         const ngs = $('netGuesserScreen'); if (ngs) ngs.style.display = 'none';
         const card = $('turnSummaryCard'); if (card) card.style.display = 'none';
         // Varmistetaan ettei edellisen vuoron tulosääni jää kaikumaan voiton päälle
@@ -993,14 +1077,15 @@
         _netPhase = 'idle';
         netCleanupTurnUI();
         updateTurnDisplay();
-        if (announce) window.netShowSummary(null, '⚠️ Selittäjän yhteys katkesi — vuoro ohitettiin.');
+        if (announce) window.netShowSummary(null, '⚠️ Vuoro ohitettiin — selittäjä ei ollut paikalla.');
     };
 
-    // Tiimimoodi: pyöräytä selittäjäkursori ensin online-jäseneen vasta sitten ohita vuoro
+    // Tiimimoodi: pyöräytä selittäjäkursori ensin hereillä olevaan jäseneen —
+    // nukkuva (away) ja poissaoleva ohitetaan kursorissa, vuoro säilyy joukkueella.
     const netTryRotateTeamMember = () => {
         const cur = gamePlayers[currentPlayerIndex];
         if (!cur || !cur.members) return false;
-        const online = (m) => { const e = rosterEntry(m); return e && e.connected; };
+        const online = (m) => { const e = rosterEntry(m); return e && e.connected && !e.away; };
         if (!cur.members.some(online)) return false;
         for (let i = 0; i < cur.members.length; i++) {
             teamCursors[currentPlayerIndex] = (teamCursors[currentPlayerIndex] || 0) + 1;
@@ -1009,11 +1094,10 @@
         return false;
     };
 
-    // Aja peli ohi offline-selittäjien vuorojen — ketjuuntuu turvallisesti.
-    // Kattaa: selittäjä katosi, myöhemmän vuoron omistaja katosi aikaisemmin,
-    // huoneesta poistunut pelaaja (poissa rosterista kokonaan).
-    // POIKKEUS: grace-odotuksessa oleva selittäjä ei ohitu — peli jää
-    // odottamaan paluuta (wait-banner + _netTick vapauttaa kun aika loppuu).
+    // Vuoronohitus vain kun selittäjä on POISTUNUT huoneesta (ei paluuta
+    // samalla pid:llä). Katkennut/nukkunut selittäjä EI ohitu — vuoro jää
+    // paussin odottamaan paluuta tai manuaalista «Ohita vuoro»-painallusta.
+    // Odottava banneri näkyy kaikille (updateTurnPauseUI).
     const netEnsureExplainerAvailable = () => {
         if (!window.isRoomGame() || !gamePlayers.length) return;
         let advanced = false, guard = 0;
@@ -1021,23 +1105,42 @@
         const announce = $('turnSummaryCard')?.style.display !== 'flex';
         while (currentRound <= totalTurns && guard++ < gamePlayers.length + 2) {
             const e = rosterEntry(window.netGetExplainerPid());
-            if (e && e.connected) break;
-            if (isWaitingPid(window.netGetExplainerPid())) {
-                // Vuoro säilyy: odotetaan pelaajan paluuta grace-ajan loppuun.
-                updateWaitBanner();
-                ensureNetTick();
-                break;
+            if (e && e.connected && !e.away) break;
+            if (!e) {
+                netSkipOneTurn(announce);
+                advanced = true;
+                continue;
             }
-            if (playerMode === 4 && netTryRotateTeamMember()) { advanced = true; continue; }
-            netSkipOneTurn(announce);
-            advanced = true;
+            const blocker = explainerBlocker();
+            // Tiimimoodissa vuoro ei koskaan jää paussin: nukkunut/poissa
+            // jäsen korvataan hereillä olevalla joukkuekaverilla automaattisesti.
+            if (playerMode === 4 && (blocker === 'away' || blocker === 'gone') && netTryRotateTeamMember()) {
+                advanced = true;
+                continue;
+            }
+            // waiting | away | gone — peli paussissa, odotetaan paluuta/ohitusta
+            break;
         }
         if (currentRound > totalTurns) {
             netCleanupTurnUI();
             netHandleGameOver();
             advanced = true;
         }
+        updateTurnPauseUI();
         if (advanced) { netRefreshGuesserScreen(); netSyncState(); }
+    };
+
+    // Manuaalinen ohitus odotuspalkin napista — mikä tahansa paikalla oleva
+    // pelaaja voi ohittaa poissaolevan/nukkuvan selittäjän vuoron. Kulkee
+    // TURN_SKIPPED-tapahtumana samoin kuin rejoin-skipit → muut soveltavat.
+    const forceSkipTurn = () => {
+        if (!window.isRoomGame() || !Net.connected) return;
+        if (explainerBlocker() === 'none') return; // vuoro on jo paikallaan
+        const sigBefore = turnSig();
+        netSkipOneTurn(true);
+        Net.relay({ kind: 'TURN_SKIPPED', sigBefore, state: netBuildState() });
+        netRefreshGuesserScreen();
+        netEnsureExplainerAvailable(); // seuraava selittäjä voi olla myös poissa
     };
 
     // Tilannekuvan soveltaminen (ROOM_STATE / STATE_SYNC)
@@ -1345,6 +1448,9 @@
         if (Net.isHost && !wasHost) toast('👑 Sinusta tuli huoneen isäntä');
         refreshSoundBtn(); // isännän vaihtuessa äänioletus voi muuttua
         updateSettingsLock(); // isännän vaihtuessa asetuslukitus voi muuttua
+        // connected/away-tilan muutokset päivittävät odotuspalkin ja paussin
+        updateTurnPauseUI();
+        netEnsureExplainerAvailable();
     });
     Net.on('SETTINGS', (m) => applySettingsToUI(m.settings));
     Net.on('GAME_STARTED', (m) => {
@@ -1427,6 +1533,8 @@
             Net.send({ type: 'LEAVE_ROOM' });
             Net._wantRoom = false;
             clearSession();
+            window.wakeKeep = false;
+            if (typeof window.releaseWakeLock === 'function') window.releaseWakeLock();
             location.assign(location.pathname); // puhdas teardown ilman ?room-parametria
         } else {
             btn.dataset.armed = '1';
@@ -1597,10 +1705,25 @@
         });
 
         // Näytön sammuminen / herääminen / verkon palautuminen
+        // AWAY/BACK: kerro muille näytön tila — paussi-bannari näyttää 💤
+        // (socket saattaa jäädä eloon jolloin peli muuten seisisi hiljaa).
+        // Wake lock vapautuu piilossa aina → herätessä se pyydetään uudelleen.
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') netWakeCheck();
+            if (document.visibilityState === 'visible') {
+                Net.send({ type: 'BACK' });
+                if (window.wakeKeep && typeof window.requestWakeLock === 'function') window.requestWakeLock();
+                netWakeCheck();
+            } else {
+                Net.send({ type: 'AWAY' });
+            }
         });
-        window.addEventListener('pageshow', netWakeCheck);
+        window.addEventListener('pagehide', () => Net.send({ type: 'AWAY' }));
+        document.addEventListener('freeze', () => Net.send({ type: 'AWAY' }));
+        window.addEventListener('pageshow', () => {
+            Net.send({ type: 'BACK' });
+            if (window.wakeKeep && typeof window.requestWakeLock === 'function') window.requestWakeLock();
+            netWakeCheck();
+        });
         window.addEventListener('online', () => {
             Net._reconnectDelay = 2000;
             netWakeCheck();

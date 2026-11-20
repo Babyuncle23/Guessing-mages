@@ -50,6 +50,7 @@ const send = (ws, obj) => {
 
 const roster = (room) => [...room.players.values()].map(p => ({
     id: p.id, name: p.name, char: p.char, connected: p.connected, host: p.id === room.hostId,
+    away: !!p.away,
     waiting: room.grace.has(p.id),
     graceUntil: (room.grace.get(p.id) || {}).until || 0
 }));
@@ -115,6 +116,7 @@ wss.on('connection', (ws) => {
         room.grace.delete(p.id);
         p.ws = ws;
         p.connected = true;
+        p.away = false; // palannut pelaaja ei enää nukku
         if (name) p.name = String(name).slice(0, 20) || p.name;
         touch(room);
         me = { room, pid: p.id };
@@ -225,6 +227,20 @@ wss.on('connection', (ws) => {
                 break;
             }
 
+            case 'AWAY': { // näyttö sammui — paikalla oleva, mutta passiivinen
+                if (!me) return;
+                const p = me.room.players.get(me.pid);
+                if (p) { p.away = true; touch(me.room); broadcast(me.room, { type: 'ROSTER', players: roster(me.room), hostId: me.room.hostId }); }
+                break;
+            }
+
+            case 'BACK': { // näyttö heräsi — pelaaja taas passissa
+                if (!me) return;
+                const p = me.room.players.get(me.pid);
+                if (p && p.away) { p.away = false; touch(me.room); broadcast(me.room, { type: 'ROSTER', players: roster(me.room), hostId: me.room.hostId }); }
+                break;
+            }
+
             case 'LEAVE_ROOM': {
                 if (me) {
                     leaveCurrent(me); // pelaaja poistuu heti — ei grace-aikaa
@@ -245,6 +261,7 @@ wss.on('connection', (ws) => {
         if (!p || p.ws !== ws) return;
         p.connected = false;
         p.ws = null;
+        p.away = false; // poissa-lippu kertoo tilan tarkemmin kuin unilippu
         touch(room);
         // Grace-aika: ruudun sammuminen / hetkellinen katkos ei kaada vuoroa.
         // Asetetaan ENNEN roster-lähetystä, jotta waiting-lippu näkyy heti.

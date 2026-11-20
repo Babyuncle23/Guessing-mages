@@ -117,6 +117,10 @@ const resetCurrentGame = () => {
     btn.style.opacity = '1';
     btn.textContent = 'Aloita kierros';
 
+    // Uusi peli samoilla asetuksilla — näyttö pysyy edelleen hereillä
+    window.wakeKeep = true;
+    if (typeof window.requestWakeLock === 'function') window.requestWakeLock();
+
     updateTurnDisplay();
 };
 window.resetCurrentGame = resetCurrentGame;
@@ -140,6 +144,10 @@ document.getElementById('startGameBtn').addEventListener('click', () => {
     document.getElementById('characterModal').style.display = 'none';
     document.getElementById('playerTurn').style.display = 'flex';
     roundControls.style.display = 'none';
+
+    // Näyttö pysyy päällä koko pelin ajan (kuten videota katsottaessa)
+    window.wakeKeep = true;
+    if (typeof window.requestWakeLock === 'function') window.requestWakeLock();
 
     updateTurnDisplay();
 });
@@ -264,8 +272,7 @@ btnGuessed.addEventListener("click", () => {
     }
 });
 
-// Luovutus suoritetaan vasta 1 s pohjassapidon jälkeen — vahinkonapautus
-// ei saa päättää vuoroa (puhelin liikkuu kädestä käteen).
+// Luovutus yhdellä napautuksella — sama periaate kuin «Arvattu oikein».
 const doGiveUp = () => {
     playClickSound();
     if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
@@ -278,45 +285,7 @@ const doGiveUp = () => {
 };
 window._devConfirmGiveUp = doGiveUp;
 
-let giveUpHoldTimer = null;
-const cancelGiveUpHold = () => {
-    if (giveUpHoldTimer) { clearTimeout(giveUpHoldTimer); giveUpHoldTimer = null; }
-    btnGiveUp.classList.remove('holding');
-};
-const startGiveUpHold = () => {
-    if (giveUpHoldTimer) return; // jo käynnissä / keydown-repeat
-    if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
-    btnGiveUp.classList.add('holding');
-    giveUpHoldTimer = setTimeout(() => {
-        giveUpHoldTimer = null;
-        btnGiveUp.classList.remove('holding');
-        doGiveUp();
-    }, 1000);
-};
-btnGiveUp.addEventListener('pointerdown', startGiveUpHold);
-btnGiveUp.addEventListener('pointerup', cancelGiveUpHold);
-btnGiveUp.addEventListener('pointerleave', cancelGiveUpHold);
-btnGiveUp.addEventListener('pointercancel', cancelGiveUpHold);
-btnGiveUp.addEventListener('blur', cancelGiveUpHold);
-btnGiveUp.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        startGiveUpHold();
-    }
-});
-btnGiveUp.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        cancelGiveUpHold();
-    }
-});
-btnGiveUp.addEventListener('click', (e) => {
-    // Pelkkä napautus/ohjelmallinen click ei luovuta — näytetään vihje
-    e.preventDefault();
-    btnGiveUp.classList.add('hold-hint');
-    setTimeout(() => btnGiveUp.classList.remove('hold-hint'), 1400);
-});
-btnGiveUp.title = 'Pidä pohjassa 1 s luovuttaaksesi';
+btnGiveUp.addEventListener('click', doGiveUp);
 
 // RYÖSTÖ: vastustaja arvasi ensin (4+ joukkuemoodi)
 const handleStealClick = () => {
@@ -346,6 +315,8 @@ document.getElementById('btnChangeSettings')?.addEventListener('click', () => {
     if (typeof playClickSound === 'function') playClickSound();
     document.getElementById('victoryModal').style.display = 'none';
     document.getElementById('characterModal').style.display = 'flex';
+    window.wakeKeep = false;
+    if (typeof window.releaseWakeLock === 'function') window.releaseWakeLock();
 });
 // 4. Sanan lukitus — yhteinen polku (✓-ele + tap-varaus TAP_SELECT_ENABLED:lla)
 window.selectWordLi = (li) => {
