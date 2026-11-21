@@ -90,6 +90,10 @@
             document.body.appendChild(t);
         }
         t.textContent = msg;
+        // Jos odotuspalkki on näkyvissä, toast asettuu sen alle — ei päällekkäin
+        const wb = $('netWaitBanner');
+        const wbVisible = wb && getComputedStyle(wb).display !== 'none';
+        t.style.top = wbVisible ? `${Math.round(wb.getBoundingClientRect().bottom + 8)}px` : '';
         t.style.display = 'block';
         clearTimeout(t._h);
         t._h = setTimeout(() => { t.style.display = 'none'; }, ms);

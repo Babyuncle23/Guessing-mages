@@ -251,6 +251,7 @@ strong, b {
     text-transform: none !important; 
     letter-spacing: 0.5px;
     line-height: 1.3;
+    overflow-wrap: anywhere;
 }
 
 .theme-text strong, .theme-text b {
@@ -393,8 +394,12 @@ button:disabled, .spell-btn:disabled {
     color: #e2daf0;
     transition: all 0.2s ease;
     position: relative;
+    overflow-wrap: anywhere;
     
 }
+
+/* Rivinumero ei saa litistyä pystyksi pitkän sanan/badgen tuntumassa */
+#wordList li strong { flex-shrink: 0; }
 
 #wordList.hidden-words li,
 #wordList.hidden-words li.selected-word {
@@ -564,6 +569,7 @@ button:disabled, .spell-btn:disabled {
     text-align: center;
     color: var(--gold);
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    max-width: min(88vw, 340px);
     transition: opacity 0.5s ease;
     opacity: 1;
 }
@@ -2616,6 +2622,7 @@ button:active:not(:disabled), .spell-btn:active:not(:disabled), #wordList li:act
     align-items: center;
     gap: 2px;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 .spell-btn .spell-name { font-weight: bold; }
 .spell-btn .spell-sub {
@@ -2686,7 +2693,7 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     font-size: 14px;
 }
 .victory-row .v-rank { font-weight: bold; margin-right: 8px; }
-.victory-row .v-name { flex-grow: 1; text-align: left; }
+.victory-row .v-name { flex-grow: 1; text-align: left; min-width: 0; overflow-wrap: anywhere; }
 .victory-row .v-score { color: var(--gold); font-weight: bold; }
 .victory-row.winner {
     border-color: var(--gold);
@@ -2732,17 +2739,18 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     z-index: 10001;
     background: rgba(15, 12, 28, 0.97);
     border: 1px solid var(--gold);
-    border-radius: 999px;
+    border-radius: 18px;
     color: var(--gold);
     font-size: 16px;
     font-weight: bold;
     padding: 10px 22px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 16px var(--gold-glow);
     pointer-events: none;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
     max-width: 92vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
 }
 .peek-btn:active {
     background: rgba(229,193,88,0.3) !important;
@@ -2833,6 +2841,7 @@ body[data-mode="4"] .round-controls-block .steal-btn { display: flex !important;
     padding: 8px 12px;
     font-size: 13.5px;
 }
+.room-player-row > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .room-player-row .rp-host { color: var(--gold); font-size: 11px; }
 .room-player-row .rp-off { color: #ff9d94; font-size: 11px; margin-left: auto; }
 .room-char-opt {
@@ -2907,7 +2916,7 @@ body.room-settings-locked #settingsTab #settingsLockHint {
 /* --- Reconnect-ilmoitus --- */
 #netReconnectToast {
     position: fixed;
-    top: 10px;
+    top: calc(10px + env(safe-area-inset-top, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 12000;
@@ -2916,8 +2925,11 @@ body.room-settings-locked #settingsTab #settingsLockHint {
     font-size: 13px;
     font-weight: bold;
     padding: 8px 18px;
-    border-radius: 999px;
+    border-radius: 18px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+    max-width: 92vw;
+    text-align: center;
+    overflow-wrap: anywhere;
 }
 
 /* --- "Palaa peliin" -banneri aloitusnäkymässä --- */
@@ -2986,22 +2998,25 @@ body.room-settings-locked #settingsTab #settingsLockHint {
 /* --- Yhteysindikaattori (näkyy pelin päälläkin) --- */
 #netConnBadge {
     position: fixed;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 9400;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 8px;
     font-size: 12.5px;
     font-weight: bold;
     padding: 8px 16px;
-    border-radius: 999px;
+    border-radius: 18px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.5);
     font-family: 'Comfortaa', sans-serif;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
     max-width: 92vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
 }
 #netConnBadge.warn {
     background: rgba(180,120,20,0.92);
@@ -3046,13 +3061,16 @@ body.room-settings-locked #settingsTab #settingsLockHint {
     font-size: 12.5px;
     font-weight: bold;
     padding: 8px 16px;
-    border-radius: 999px;
+    border-radius: 18px;
     box-shadow: 0 6px 24px rgba(0,0,0,0.5);
     font-family: 'Comfortaa', sans-serif;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
     max-width: 92vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    justify-content: center;
+    flex-wrap: wrap;
     background: rgba(120,90,20,0.94);
     border: 1px solid rgba(229,193,88,0.55);
     color: #ffe9b0;
@@ -3114,6 +3132,10 @@ body[data-net="room-guest"] #btnLeaveVictory { display: block; }
     cursor: pointer;
 }
 #soundToggleBtn.muted { opacity: 0.75; }
+
+/* Sanojen aikana kiinteä nappipalkki on ruudun alareunassa — ääninappi
+   peittäisi Luovuta-painikkeen tekstin, joten se piilotetaan tän ajaksi. */
+body:has(#gameContainer.words-active) #soundToggleBtn { display: none !important; }
 
 /* --- Huonekoodi-chipit pelin aikana (näkyy vain huonepelissä) --- */
 .room-code-chip {
