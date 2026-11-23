@@ -211,6 +211,19 @@ const rowCenter = (page, i) => evl(page, (idx) => {
         check('▲ hidden at top edge', rs.upHidden === true);
         check('▼ visible at top edge', rs.downHidden === false);
 
+        // Rail анкорится на ВСЮ карточку (wordListWrap), а не только на <ol>:
+        // верх = верх карточки, низ = верх sticky-панели кнопок
+        const pos = await evl(page, () => {
+            const rr = document.getElementById('wordScrollRail').getBoundingClientRect();
+            const cr = document.getElementById('wordListWrap').getBoundingClientRect();
+            const br = document.querySelector('.round-controls-block').getBoundingClientRect();
+            return { railT: rr.top, railB: rr.bottom, cardT: cr.top, cardB: cr.bottom, barT: br.top };
+        });
+        check('rail top = card top', Math.abs(pos.railT - pos.cardT) <= 6,
+            `railT=${Math.round(pos.railT)} cardT=${Math.round(pos.cardT)}`);
+        check('rail ends above sticky bar', pos.railB <= pos.barT + 4,
+            `railB=${Math.round(pos.railB)} barT=${Math.round(pos.barT)}`);
+
         // Удержание ▼: reveal + непрерывный скролл
         await touchBtn(page, 'wordScrollDown', 'touchstart'); await sleep(500);
         rs = await railState(page);

@@ -701,8 +701,22 @@ window.updateWordScrollRail = () => {
     const overflows = visible && (wordList.scrollHeight - wordList.clientHeight > WL_SCROLL_EPS);
     wordScrollRail.style.display = overflows ? 'flex' : 'none';
     if (!overflows) return;
-    // Railin alareuna = listalaatikon alareuna (wrapin padding-bottom varaa tilaa palkille)
-    if (wordListWrap) wordScrollRail.style.bottom = getComputedStyle(wordListWrap).paddingBottom;
+    // Rail ankkuroituu KOKO KORTTIIN (wordListWrap), ei vain listaelementtiin —
+    // verhokortin tumma alue jatkuu listan alapuolelle, joten nuolet
+    // keskitetään koko näkyvälle kortille. Alaraja: sticky-toimintopalkin
+    // yläreuna (se on fixed päällä), tai wrapin padding-alue ilman palkkia.
+    if (wordListWrap) {
+        const cr = wordListWrap.getBoundingClientRect();
+        let limitB = cr.bottom;
+        const bar = document.querySelector('.round-controls-block');
+        // offsetParent==null у fixed-элементов — видимость проверяем через rect
+        if (bar && bar.getBoundingClientRect().width > 0) {
+            const br = bar.getBoundingClientRect();
+            if (br.top > cr.top && br.top < cr.bottom) limitB = br.top;
+        }
+        wordScrollRail.style.top = '0px';
+        wordScrollRail.style.bottom = Math.max(0, cr.bottom - limitB) + 'px';
+    }
     const atTop = wordList.scrollTop <= WL_SCROLL_EPS;
     const atBottom = wordList.scrollTop + wordList.clientHeight >= wordList.scrollHeight - WL_SCROLL_EPS;
     if (btnWordScrollUp) btnWordScrollUp.classList.toggle('dir-hidden', atTop);

@@ -19,7 +19,7 @@
 
 ### Стрелки
 
-- `#wordScrollRail` внутри `#wordListWrap` (position:relative): absolute `right:6px`, `top:0`, `bottom` = wrap'ов `padding-bottom` (JS синхронизирует) → вертикально по центру списка.
+- `#wordScrollRail` внутри `#wordListWrap` (position:relative): absolute `right:6px`; JS выставляет `top:0` / `bottom` = верх sticky-панели кнопок → стрелки центрируются по **всей карточке слов** (тёмный блок вуали), а не только по внутреннему `<ol>`.
 - Виден только при `scrollHeight - clientHeight > 4px`.
 - Кнопки 34×34, приглушённое золото `rgba(212,175,55,.55)` на тёмном полупрозрачном фоне — минималистично, не спорит со словами.
 - У края своя стрелка гаснет (`.dir-hidden`: `opacity:0`, `scale(0.7)`, `pointer-events:none`).
