@@ -1,49 +1,50 @@
-# Мегаплан: динамическое исчезновение скиллов + стрелки скролла списка слов
+# Мегаплан: динамическое исчезновение скиллов + sticky-плашка условия
 
-Дата: после «спеллы над колесом» (megaplan-spells-above-wheel). Контекст: (1) использованные заклинания остаются в интерфейсе disabled-мертвецами — визуальный мусор; (2) у `#wordList` стоит `touch-action:none` (нужен для жеста выбора «удержать→вести→отпустить»), поэтому нативного скролла на телефоне нет вовсе — докрутить можно только тянув палец к краю в середине жеста выбора.
+Дата: после «спеллы над колесом» (megaplan-spells-above-wheel). Контекст: (1) использованные заклинания оставались в интерфейсе disabled-мертвецами — визуальный мусор; (2) скролл списка слов на экране выбора неудобен (`touch-action:none` нужен жесту «удержать→вести→отпустить», поэтому нативного скролла нет).
 
-## Решения пользователя (уточняющие вопросы)
+## История решения
 
-- Скрывать **всё ненажимаемое**: использованные, 0 зарядов, висящие проклятия, контекстно-заблокированные. Пустая зона исчезает целиком (вместе с заголовком «✨ Taikuus»).
-- Стрелки: **компактная пара ▲▼** на правом краю списка по центру.
-- Стрелки **только когда есть что скроллить** — авто-скрытие при влезающем списке.
+- v1: добавлены стрелки-скроллера ▲▼ на краю списка — реализовано, выкачено (commit `0a0201f`, доработка привязки к карточке `9a6e2e9`).
+- v2 (текущее): пользователь передумал — **стрелки убраны полностью**, вместо них элегантный вариант: верхняя плашка с условием (`#turnPanel` — чип «1/7 🎭 PANTOMIIMI» + ❓-гармошка) **всегда приклеена к верху** экрана слов.
+
+## Решения пользователя
+
+- Скиллы: скрывать **всё ненажимаемое** — использованные, 0 зарядов, висящие проклятия, контекстно-заблокированные. Пустая зона исчезает целиком (вместе с заголовком «✨ Taikuus»).
+- Стрелки: **убрать**.
+- Плашка условия: **приклеена к верху**, но **только там где она уже есть** (`#gameContainer.words-active` — экран слов). В новые места её не добавлять — новых DOM-элементов не создано вообще.
 
 ## UX-дизайн
 
 ### Скиллы
 
 - После успешного каста строка «схлопывается»: `opacity→0`, `translateY(-6px)`, `max-height→0` (~300мс, `.spell-out`), затем рендер.
-- Видимы только **нажимаемые прямо сейчас** спеллы. Если ни одного — `#spellContainer` целиком `display:none` (заголовок фазы тоже исчезает — чистый экран).
-- Скилл с оставшимися зарядами возвращается на следующем ходу (рендер на каждый ход пересчитывает доступность).
+- Видимы только **нажимаемые прямо сейчас** спеллы. Если ни одного — `#spellContainer` целиком `display:none`.
+- Скилл с оставшимися зарядами возвращается на следующем ходу.
 - `prefers-reduced-motion` → `SPELL_ANIM_MS = 0`, исчезновение мгновенное.
 
-### Стрелки
+### Sticky-плашка
 
-- `#wordScrollRail` внутри `#wordListWrap` (position:relative): absolute `right:6px`; JS выставляет `top:0` / `bottom` = верх sticky-панели кнопок → стрелки центрируются по **всей карточке слов** (тёмный блок вуали), а не только по внутреннему `<ol>`.
-- Виден только при `scrollHeight - clientHeight > 4px`.
-- Кнопки 34×34, приглушённое золото `rgba(212,175,55,.55)` на тёмном полупрозрачном фоне — минималистично, не спорит со словами.
-- У края своя стрелка гаснет (`.dir-hidden`: `opacity:0`, `scale(0.7)`, `pointer-events:none`).
-- **Тап** (<220мс) = `scrollBy` на ~2 строки с `behavior:'smooth'`.
-- **Холд** (>220мс) = непрерывный скролл ~240px/с через `requestAnimationFrame` + `wlRevealOn()` — вуаль приоткрывается, слова видны при скролле одним пальцем.
-- Отпускание = `wlRevealOff()` → вуаль возвращается штатным 1.2s-fade'ом; если другой палец ещё тянет жест выбора (`wlIsAiming()`), вуаль остаётся.
-- `contextmenu` suppressed, `preventDefault`/`stopPropagation` на press → стрелка никогда не триггерит выбор слова.
-- Между кнопками `pointer-events:none` на rail → промахи не глотаются.
-- Второй палец может жать стрелки во время drag-выбора — kortti следует за скроллом через существующий scroll-апдейт.
+- `#gameContainer.words-active .turn-panel` → `position:fixed; top:0; left:50%; translateX(-50%); width:100%; max-width:600px` — тот же паттерн, что у существующей нижней панели `.round-controls-block` (fixed, z20).
+- Фон: `linear-gradient(to bottom, rgba(13,10,24,.97) 62%, transparent)` — верх плотный, низ растворяется: контент «входит» под плашку без жёсткой кромки.
+- `#gameContainer.words-active` получает `padding-top:62px` — место под плашку, контент не прячется под неё.
+- `max-height:80dvh; overflow-y:auto` — если пользователь развернёт ❓-гармошку, плашка не уедет за экран.
+- Чип с условием (`#chipTheme`), ❓-кнопка, 🎨-кнопка и room-чипы остаются всегда наверху — в любой точке списка видно условие раунда.
+- `env(safe-area-inset-top)` учтён, зеркально `safe-area-inset-bottom` у нижней панели.
+- Вне `words-active` плашка в обычном потоке — «только там где она уже есть».
 
 ## Архитектурные факты
 
 - Заряды: `gamePlayers[i].spells.{flood,hunger,chaos,regrowth,metamorphosis}`.
 - Контекстные блоки: flood нельзя в `vapaavalintainen` и при активном `extendToEight`; hunger/chaos — пока `pendingCurses[key] !== -1`; regrowth — при `extraTurnGranted`/`isExtraTurnRound`.
-- `#gameContainer.words-active #wordList` имеет `max-height:none !important` → программный лимит только через `setProperty(...,'important')`.
-- Глобальный `button { width:100%; margin-top:8px; padding:10px 20px }` → у `.word-scroll-btn` все геометрические свойства под `!important`.
-- `button:disabled` имеет `!important`-стили → edge-состояние стрелок делаем классом, не `disabled`.
-- Слои врапа: mask z3 < grain z4 < hint z5 < coach z6 < rail z7.
-- `wordListWrap` в words-active имеет `padding-bottom:78px` (место под palkki) → rail вешаем `bottom:<computed>`.
+- `.container` не имеет transform/filter → `position:fixed` дочерних элементов привязан к вьюпорту (иначе бы к карточке).
+- У `position:fixed` элементов `offsetParent === null` → видимость проверять через `getBoundingClientRect().width` (урок из v1).
+- `padding-top` на `#gameContainer.words-active`: конкурирующие правила `.container{padding}` — решается `!important` + специфичностью id-селектора; дублирующее `padding-top:14px` из старого ruleset'а убрано.
+- `#btnInfoToggle` виден только в `words-active` (CSS-гейтинг) — внутри приклеенной плашки он всегда достижим.
 
 ## Реализация (кратко)
 
-1. `index.html`: `#wordScrollRail` + `#wordScrollUp`/`#wordScrollDown` внутри `#wordListWrap`, после `#veilCoach`.
-2. `styles.css`: `.spell-action-row{transition,max-height:140px,overflow:hidden}` + `.spell-out`; `#wordScrollRail`/`.word-scroll-btn`/`.dir-hidden` + reduced-motion.
+1. `index.html`: разметка `#wordScrollRail`/`#wordScrollUp`/`#wordScrollDown` **удалена**.
+2. `styles.css`: блок `.word-scroll-btn`/`.dir-hidden`/`#wordScrollRail` **удалён**; добавлен `#gameContainer.words-active .turn-panel{position:fixed…}` + `padding-top:62px` на контейнере; `.spell-action-row{transition,max-height:140px,overflow:hidden}` + `.spell-out`.
 3. `js/spells.js`: `spellUsable(p,key)` — единое правило «нажимаемости»; `animateSpellUse(row,done)` — spell-out + deferred re-render; `renderBeforeWordsIfPhase1` — страж против гонки фаз; оба рендера показывают только usable-спеллы, пустую зону прячут.
-4. `js/ui.js`: `window.wlRevealOn/wlRevealOff/wlIsAiming`; `refreshPrivacyMask` → `updateWordScrollRail`; `mouseleave` не гасит вуаль при переходе курсора на rail; модуль `updateWordScrollRail` + `bindWordScrollBtn` (tap/hold, touch+mouse, reveal).
-5. `audit/tool/verify21.js`: исчезновение по одному спеллу и целиком, контекстные блоки, 0 зарядов, rail on-overflow/edges, tap/hold скролл + reveal, выбор жестом после скролла.
+4. `js/ui.js`: модуль стрелок, экспорты `wlRevealOn/wlRevealOff/wlIsAiming`, хук `updateWordScrollRail` и `mouseleave`-проверка rail **удалены** — код вуали вернулся к виду до v1.
+5. `audit/tool/verify21.js`: исчезновение спеллов + sticky-плашка (fixed-позиция, верх вьюпорта, ширина карточки, неподвижность при скролле списка, резерв padding-top, ❓-гармошка, выбор жестом).

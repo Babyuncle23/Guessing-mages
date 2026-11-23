@@ -1,13 +1,13 @@
-// audit/tool/verify21.js — динамическое исчезновение скиллов + стрелки скролла
+// audit/tool/verify21.js — динамическое исчезновение скиллов + sticky-плашка условия
 // A) Фаза 1: каст Korttitulva → строка spell-out → контейнер скрыт (единственный спелл)
 // B) Фаза 2: метаморфоза → контейнер скрыт после анимации
 // C) Kirouksenlangettaja: каст одного проклятия → его строка исчезает, вторая остаётся;
 //    каст второго → весь spellContainer скрыт
 // D) vapaavalintainen: у Muodonmuuttaja зона полностью скрыта (контекстная блокировка)
-// E) 0 зарядов → скилл не отображается вовсе (на новом ходу)
-// F) Стрелки: скрыты без переполнения; видны при переполнении; dir-hidden у краёв;
-//    удержание = скролл + reveal; тап = шаг; нажатие не выбирает слово; выбор жестом работает
-// G) Zero console errors
+// E) Sticky-плашка: в words-active turn-panel position:fixed к верху вьюпорта,
+//    не двигается при скролле списка, контент не уходит под неё, ❓-гармошка
+//    раскрывается внутри неё, выбор слова жестом не сломан
+// F) Zero console errors
 // Запуск: node verify21.js  (сам поднимает server.js на :8490)
 const { spawn } = require('child_process');
 const path = require('path');
@@ -70,20 +70,6 @@ const spellState = (page) => evl(page, () => ({
     b2txt: document.getElementById('spellBtn2').textContent,
     title: document.getElementById('spellZoneTitle').textContent,
 }));
-const railState = (page) => evl(page, () => ({
-    rail: document.getElementById('wordScrollRail').style.display,
-    upHidden: document.getElementById('wordScrollUp').classList.contains('dir-hidden'),
-    downHidden: document.getElementById('wordScrollDown').classList.contains('dir-hidden'),
-    scrollTop: document.getElementById('wordList').scrollTop,
-    revealing: document.getElementById('wordListWrap').classList.contains('revealing'),
-}));
-const touchBtn = (page, id, type) => evl(page, (i, t) => {
-    const el = document.getElementById(i);
-    const r = el.getBoundingClientRect();
-    const touch = new Touch({ identifier: 9, target: el, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 });
-    const ev = new TouchEvent(t, { changedTouches: [touch], touches: t === 'touchend' || t === 'touchcancel' ? [] : [touch], bubbles: true, cancelable: true });
-    el.dispatchEvent(ev);
-}, id, type);
 const touchAt = (page, type, x, y) => evl(page, (t, cx, cy) => {
     const el = document.getElementById('wordList');
     const touch = new Touch({ identifier: 1, target: el, clientX: cx, clientY: cy });
@@ -186,80 +172,78 @@ const rowCenter = (page, i) => evl(page, (idx) => {
         check('vapaa: flood unusable → zone hidden for P1', st.container === 'none', st.container);
         await page.close();
 
-        // ============ E. Стрелки скролла ============
-        console.log('== E. Scroll arrows ==');
+        // ============ E. Sticky-плашка условия ============
+        console.log('== E. Sticky top plaque ==');
         page = await newPage(browser);
         await evl(page, () => localStorage.clear());
         await forceTheme(page, 'theme-weight-pantomiimi');
         await evl(page, () => { document.getElementById('roundSelect').value = '7'; setPlayerMode(2); });
         await tap(page, '#startGameBtn'); await sleep(400);
         await rollAndRest(page);
+
+        // До открытия слов плашка в обычном потоке — pinned только там, где уже есть
+        let pn = await evl(page, () => {
+            const cs = getComputedStyle(document.getElementById('turnPanel'));
+            return { pos: cs.position };
+        });
+        check('before words: panel in flow (not pinned)', pn.pos !== 'fixed', pn.pos);
+
         await openWords(page);
         check('5 words open', await evl(page, () => document.querySelectorAll('#wordList li').length) === 5);
 
-        let rs = await railState(page);
-        check('rail hidden when no overflow', rs.rail === 'none', rs.rail);
+        pn = await evl(page, () => {
+            const p = document.getElementById('turnPanel');
+            const cs = getComputedStyle(p);
+            const r = p.getBoundingClientRect();
+            const chip = document.getElementById('turnChip');
+            const cr = chip.getBoundingClientRect();
+            const gc = document.getElementById('gameContainer');
+            return {
+                pos: cs.position, top: r.top, w: Math.round(r.width), h: Math.round(r.height),
+                chipTop: cr.top, chipTxt: chip.textContent.trim(),
+                chipVisible: cr.height > 0,
+                containerPT: getComputedStyle(gc).paddingTop,
+                z: cs.zIndex,
+            };
+        });
+        check('words-active: panel pinned fixed', pn.pos === 'fixed', pn.pos);
+        check('panel at viewport top', Math.abs(pn.top) <= 2, `top=${pn.top}`);
+        check('panel spans card width', pn.w <= 610 && pn.w >= 350, `w=${pn.w}`);
+        check('chip row visible inside panel', pn.chipVisible === true && pn.chipTop >= 0);
+        check('chip shows theme (condition)', /PANTOMIIMI/i.test(pn.chipTxt), pn.chipTxt);
+        check('container reserves top space', parseInt(pn.containerPT) >= 50, pn.containerPT);
+        check('panel above veil z-wise', parseInt(pn.z) >= 20, pn.z);
 
-        // Искусственное переполнение: жёсткий max-height (в words-active стоит
-        // max-height:none !important — побеждаем setProperty с приоритетом)
+        // Скролл списка — плашка не двигается
         await evl(page, () => {
             document.getElementById('wordList').style.setProperty('max-height', '150px', 'important');
-            window.updateWordScrollRail();
+            document.getElementById('wordList').scrollTop = 99999;
         });
-        rs = await railState(page);
-        check('rail visible on overflow', rs.rail === 'flex', rs.rail);
-        check('▲ hidden at top edge', rs.upHidden === true);
-        check('▼ visible at top edge', rs.downHidden === false);
-
-        // Rail анкорится на ВСЮ карточку (wordListWrap), а не только на <ol>:
-        // верх = верх карточки, низ = верх sticky-панели кнопок
-        const pos = await evl(page, () => {
-            const rr = document.getElementById('wordScrollRail').getBoundingClientRect();
-            const cr = document.getElementById('wordListWrap').getBoundingClientRect();
-            const br = document.querySelector('.round-controls-block').getBoundingClientRect();
-            return { railT: rr.top, railB: rr.bottom, cardT: cr.top, cardB: cr.bottom, barT: br.top };
+        await sleep(200);
+        const pn2 = await evl(page, () => {
+            const r = document.getElementById('turnPanel').getBoundingClientRect();
+            return { top: r.top, st: document.getElementById('wordList').scrollTop };
         });
-        check('rail top = card top', Math.abs(pos.railT - pos.cardT) <= 6,
-            `railT=${Math.round(pos.railT)} cardT=${Math.round(pos.cardT)}`);
-        check('rail ends above sticky bar', pos.railB <= pos.barT + 4,
-            `railB=${Math.round(pos.railB)} barT=${Math.round(pos.barT)}`);
+        check('panel stays pinned while list scrolls', Math.abs(pn2.top - pn.top) < 1 && pn2.st > 0,
+            `top=${pn2.top} st=${pn2.st}`);
+        await evl(page, () => document.getElementById('wordList').style.removeProperty('max-height'));
 
-        // Удержание ▼: reveal + непрерывный скролл
-        await touchBtn(page, 'wordScrollDown', 'touchstart'); await sleep(500);
-        rs = await railState(page);
-        check('hold ▼ scrolls list', rs.scrollTop > 20, `scrollTop=${rs.scrollTop}`);
-        check('hold ▼ reveals veil', rs.revealing === true);
-        check('arrow press does not select a word', await evl(page, () => selectedWordIndex === -1));
-        await touchBtn(page, 'wordScrollDown', 'touchend'); await sleep(300);
-        rs = await railState(page);
-        check('veil returns after release', rs.revealing === false);
-        check('▲ appeared after scrolling down', rs.upHidden === false);
+        // ❓-гармошка раскрывается внутри приклеенной плашки поверх карточки
+        await tap(page, '#btnInfoToggle'); await sleep(400);
+        const acc = await evl(page, () => {
+            const body = document.getElementById('turnPanelBody');
+            const r = body.getBoundingClientRect();
+            return { collapsed: body.classList.contains('collapsed'), h: Math.round(r.height) };
+        });
+        check('accordion expands inside pinned panel', acc.collapsed === false && acc.h > 50, `h=${acc.h}`);
+        await tap(page, '#btnInfoToggle'); await sleep(300);
 
-        // Докручиваем в самый низ — ▼ гаснет
-        await evl(page, () => { document.getElementById('wordList').scrollTop = 99999; });
-        await sleep(150);
-        rs = await railState(page);
-        check('▼ hidden at bottom edge', rs.downHidden === true);
-        const deepTop = rs.scrollTop;
-
-        // Тап ▲ — плавный шаг вверх
-        await touchBtn(page, 'wordScrollUp', 'touchstart'); await sleep(60);
-        await touchBtn(page, 'wordScrollUp', 'touchend'); await sleep(700);
-        rs = await railState(page);
-        check('tap ▲ scrolls up by ~2 rows', rs.scrollTop < deepTop, `${deepTop}→${rs.scrollTop}`);
-        check('▼ visible again', rs.downHidden === false);
-
-        // Выбор жестом после скролла по-прежнему работает
+        // Выбор слова жестом не сломан
         const c = await rowCenter(page, 0);
         await touchAt(page, 'touchstart', c.x, c.y); await sleep(80);
         await touchAt(page, 'touchend', c.x, c.y); await sleep(200);
-        check('word selection works after scrolling', await evl(page, () =>
+        check('word selection still works', await evl(page, () =>
             document.querySelector('#wordList li.selected-word') !== null && selectedWordIndex >= 0));
-
-        // Убираем переполнение — rail исчезает
-        await evl(page, () => { document.getElementById('wordList').style.removeProperty('max-height'); window.updateWordScrollRail(); });
-        rs = await railState(page);
-        check('rail hidden again without overflow', rs.rail === 'none', rs.rail);
         await page.close();
 
         // ============ F. Errors ============
