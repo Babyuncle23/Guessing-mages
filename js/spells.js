@@ -14,6 +14,42 @@ const setSpellBtnContent = (btn, name, charges, subText) => {
     btn.innerHTML = `<span class="spell-name">${name} (${charges})</span><span class="spell-sub">${subText}</span>`;
 };
 
+// Voiko loitsua käyttää JUURI NYT — sama sääntö ohjaa piilotuksen:
+// käyttämätön/odottava/kontekstin estämä loitsu katoaa rivistä kokonaan
+// (ei disabled-nappia — toimimattomat poistuvat käyttöliittymästä).
+const spellUsable = (p, key) => {
+    if (!p || !p.spells) return false;
+    switch (key) {
+        case 'flood':         return p.spells.flood > 0 && currentActiveTheme !== "vapaavalintainen" && !activeModifiers.extendToEight;
+        case 'hunger':        return p.spells.hunger > 0 && pendingCurses.hunger === -1;
+        case 'chaos':         return p.spells.chaos > 0 && pendingCurses.chaos === -1;
+        case 'regrowth':      return p.spells.regrowth > 0 && !p.extraTurnGranted && !isExtraTurnRound;
+        case 'metamorphosis': return p.spells.metamorphosis > 0;
+        default:              return false;
+    }
+};
+
+const SPELL_ANIM_MS = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 0 : 300;
+
+// Käytetty loitsu "romahtaa" pois rivistä — uusi renderöinti vasta animaation
+// jälkeen, jotta katoaminen näkyy dynaamisena.
+const animateSpellUse = (row, done) => {
+    if (typeof hideSpellHelpModal === 'function') hideSpellHelpModal();
+    if (!row) { done(); return; }
+    const btn = row.querySelector('.spell-btn');
+    if (btn) btn.disabled = true; // tuplaklikkauksen esto animaation ajaksi
+    row.classList.add('spell-out');
+    setTimeout(done, SPELL_ANIM_MS);
+};
+
+// Animaation jälkeinen renderöinti: vain jos ollaan edelleen vaiheessa 1 —
+// sanoja ei avattu EIKÄ vuoro ehtinyt päättyä 300 ms aikana.
+const renderBeforeWordsIfPhase1 = () => {
+    if (wordList.style.display === 'none' && btn.style.display === 'none') {
+        renderSpellButtonsBeforeWords();
+    }
+};
+
 const setSpellPhaseTitle = (phase) => {
     const title = document.getElementById('spellZoneTitle');
     if (!title) return;
@@ -68,105 +104,104 @@ const renderSpellButtonsBeforeWords = () => {
         return;
     }
 
-    spellContainer.style.display = "flex";
-    setSpellPhaseTitle(1);
-
-    // Alustetaan rivit ja painikkeet aina piiloon puhtaasti ilman inline-häiriöitä
-    spellRow1.style.display = "none";
-    spellRow2.style.display = "none";
+    // Rivit ja painikkeet puhtaaksi + mahdollinen sulkuanimaatio nollaan
+    if (spellRow1) { spellRow1.classList.remove('spell-out'); spellRow1.style.display = "none"; }
+    if (spellRow2) { spellRow2.classList.remove('spell-out'); spellRow2.style.display = "none"; }
     spellBtn1.style.display = "none";
     spellBtn2.style.display = "none";
     if (spellHelpBtn1) spellHelpBtn1.style.display = "none";
     if (spellHelpBtn2) spellHelpBtn2.style.display = "none";
     if (spellInfoBox) spellInfoBox.style.display = "none";
 
-    if (p.name === "Muodonmuuttaja") {
-        spellRow1.style.display = "flex";
-        spellBtn1.style.display = "flex";
-        if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "flex";
-            spellHelpBtn1.dataset.spell = "Korttitulva";
+    // Näytetään rivi vain kun loitsu on JUURI NYT käytettävissä —
+    // muussa tapauksessa se puuttuu käyttöliittymästä kokonaan.
+    let anyUsable = false;
+    const showSpellRow = (row, btn, helpBtn, helpKey, usable, name, charges, subText, onClick) => {
+        if (!usable) return;
+        anyUsable = true;
+        row.style.display = "flex";
+        btn.style.display = "flex";
+        btn.disabled = false;
+        if (helpBtn) {
+            helpBtn.style.display = "flex";
+            helpBtn.dataset.spell = helpKey;
         }
-        setSpellBtnContent(spellBtn1, "🃏 KORTTITULVA", p.spells.flood, "+2 lisäsanaa tälle kierrokselle");
-        spellBtn1.disabled = p.spells.flood <= 0 || currentActiveTheme === "vapaavalintainen" || activeModifiers.extendToEight;
-        spellBtn1.onclick = () => {
-            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
-            triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
-            activeModifiers.extendToEight = true;
-            isMetamorphosisUsedThisTurn = false;
-            p.spells.flood--;
-            playAudio(sounds.morph);
-            if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('flood');
-            renderSpellButtonsBeforeWords();
-        };
-    } else if (p.name === "Kirouksenlangettaja") {
-        spellRow1.style.display = "flex";
-        spellRow2.style.display = "flex";
-        spellBtn1.style.display = "flex";
-        spellBtn2.style.display = "flex";
-        if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "flex";
-            spellHelpBtn1.dataset.spell = "Korttinälkä";
-        }
-        if (spellHelpBtn2) {
-            spellHelpBtn2.style.display = "flex";
-            spellHelpBtn2.dataset.spell = "Sanakaaos";
-        }
+        setSpellBtnContent(btn, name, charges, subText);
+        btn.onclick = onClick;
+    };
 
-        setSpellBtnContent(spellBtn1, "🥀 KORTTINÄLKÄ", p.spells.hunger, "Vastustaja saa 2 sanaa vähemmän");
-        spellBtn1.disabled = p.spells.hunger <= 0 || pendingCurses.hunger !== -1;
-        spellBtn1.onclick = () => {
-            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
-            pickCurseTarget('hunger', () => {
-                triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
-                p.spells.hunger--;
-                playAudio(sounds.curse);
-                if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('hunger');
-                renderSpellButtonsBeforeWords();
+    if (p.name === "Muodonmuuttaja") {
+        showSpellRow(spellRow1, spellBtn1, spellHelpBtn1, "Korttitulva", spellUsable(p, 'flood'),
+            "🃏 KORTTITULVA", p.spells.flood, "+2 lisäsanaa tälle kierrokselle",
+            () => {
+                if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+                triggerSpellAnimation('curse'); // Muodonmuuttaja — красная вспышка
+                activeModifiers.extendToEight = true;
+                isMetamorphosisUsedThisTurn = false;
+                p.spells.flood--;
+                playAudio(sounds.morph);
+                if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('flood');
+                animateSpellUse(spellRow1, renderBeforeWordsIfPhase1);
             });
-        };
-        setSpellBtnContent(spellBtn2, "🌪️ SANAKAAOS", p.spells.chaos, "3 vastustajan sanaa vaikeeksi");
-        spellBtn2.disabled = p.spells.chaos <= 0 || pendingCurses.chaos !== -1;
-        spellBtn2.onclick = () => {
-            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
-            pickCurseTarget('chaos', () => {
-                triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
-                p.spells.chaos--;
-                playAudio(sounds.curse);
-                if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('chaos');
-                renderSpellButtonsBeforeWords();
+    } else if (p.name === "Kirouksenlangettaja") {
+        showSpellRow(spellRow1, spellBtn1, spellHelpBtn1, "Korttinälkä", spellUsable(p, 'hunger'),
+            "🥀 KORTTINÄLKÄ", p.spells.hunger, "Vastustaja saa 2 sanaa vähemmän",
+            () => {
+                if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+                pickCurseTarget('hunger', () => {
+                    triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
+                    p.spells.hunger--;
+                    playAudio(sounds.curse);
+                    if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('hunger');
+                    animateSpellUse(spellRow1, renderBeforeWordsIfPhase1);
+                });
             });
-        };
+        showSpellRow(spellRow2, spellBtn2, spellHelpBtn2, "Sanakaaos", spellUsable(p, 'chaos'),
+            "🌪️ SANAKAAOS", p.spells.chaos, "3 vastustajan sanaa vaikeeksi",
+            () => {
+                if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+                pickCurseTarget('chaos', () => {
+                    triggerSpellAnimation('morph'); // Проклятие — фиолетовая вспышка
+                    p.spells.chaos--;
+                    playAudio(sounds.curse);
+                    if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('chaos');
+                    animateSpellUse(spellRow2, renderBeforeWordsIfPhase1);
+                });
+            });
     } else if (p.name === "Yrttitarhuri") {
-        spellRow1.style.display = "flex";
-        spellBtn1.style.display = "flex";
-        if (spellHelpBtn1) {
-            spellHelpBtn1.style.display = "flex";
-            spellHelpBtn1.dataset.spell = "Kasvupurkaus";
-        }
-        setSpellBtnContent(spellBtn1, "🌱 KASVUPURKAUS", p.spells.regrowth, "Oikeasta arvauksesta lisävuoro (+50p)");
-        spellBtn1.disabled = (p.spells.regrowth <= 0 || p.extraTurnGranted === true || isExtraTurnRound);
-        spellBtn1.onclick = () => {
-            if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
-            triggerSpellAnimation('druid');
-            p.extraTurnGranted = true;
-            p.spells.regrowth--;
-            playAudio(sounds.druid);
-            if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('regrowth');
-            playClickSound();
-            renderSpellButtonsBeforeWords();
-            updateTurnDisplay();
-            ruleInstruction.textContent = "Kasvupurkaus aktivoitu!...";
-        };
+        showSpellRow(spellRow1, spellBtn1, spellHelpBtn1, "Kasvupurkaus", spellUsable(p, 'regrowth'),
+            "🌱 KASVUPURKAUS", p.spells.regrowth, "Oikeasta arvauksesta lisävuoro (+50p)",
+            () => {
+                if (typeof window.netCanAct === 'function' && !window.netCanAct()) return;
+                triggerSpellAnimation('druid');
+                p.extraTurnGranted = true;
+                p.spells.regrowth--;
+                playAudio(sounds.druid);
+                if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('regrowth');
+                playClickSound();
+                animateSpellUse(spellRow1, renderBeforeWordsIfPhase1);
+                updateTurnDisplay();
+                ruleInstruction.textContent = "Kasvupurkaus aktivoitu!...";
+            });
+    }
+
+    // Ei yhtään käytettävää loitsua → koko taikavyöhyke poistuu näkyvistä
+    if (anyUsable) {
+        spellContainer.style.display = "flex";
+        setSpellPhaseTitle(1);
+    } else {
+        spellContainer.style.display = "none";
     }
 };
 
 const renderSpellButtonsAfterWords = () => {
     const p = gamePlayers[currentPlayerIndex];
     if (spellInfoBox) spellInfoBox.style.display = "none";
+    if (spellRow1) { spellRow1.classList.remove('spell-out'); }
+    if (spellRow2) { spellRow2.classList.remove('spell-out'); }
 
     // Кнопка снова доступна в любой теме!
-    if (p && p.name === "Muodonmuuttaja" && p.spells.metamorphosis > 0) {
+    if (p && p.name === "Muodonmuuttaja" && spellUsable(p, 'metamorphosis')) {
         spellContainer.style.display = "flex";
         setSpellPhaseTitle(2);
 
@@ -216,7 +251,7 @@ const renderSpellButtonsAfterWords = () => {
             isMetamorphosisUsedThisTurn = true;
             if (typeof window.netRelaySpellCast === 'function') window.netRelaySpellCast('morph');
             renderOlList();
-            spellContainer.style.display = "none";
+            animateSpellUse(spellRow1, () => { spellContainer.style.display = "none"; });
 
             let baseInstruction = (activeCondition1 === "perusvaihtoehto" || activeCondition2 === "perusvaihtoehto") ?
                 "Toinen pelaaja valitsee sanan ilman että näkee listaa. Selitä sana normaalisti." :

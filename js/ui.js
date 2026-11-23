@@ -500,6 +500,8 @@ const refreshPrivacyMask = () => {
         }
     }
     updateToolPill();
+    // Nuolimoduuli asetetaan myöhemmin tiedostossa — window-suojattu kutsu
+    if (typeof window.updateWordScrollRail === 'function') window.updateWordScrollRail();
 };
 window.refreshPrivacyMask = refreshPrivacyMask;
 
@@ -653,7 +655,10 @@ const initPrivacyMask = () => {
         armAt(e.clientX, e.clientY); // vapautuspiste ratkaisee
         aimEnd(true);
     });
-    wordList.addEventListener('mouseleave', () => {
+    wordList.addEventListener('mouseleave', (e) => {
+        // Kursori vieritysnuoleen = edelleen "listan sisällä" — verho ei vilkahda
+        const rail = document.getElementById('wordScrollRail');
+        if (rail && e.relatedTarget && rail.contains(e.relatedTarget)) return;
         revealOff();
         disarm(); // kursori pois — kortti katoaa, mutta veto jatkuu takaisin tullessa
     });
@@ -670,9 +675,98 @@ const initPrivacyMask = () => {
     });
     window.addEventListener('resize', () => requestAnimationFrame(updateSelGlow));
     window.addEventListener('scroll', () => requestAnimationFrame(updateSelGlow), { passive: true });
+
+    // Vieritysnuolimoduuli tarvitsee paljastuksen + aiming-tilan
+    window.wlRevealOn = revealOn;
+    window.wlRevealOff = revealOff;
+    window.wlIsAiming = () => aiming;
+
     refreshPrivacyMask();
 };
 initPrivacyMask();
+
+// --- VIERITYSNUOLET: ▲▼-pari listan oikeassa reunassa ---
+// Näkyy vain kun lista ylivuotaa; oma suunta himmenee reunassa (.dir-hidden).
+// Pidä = pehmeä jatkuva vieritys + verho raottuu (näkee sanoja vierittäessä);
+// napautus = ~2 rivin pehmeä askel. Toisen sormen painallus tähtäyksen aikana
+// vierittää listaa — kortti seuraa sormea olemassa olevan scroll-armatin kautta.
+const wordScrollRail = document.getElementById('wordScrollRail');
+const btnWordScrollUp = document.getElementById('wordScrollUp');
+const btnWordScrollDown = document.getElementById('wordScrollDown');
+const WL_SCROLL_EPS = 4; // px
+
+window.updateWordScrollRail = () => {
+    if (!wordScrollRail || typeof wordList === 'undefined' || !wordList) return;
+    const visible = wordList.children.length > 0 && wordList.style.display !== 'none';
+    const overflows = visible && (wordList.scrollHeight - wordList.clientHeight > WL_SCROLL_EPS);
+    wordScrollRail.style.display = overflows ? 'flex' : 'none';
+    if (!overflows) return;
+    // Railin alareuna = listalaatikon alareuna (wrapin padding-bottom varaa tilaa palkille)
+    if (wordListWrap) wordScrollRail.style.bottom = getComputedStyle(wordListWrap).paddingBottom;
+    const atTop = wordList.scrollTop <= WL_SCROLL_EPS;
+    const atBottom = wordList.scrollTop + wordList.clientHeight >= wordList.scrollHeight - WL_SCROLL_EPS;
+    if (btnWordScrollUp) btnWordScrollUp.classList.toggle('dir-hidden', atTop);
+    if (btnWordScrollDown) btnWordScrollDown.classList.toggle('dir-hidden', atBottom);
+};
+
+const bindWordScrollBtn = (btnEl, dir) => {
+    if (!btnEl) return;
+    let raf = 0, holdTimer = 0, t0 = 0, active = false;
+
+    const stopAll = () => {
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = 0; }
+    };
+    const release = () => {
+        if (!active) return;
+        active = false;
+        const quickTap = performance.now() - t0 < 220;
+        stopAll();
+        if (quickTap) {
+            const li = wordList.querySelector('li');
+            const step = (li ? li.offsetHeight : 44) + 8; // rivikorkeus + väli
+            wordList.scrollBy({ top: dir * step * 2, behavior: 'smooth' });
+        }
+        // Tähtäys jatkuu toisella sormella → verho jää; muuten palaa 1.2 s himmennyksenä
+        if (typeof window.wlIsAiming !== 'function' || !window.wlIsAiming()) {
+            if (typeof window.wlRevealOff === 'function') window.wlRevealOff();
+        }
+    };
+    const press = (e) => {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        if (active) return;
+        active = true;
+        t0 = performance.now();
+        // Verho raottuu heti — sanoja näkee vierittäessä yhdellä sormella
+        if (typeof window.wlRevealOn === 'function') window.wlRevealOn();
+        holdTimer = setTimeout(() => {
+            holdTimer = 0;
+            const tick = () => {
+                wordList.scrollTop += dir * 4; // ~240 px/s jatkuva vieritys
+                raf = requestAnimationFrame(tick);
+            };
+            raf = requestAnimationFrame(tick);
+        }, 220);
+    };
+
+    btnEl.addEventListener('touchstart', press, { passive: false });
+    btnEl.addEventListener('touchend', release);
+    btnEl.addEventListener('touchcancel', release);
+    btnEl.addEventListener('mousedown', press);
+    btnEl.addEventListener('mouseup', release);
+    btnEl.addEventListener('mouseleave', release);
+    btnEl.addEventListener('contextmenu', (e) => e.preventDefault());
+};
+
+bindWordScrollBtn(btnWordScrollUp, -1);
+bindWordScrollBtn(btnWordScrollDown, 1);
+
+if (wordList) {
+    wordList.addEventListener('scroll', () => window.updateWordScrollRail(), { passive: true });
+    window.addEventListener('resize', () => window.updateWordScrollRail());
+    window.updateWordScrollRail();
+}
 
 // --- "KUKA ARVASI?" -MODAALI (3 pelaajan vapaa kaikkien peli) ---
 // callback(guesserIndex) kutsutaan valinnan jälkeen; Peruuta -> callback(-1)
